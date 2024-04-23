@@ -1,10 +1,10 @@
 package sit.int221.BEOR2.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.sql.Timestamp;
 
 @Getter
 @Setter
@@ -12,11 +12,24 @@ import lombok.Setter;
 @Table(name = "task")
 public class Task {
     @Id
+    @Column(name = "id")
     private Integer id;
-    private String taskTitle;
-    private String taskDescription;
-    private String taskAssignees;
-    private String taskStatus;
+
+    @Column(name = "taskTitle")
+    private String title;
+   
+    @Column(name = "taskDescription")
+    private String description;
+   
+    @Column(name = "taskAssignees")
+    private String assignees;
+   
+    @Column(name = "taskStatus")
+    private String status;
+   
+    @Column(name = "createdOn")
     private String createdOn;
+   
+    @Column(name = "updatedOn")
     private String updatedOn;
 }
