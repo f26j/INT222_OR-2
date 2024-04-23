@@ -1,12 +1,16 @@
 # INT221_OR-2
 Integrated project
+:
 
+## member
+> **ชาญ ทองเจิม**
+![ชาญ ทองเจิม](social/63019.jpg){width=300px height=300px}
 
-63130500019 ชาญ ทองเจิม
-![alt text](social/63019.jpg)
+> **นัทธมน ทองคำอ้น**
+![นัทธมน ทองคำอ้น](social/65035.jpg){width=300px height=300px}
 
-65130500035 นัทธมน ทองคำอ้น
-![alt text](social/65035.jpg)
+> **รติกร ดำเกิงลัภนวณิช**
+![รติกร ดำเกิงลัภนวณิช](social/65130500068.jpg){width=300px height=300px}
 
-65130500087 อนวัตร กรุดธูป
-![alt text](social/65087.JPG)
+> **อนวัตร กรุดธูป**
+![อนวัตร กรุดธูป](social/65087.JPG){width=300px height=300px}
