@@ -9,6 +9,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/tasks")
+@CrossOrigin("http://localhost:5173/") // Front-end
 public class TaskController {
     private final TaskRepository taskRepository;
 
@@ -22,14 +23,14 @@ public class TaskController {
         return taskRepository.findAll();
     }
 
-    @PostMapping
-    public Task addTask(@RequestBody Task task) {
-        return taskRepository.save(task);
-    }
-
     @GetMapping("/{id}")
     public Task getTaskById(@PathVariable Integer id) {
         return taskRepository.findById(id).orElse(null);
+    }
+
+    @PostMapping
+    public Task addTask(@RequestBody Task task) {
+        return taskRepository.save(task);
     }
 
     @PutMapping("/{id}")
