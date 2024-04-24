@@ -1,32 +1,108 @@
 <script setup>
+import {onMounted, ref} from 'vue'
+const tasks = ref([]);
+ async function fetchData() {
+        const response = await fetch('http://localhost:8080/api/v1/tasks');
+        const data = await response.json();
+        console.log(data)
+        return data;
+ }
 
+    onMounted(async () => {
+      const data = await fetchData()
+      tasks.value = data
+    })
+
+    console.log(tasks.value);
+    
+  
 </script>
 
 <template>
-  <header>
-    <br>
-    <h1 class="text-center text-pink-400 tex">Integrated project OR-2</h1>
-    
-  </header>
-  <ul class="effectbg" style="z-index: -1; position: fixed">
-        <li></li>
-        <li></li>
-        <li></li>
-        <li></li>
-        <li></li>
-        <li></li>
-        <li></li>
-        <li></li>
-        <li></li>
-        <li></li>
-      </ul>
+
+    <header>
+      <br>
+      <h1 class="text-center">IT-Bangmod Kradan Kanban</h1>  
+    </header>
+      <table>
+        <thead>
+          <tr>
+              <th class="pad">id</th>
+              <th class="pad">Title</th>
+              <th class="pad">Assignees</th>
+              <th class="pad">Status</th>
+          </tr>
+      </thead>
+        <tbody>
+          <div v-for="task in tasks">
+            <tr>
+              <td>{{task.id}}</td>
+              <td>{{task.title}}</td>
+              <td>{{task.assignees}}</td>
+              <td>{{task.status}}</td>
+            </tr>
+        </div>
+      </tbody>
+  </table>
+    <ul class="effectbg" style="z-index: -1; position: fixed">
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+    </ul>
 </template>
 
 <style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
+@import url('https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono');
+* {
+  user-select: none;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  scroll-behavior: smooth;
 }
+::-webkit-scrollbar {
+  width: 0px;
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+}
+header {
+  margin-top: 50px;
+  margin-bottom:50px;
+}
+table {
+  margin: 0 auto;
+}
+h1 {
+  font-family: 'Proza Libre', sans-serif;
+  font-size: 40px;
+  color: #3A405A;
+  font-weight: 800;
+}
+table th{ 
+  font-family: 'Proza Libre', sans-serif;
+  font-size: 20px;
+  color: #3A405A;
+  padding: 10px;
+}
+.pad{
+  padding-left: 50px;
+  padding-right: 50px;
+  margin-left: 10px;
+  text-decoration: none;
+  border: solid 5px;
+  border-color: white;
+  border-radius: 25px;
+  background-color: pink;
+}
+
 .effectbg {
   z-index: -1;
   position: absolute;
