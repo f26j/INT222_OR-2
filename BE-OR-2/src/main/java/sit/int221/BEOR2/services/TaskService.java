@@ -19,7 +19,7 @@ public class TaskService {
     }
 
     public Task getTaskById(@PathVariable Integer id) {
-        return taskRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("The requested task does not exist"));
+        return taskRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Task id " + id + " does not exist !!!"));
     }
 
     public Task addTask(@RequestBody Task task) {
