@@ -9,7 +9,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/tasks")
-@CrossOrigin("http://localhost:5173/") // Front-end
+@CrossOrigin("http://localhost:5173") // Front-end
 public class TaskController {
     private final TaskRepository taskRepository;
 
