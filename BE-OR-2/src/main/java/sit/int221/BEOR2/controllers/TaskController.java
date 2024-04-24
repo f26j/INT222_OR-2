@@ -1,10 +1,9 @@
 package sit.int221.BEOR2.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import sit.int221.BEOR2.entities.Task;
-import sit.int221.BEOR2.repositories.TaskRepository;
+import sit.int221.BEOR2.services.TaskService;
 
 import java.util.List;
 
@@ -12,39 +11,31 @@ import java.util.List;
 @RequestMapping("/api/v1/tasks")
 @CrossOrigin(origins = "http://localhost:5173") // Front-end
 public class TaskController {
-    private final TaskRepository taskRepository;
-
     @Autowired
-    public TaskController(TaskRepository taskRepository) {
-        this.taskRepository = taskRepository;
-    }
+    private TaskService taskService;
 
     @GetMapping
     public List<Task> getTasks() {
-        return taskRepository.findAll();
+        return taskService.getTasks();
     }
 
     @GetMapping("/{id}")
     public Task getTaskById(@PathVariable Integer id) {
-        return taskRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
+        return taskService.getTaskById(id);
     }
 
     @PostMapping
     public Task addTask(@RequestBody Task task) {
-        return taskRepository.save(task);
+        return taskService.addTask(task);
     }
 
     @PutMapping("/{id}")
     public Task updateTask(@PathVariable Integer id, @RequestBody Task updatedTask) {
-        if (taskRepository.existsById(id)) {
-            updatedTask.setId(id);
-            return taskRepository.save(updatedTask);
-        }
-        return null;
+        return taskService.updateTask(id, updatedTask);
     }
 
     @DeleteMapping("/{id}")
     public void deleteTask(@PathVariable Integer id) {
-        taskRepository.deleteById(id);
+        taskService.deleteTask(id);
     }
 }
