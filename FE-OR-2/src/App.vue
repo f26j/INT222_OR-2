@@ -12,36 +12,34 @@ const tasks = ref([]);
       const data = await fetchData()
       tasks.value = data
     })
-
     console.log(tasks.value);
     
   
 </script>
 
 <template>
-
+  <div class="app">
     <header>
       <br>
-      <h1 class="text-center">IT-Bangmod Kradan Kanban</h1>  
+      <h1 class="text-center text-red-300">IT-Bangmod Kradan Kanban</h1>  
     </header>
       <table>
         <thead>
           <tr>
-              <th class="pad">id</th>
-              <th class="pad">Title</th>
-              <th class="pad">Assignees</th>
-              <th class="pad">Status</th>
+              <th>id</th>
+              <th>Title</th>
+              <th>Assignees</th>
+              <th>Status</th>
           </tr>
       </thead>
         <tbody>
-          <div v-for="task in tasks">
-            <tr>
-              <td>{{task.id}}</td>
-              <td>{{task.title}}</td>
-              <td>{{task.assignees}}</td>
-              <td>{{task.status}}</td>
+            <tr  v-for="task in tasks" class="itbkk-item">
+              <td>{{ task.id }}</td>
+              <td class="itbkk-title">{{ task.title }}</td>
+              <td class="itbkk-assignees">{{ task.assignees }}</td>
+              <td class="itbkk-status">{{ task.status }}</td>
             </tr>
-        </div>
+
       </tbody>
   </table>
     <ul class="effectbg" style="z-index: -1; position: fixed">
@@ -56,13 +54,14 @@ const tasks = ref([]);
           <li></li>
           <li></li>
     </ul>
+  </div>
 </template>
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono');
 * {
   user-select: none;
-  box-sizing: border-box;
+  
   margin: 0;
   padding: 0;
   scroll-behavior: smooth;
@@ -73,35 +72,40 @@ const tasks = ref([]);
 ::-webkit-scrollbar-thumb {
   background: #333;
 }
+body {
+  background-color: red;
+  margin: 0;
+  padding: 0;
+}
 header {
   margin-top: 50px;
   margin-bottom:50px;
 }
-table {
-  margin: 0 auto;
-}
+
 h1 {
   font-family: 'Proza Libre', sans-serif;
   font-size: 40px;
-  color: #3A405A;
+
   font-weight: 800;
 }
-table th{ 
-  font-family: 'Proza Libre', sans-serif;
-  font-size: 20px;
-  color: #3A405A;
+
+table {
+  width: 60%; /* กำหนดความกว้างของตาราง */
+  margin: auto; /* ทำให้ตารางอยู่ตรงกลาง */
+  border: 2px solid #ddd; /* เพิ่มเส้นขอบสีเทา */
+  border-collapse: collapse; /* รวมเส้นขอบ */
+}
+
+th, td {
   padding: 10px;
+  text-align: left;
+  border: 1px solid #ddd; /* เพิ่มเส้นขอบแบบจุดเล็กๆ สีเทา */
 }
-.pad{
-  padding-left: 50px;
-  padding-right: 50px;
-  margin-left: 10px;
-  text-decoration: none;
-  border: solid 5px;
-  border-color: white;
-  border-radius: 25px;
-  background-color: pink;
+
+thead th {
+  background-color: #f2f2f2;
 }
+
 
 .effectbg {
   z-index: -1;
