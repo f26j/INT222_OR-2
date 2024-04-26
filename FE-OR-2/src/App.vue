@@ -73,7 +73,7 @@
     min-height: 100vh;
     margin: 0;
     padding: 0;
-    background: linear-gradient(45deg, #47467b, #f7b1c3);
+    background: linear-gradient(45deg, #9b9bd8, #ffd6e0);
     font-family: "Ubuntu", sans-serif;
     font-weight: 500;
     font-style: normal;
