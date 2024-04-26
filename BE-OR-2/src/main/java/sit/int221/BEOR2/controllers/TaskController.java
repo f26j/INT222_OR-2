@@ -9,7 +9,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/tasks")
-@CrossOrigin("http://localhost:5173") // Front-end
+@CrossOrigin(origins = {"http://localhost:5173", "http://ip23or2.sit.kmutt.ac.th"}) // Front-end
 public class TaskController {
     @Autowired
     private TaskService taskService;
