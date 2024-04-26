@@ -34,33 +34,104 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="task in tasks">
-            <td class="id">{{ task.id }}</td>
-            <td>{{ task.title }}</td>
-            <td>{{ task.assignees }}</td>
-            <td>
-              <span class="status-badge" :class="'status-' + task.status">
-                {{ task.status }}
-              </span>
-            </td>
+          <tr v-for="task in tasks" class="itbkk-item">
+            <td>{{ task.id }}</td>
+            <td class="itbkk-title">{{ task.title }}</td>
+            <td class="itbkk-assignees">{{ task.assignees }}</td>
+            <td class="itbkk-status"><Badges :status="task.status" /></td>
           </tr>
         </tbody>
       </table>
     </div>
+    <Bg_effect />
   </div>
 </template>
 
-<style>
-  @import url("https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono");
-  @import url("https://fonts.googleapis.com");
-  @import url("https://fonts.gstatic.com");
-  @import url("https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
-  * {
-    user-select: none;
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    scroll-behavior: smooth;
+<style scoped>
+@import url("https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono");
+@import url("https://fonts.googleapis.com");
+@import url("https://fonts.gstatic.com");
+@import url("https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
+
+* {
+  user-select: none;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  scroll-behavior: smooth;
+}
+
+::-webkit-scrollbar {
+  width: 0px;
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+}
+.itbkk-assignees {
+  font-style: italic;
+}
+
+header {
+  margin-bottom: 20px;
+}
+
+h1 {
+  font-family: "Ubuntu", sans-serif;
+  font-weight: 500;
+  font-style: normal;
+  font-size: 40px;
+  color: #47467b;
+  font-weight: 800;
+  margin-top: 2rem;
+}
+
+hr {
+  height: 0;
+  color: inherit;
+  border-top-width: 1px;
+}
+.tb {
+  padding: 2rem;
+}
+table {
+  width: auto;
+  max-width: 800px;
+  border-collapse: collapse;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.432);
+  margin: 0 auto;
+  border-radius: 25px;
+}
+
+th,
+td {
+  padding: 15px;
+  background-color: rgba(255, 254, 255, 0.329);
+}
+
+th {
+  text-align: left;
+  color: rgba(255, 255, 255, 0.748);
+}
+
+td {
+  color: #ad386f;
+  font-family: "Ubuntu", sans-serif;
+  font-weight: 600;
+  font-style: normal;
+}
+
+thead th {
+  background-color: #47467b;
+}
+
+tbody tr:hover {
+  background-color: rgba(255, 168, 229, 0.63);
+}
+
+tbody {
+  td {
+    position: relative;
   }
   ::-webkit-scrollbar {
     width: 0px;
@@ -148,22 +219,5 @@
       }
     }
   }
-  
-  /* .id {
-    padding-left: 20px;
-  } */
-
-  .status-badge {
-    display: inline-block;
-    padding: 4px 8px;
-    border-radius: 4px;
-    color: #fff;
-    font-size: 14px;
-    font-weight: bold;
-  }
-
-  .status-No { background-color: #e15b64; }
-  .status-To { background-color: #f27f62; }
-  .status-Doing { background-color: #f2e35e; }
-  .status-Done { background-color: #95ca9f; }
+}
 </style>
