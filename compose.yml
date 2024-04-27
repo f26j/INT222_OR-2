@@ -36,10 +36,10 @@ services:
       context: ./DB-OR-2
       dockerfile: Dockerfile
     environment:
-      MYSQL_USER: root
-      MYSQL_ROOT_PASSWORD: mysql@sit
-      MYSQL_PASSWORD: mysql@sit
-      MYSQL_DATABASE: int221project
+      MYSQL_USER=root
+      MYSQL_ROOT_PASSWORD=mysql@sit
+      MYSQL_PASSWORD=mysql@sit
+      MYSQL_DATABASE=int221project
     ports:
       - "3306:3306"
     volumes:
