@@ -1,0 +1,46 @@
+version: "3.8"
+services:
+  app:
+    container_name: app
+    build:
+      context: ./FE-OR-2
+      dockerfile: Dockerfile
+
+  nginx:
+    image: nginx:1.26-alpine
+    container_name: nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./FE-OR-2/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+
+  spring-boot:
+    container_name: spring-boot
+    restart: always
+    build:
+      context: ./BE-OR-2
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysqldb
+
+  mysqldb:
+    image: mysql/mysql-server:8.0
+    container_name: mysqldb
+    restart: always
+    build:
+      context: ./DB-OR-2
+      dockerfile: Dockerfile
+    environment:
+      MYSQL_USER: root
+      MYSQL_ROOT_PASSWORD: mysql@sit
+      MYSQL_PASSWORD: mysql@sit
+      MYSQL_DATABASE: int221project
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./DB-OR-2/int221project.sql:/docker-entrypoint-initdb.d/int221project.sql
