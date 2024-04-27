@@ -1,7 +1,4 @@
 <script>
-  export default {
-    name: "bg-effect",
-  }
 </script>
 <template>
 <ul class="effectbg" style="z-index: -1; position: fixed">
@@ -35,7 +32,7 @@
   list-style: none;
   width: 20px;
   height: 20px;
-  background: rgba(127, 127, 127, 0.096);
+  background: rgba(255, 255, 255, 0.267);
   animation: animate 25s linear infinite;
   bottom: -150px;
 }
