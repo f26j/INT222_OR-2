@@ -48,9 +48,7 @@ const closeModal = () => {
               <td class="itbkk-title">
                 <p @click="openModal">{{ task.title }}</p>
               </td>
-              <td class="itbkk-assignees">
-                {{ task.assignees }}
-              </td>
+              <td class="itbkk-assignees">{{ task.assignees?.trim() || "Unassigned" }}</td>
               <td class="itbkk-status"><Badges :status="task.status" /></td>
             </tr>
           </tbody>
@@ -68,6 +66,8 @@ const closeModal = () => {
 @import url("https://fonts.googleapis.com");
 @import url("https://fonts.gstatic.com");
 @import url("https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Concert+One&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Concert+One&family=Itim&display=swap');
 
 * {
   user-select: none;
@@ -99,13 +99,13 @@ header {
 }
 
 h1 {
-  font-family: "Ubuntu", sans-serif;
-  font-weight: 500;
+  font-family: "Concert One", sans-serif;
+  font-weight: 400;
   font-style: normal;
   font-size: 40px;
   color: #47467b;
-  font-weight: 800;
-  margin-top: 2rem;
+  font-weight: 200;
+  margin: 4rem 0 2rem;
 }
 
 
@@ -129,14 +129,16 @@ td {
 }
 
 th {
+  font-family: "Concert One", sans-serif;
+  font-weight: 400;
   text-align: left;
   color: rgba(255, 255, 255, 0.748);
 }
 
 td {
   color: #ad386f;
-  font-family: "Ubuntu", sans-serif;
-  font-weight: 600;
+  font-family: "Itim", sans-serif;
+  font-weight: 400;
   font-style: normal;
 }
 
