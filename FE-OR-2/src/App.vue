@@ -4,23 +4,32 @@ import Badges from "./components/css/Badge.vue";
 import Copyright from "./components/css/Copyright.vue";
 import ModalDetail from "./components/modal/ModalDetail.vue";
 import { onMounted, ref } from "vue";
+
 const tasks = ref([]);
+
 async function fetchData() {
   const response = await fetch("http://localhost:8080/api/v1/tasks");
   const data = await response.json();
-  console.log(data);
   return data;
 }
+
 onMounted(async () => {
   const data = await fetchData();
   tasks.value = data;
 });
+
 const show = ref(false);
-const openModal = () => {
+
+const selectedTask = ref(null);
+
+const openModal = (task) => {
   show.value = true;
+  selectedTask.value = task;
 };
+
 const closeModal = () => {
   show.value = false;
+  selectedTask.value = null;
 };
 </script>
 
@@ -49,14 +58,14 @@ const closeModal = () => {
                 <p @click="openModal">{{ task.title }}</p>
               </td>
               <td class="itbkk-assignees">
-                {{ task.assignees }}
+                {{ task.assignees?.trim() || "Unassigned" }}
               </td>
               <td class="itbkk-status"><Badges :status="task.status" /></td>
             </tr>
           </tbody>
         </table>
       </div>
-        <ModalDetail v-if="show" @close="closeModal"></ModalDetail>
+      <ModalDetail v-if="show" @close="closeModal"></ModalDetail>
     </main>
     <Copyright />
     <Bg_effect />
@@ -88,10 +97,12 @@ const closeModal = () => {
 }
 .itbkk-title p {
   transition: transform 0.3s ease;
+  color: #ad386f;
 }
 .itbkk-title p:hover {
   cursor: pointer;
   transform: scale(1.01);
+  color: rgb(250, 133, 188);
 }
 
 header {
@@ -105,9 +116,8 @@ h1 {
   font-size: 40px;
   color: #47467b;
   font-weight: 800;
-  margin-top: 2rem;
+  margin: 4rem 0 2rem;
 }
-
 
 .tb {
   padding: 2rem;
@@ -134,7 +144,7 @@ th {
 }
 
 td {
-  color: #ad386f;
+  color: #47467b;
   font-family: "Ubuntu", sans-serif;
   font-weight: 600;
   font-style: normal;
@@ -145,7 +155,7 @@ thead th {
 }
 
 tbody tr:hover {
-  background-color: rgba(255, 168, 229, 0.63);
+  background-color: rgba(255, 255, 255, 0.63);
 }
 
 tbody {
