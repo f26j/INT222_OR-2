@@ -1,13 +1,12 @@
 <script setup>
-import { ref } from 'vue';
+import { defineProps, computed } from 'vue';
 
-const status = ref(''); 
-const props = {
+const props = defineProps({
   status: String,
-};
+});
 
 const className = computed(() => {
-  switch (status.value) {
+  switch (props.status) {
     case 'To Do':
       return 'status-To';
     case 'Done':
@@ -124,8 +123,8 @@ const className = computed(() => {
 }
 
 .flex-align-items {
-  display: flex; 
-  align-items: center; 
+  display: flex;
+  align-items: center;
   justify-content: center;
 }
 
