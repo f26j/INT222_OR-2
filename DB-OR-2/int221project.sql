@@ -22,7 +22,7 @@ CREATE TABLE task (
 INSERT INTO task (taskTitle, taskDescription, taskAssignees, taskStatus)
 VALUES ('TaskTitle1TaskTitle2TaskTitle3TaskTitle4TaskTitle5TaskTitle6TaskTitle7TaskTitle8TaskTitle9TaskTitle0', 'Descripti1Descripti2Descripti3Descripti4Descripti5Descripti6Descripti7Descripti8Descripti9Descripti1Descripti1Descripti2Descripti3Descripti4Descripti5Descripti6Descripti7Descripti8Descripti9Descripti2Descripti1Descripti2Descripti3Descripti4Descripti5Descripti6Descripti7Descripti8Descripti9Descripti3Descripti1Descripti2Descripti3Descripti4Descripti5Descripti6Descripti7Descripti8Descripti9Descripti4Descripti1Descripti2Descripti3Descripti4Descripti5Descripti6Descripti7Descripti8Descripti9Descripti5', 'Assignees1Assignees2Assignees3', 'No Status');
 INSERT INTO task (taskTitle, taskDescription, taskAssignees, taskStatus)
-VALUES ('Repository', ' ', 'Unassigned', 'To Do');
+VALUES ('Repository', ' ', ' ', 'To Do');
 INSERT INTO task (taskTitle, taskDescription, taskAssignees, taskStatus)
 VALUES ('ดาต้าเบส', 'ສ້າງຖານຂໍ້ມູນ', 'あなた、彼、彼女 (私ではありません)', 'Doing');
 INSERT INTO task (taskTitle, taskDescription, taskAssignees, taskStatus)
