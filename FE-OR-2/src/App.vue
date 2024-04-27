@@ -1,48 +1,64 @@
 <script setup>
-import Bg_effect from "./components/css/Background.vue"
-import Badges from "./components/css/Badge.vue"
-import { onMounted, ref } from "vue"
-const tasks = ref([])
+import Bg_effect from "./components/css/Background.vue";
+import Badges from "./components/css/Badge.vue";
+import Copyright from "./components/css/Copyright.vue";
+import ModalDetail from "./components/modal/ModalDetail.vue";
+import { onMounted, ref } from "vue";
+const tasks = ref([]);
 async function fetchData() {
-  const response = await fetch("http://localhost:8080/api/v1/tasks")
-  const data = await response.json()
-  console.log(data)
-  return data
+  const response = await fetch("http://localhost:8080/api/v1/tasks");
+  const data = await response.json();
+  console.log(data);
+  return data;
 }
 onMounted(async () => {
-  const data = await fetchData()
-  tasks.value = data
-})
-console.log(tasks.value)
+  const data = await fetchData();
+  tasks.value = data;
+});
+const show = ref(false);
+const openModal = () => {
+  show.value = true;
+};
+const closeModal = () => {
+  show.value = false;
+};
 </script>
 
 <template>
   <div class="body">
     <header>
-      <!-- <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" /> -->
-      <h1 class="text-center text-red-300">IT-Bangmod Kradan Kanban</h1>
-      <hr />
+      <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
+      <h1 class="text-center">IT-Bangmod Kradan Kanban</h1>
+      <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
     </header>
-    <div class="tb">
-      <table>
-        <thead>
-          <tr>
-            <th>id</th>
-            <th>Title</th>
-            <th>Assignees</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="task in tasks" class="itbkk-item">
-            <td>{{ task.id }}</td>
-            <td class="itbkk-title">{{ task.title }}</td>
-            <td class="itbkk-assignees">{{ task.assignees }}</td>
-            <td class="itbkk-status"><Badges :status="task.status" /></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <main>
+      <div class="tb">
+        <table>
+          <thead>
+            <tr>
+              <th>id</th>
+              <th>Title</th>
+              <th>Assignees</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="task in tasks" class="itbkk-item">
+              <td>{{ task.id }}</td>
+              <td class="itbkk-title">
+                <p @click="openModal">{{ task.title }}</p>
+              </td>
+              <td class="itbkk-assignees">
+                {{ task.assignees }}
+              </td>
+              <td class="itbkk-status"><Badges :status="task.status" /></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+        <ModalDetail v-if="show" @close="closeModal"></ModalDetail>
+    </main>
+    <Copyright />
     <Bg_effect />
   </div>
 </template>
@@ -70,6 +86,13 @@ console.log(tasks.value)
 .itbkk-assignees {
   font-style: italic;
 }
+.itbkk-title p {
+  transition: transform 0.3s ease;
+}
+.itbkk-title p:hover {
+  cursor: pointer;
+  transform: scale(1.01);
+}
 
 header {
   margin-bottom: 20px;
@@ -82,20 +105,13 @@ h1 {
   font-size: 40px;
   color: #47467b;
   font-weight: 800;
-  margin: 4rem 0 3rem;
-  /* padding: 90px 0 50px; */
+  margin-top: 2rem;
 }
 
-/* hr {
-  height: 0;
-  color: inherit;
-  border-top-width: 1px;
-} */
 
 .tb {
   padding: 2rem;
 }
-
 table {
   width: auto;
   max-width: 800px;
