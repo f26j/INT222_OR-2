@@ -1,23 +1,23 @@
 <script setup>
-import { defineProps, computed } from 'vue';
+import { computed,defineProps } from 'vue';
 
 const props = defineProps({
-  status: String,
-});
+  status : String
+})
 
 const className = computed(() => {
   switch (props.status) {
-    case 'To Do':
-      return 'status-To';
-    case 'Done':
-      return 'status-Done';
-    case 'Doing':
-      return 'status-Doing';
-    case 'No Status':
-      return 'status-No';
-    default:
-      return '';
-  }
+        case "To Do":
+          return "status-To";
+        case "Done":
+          return "status-Done";
+        case "Doing":
+          return "status-Doing";
+        case "No Status":
+          return "status-No";
+        default:
+          return "";
+      }
 });
 </script>
 <template>
