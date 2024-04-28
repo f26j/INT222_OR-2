@@ -2,16 +2,19 @@ version: "3.8"
 services:
   mysqldb:
     container_name: mysqldb
-    image: mysql/mysql-server:8.0
+    image: mysql/mysql-server
     ports:
       - "3306:3306"
     volumes:
-      - ./int221project.sql:/docker-entrypoint-initdb.d/int221project.sql
+      - ./mysql-data:/var/lib/mysql
     environment:
-      MYSQL_DATABASE: int221project
-      MYSQL_USER: root
-      MYSQL_ROOT_PASSWORD: mysql@sit
-      MYSQL_PASSWORD: mysql@sit
+      - MYSQL_DATABASE=int221project
+      - MYSQL_USER=root
+      - MYSQL_ROOT_PASSWORD=mysql@sit
+      - MYSQL_PASSWORD=mysql@sit
+      - LANG=C.UTF-8
+      - TZ=Asia/Bangkok
+    command: ["mysqld", "--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci", "--default-time-zone=+07:00"]
 
   springapi:
     container_name: springapi
@@ -21,9 +24,9 @@ services:
     ports:
       - "8080:8080"
     environment:
-      MYSQL_HOST: mysqldb
-      MYSQL_USER: root
-      MYSQL_PASSWORD: mysql@sit
-      MYSQL_PORT: 3306
+      - MYSQL_HOST=mysqldb
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=mysql@sit
+      - MYSQL_PORT=3306
     depends_on:
       - mysqldb
