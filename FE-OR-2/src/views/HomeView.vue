@@ -64,6 +64,7 @@ const openModal = async (id) => {
 if (taskId) {
   openModal(taskId);
 }
+
 const closeModal = () => {
   show.value = false;
   router.push({ name: "task" });
