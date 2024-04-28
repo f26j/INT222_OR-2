@@ -1,0 +1,11 @@
+version: "3.8"
+services:
+  website:
+    container_name: website
+    image: vue-app
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"

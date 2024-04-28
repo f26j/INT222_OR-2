@@ -8,7 +8,7 @@ import { onMounted, ref } from "vue";
 const tasks = ref([]);
 
 async function fetchData() {
-  const response = await fetch("http://localhost:8080/api/v1/tasks");
+  const response = await fetch("http://ip23or2.sit.kmutt.ac.th:8080/api/v1/tasks");
   const data = await response.json();
   return data;
 }
