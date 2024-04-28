@@ -157,6 +157,11 @@ console.log("Task ID:", id);
   border-radius: 50px;
 }
 
+.ok:hover {
+  background-color: rgb(28, 126, 36);
+  color: rgb(179, 236, 168);
+}
+
 .close {
   width: 4rem;
   background-color: rgb(248, 195, 199);
@@ -165,6 +170,11 @@ console.log("Task ID:", id);
   margin-right: 20px;
   float: right;
   border-radius: 50px;
+}
+
+.close:hover {
+  background-color: rgb(133, 32, 37);
+  color: rgb(248, 195, 199);
 }
 
 .modal-header {
