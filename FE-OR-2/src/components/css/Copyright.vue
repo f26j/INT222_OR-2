@@ -1,7 +1,4 @@
 <script>
-export default {
-  name: "copyright",
-};
 </script>
 <template>
   <div class="mx-auto w-full p-4 pt-4">

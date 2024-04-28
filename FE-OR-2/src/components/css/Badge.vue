@@ -1,11 +1,12 @@
-<!-- <script>
-export default {
-  props: {
-    status: String,
-  },
-  computed: {
-    className() {
-      switch (this.status) {
+<script setup>
+import { computed,defineProps } from 'vue';
+
+const props = defineProps({
+  status : String
+}) 
+
+const className = computed(() => { 
+  switch (props.status) {
         case "To Do":
           return "status-To";
         case "Done":
@@ -17,32 +18,6 @@ export default {
         default:
           return "";
       }
-    },
-  },
-};
-</script> -->
-
-<!-- composition API -->
-<script setup>
-import { defineProps, computed } from 'vue';
-
-const props = defineProps({
-  status: String,
-});
-
-const className = computed(() => {
-  switch (props.status) {
-    case "To Do":
-      return "status-To";
-    case "Done":
-      return "status-Done";
-    case "Doing":
-      return "status-Doing";
-    case "No Status":
-      return "status-No";
-    default:
-      return "";
-  }
 });
 </script>
 
