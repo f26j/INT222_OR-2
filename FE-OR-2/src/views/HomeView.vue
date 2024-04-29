@@ -6,6 +6,7 @@ import ModalDetail from "./ModalDetail.vue";
 import { onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 
+const fetchURL = ref(import.meta.env.VITE_API)
 const router = useRouter();
 const tasks = ref([]);
 const route = useRoute();
@@ -28,7 +29,7 @@ function formatDate(date) {
 }
 
 async function fetchData() {
-  const response = await fetch(`http://localhost:8080/api/v1/tasks`);
+  const response = await fetch(`${fetchURL.value}`);
   const data = await response.json();
   return data;
 }
@@ -42,7 +43,7 @@ onMounted(async () => {
 const show = ref(false);
 
 const openModal = async (id) => {
-  const data = await fetch(`http://localhost:8080/api/v1/tasks/${id}`);
+  const data = await fetch(`${fetchURL.value}/${id}`);
   const res = await data.json();
   if (!data.ok) {
       alert("The requested task does not exist");
@@ -151,10 +152,10 @@ const closeModal = () => {
 }
 
 .itbkk-item p {
-  width: 200px; 
-  overflow: hidden; 
-  text-overflow: ellipsis; 
-  white-space: nowrap; 
+  width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .itbkk-title {
@@ -239,11 +240,11 @@ tbody {
 }
 
 @media screen and (max-width: 745px) {
-  table, thead, tbody, th, td, tr { 
-		display: block; 
+  table, thead, tbody, th, td, tr {
+		display: block;
 	}
-	
-	thead tr { 
+
+	thead tr {
 		position: absolute;
 		top: -9999px;
 		left: -9999px;
@@ -258,22 +259,22 @@ tbody {
   display:inline;
   margin-left: -1rem;
 }
-	
+
 	tr { border: 1px solid #ccc; }
-	
-	td { 
+
+	td {
 		border: none;
-		border-bottom: 1px solid #eee; 
+		border-bottom: 1px solid #eee;
 		position: relative;
-		padding-left: 3rem; 
+		padding-left: 3rem;
 	}
-	
-	td:before { 
+
+	td:before {
 		position: absolute;
 		top: 6px;
 		left: 6px;
-		width: 45%; 
-		padding-right: 10px; 
+		width: 45%;
+		padding-right: 10px;
 		white-space: nowrap;
 	}
 }

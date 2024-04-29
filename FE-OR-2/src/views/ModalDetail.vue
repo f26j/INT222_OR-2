@@ -38,7 +38,7 @@ console.log("Task ID:", id);
             <form @submit.prevent="handleSubmit" >
           <div class="modal-header">
             <div class="itbkk-title text-left">
-                <h1>{{title}}</h1> 
+                <h1>{{title}}</h1>
             </div>
           </div>
           <hr />
@@ -57,8 +57,8 @@ console.log("Task ID:", id);
                     class="itbkk-description descinput appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                     id="description"
                     type="text"
-                  >{{ props.description?.trim() || "No description provided" }}</textarea>
-                  
+                  >{{ props.description?.trim() || "No Description Provided" }}</textarea>
+
                 </div>
               </div>
             </div>
@@ -74,7 +74,7 @@ console.log("Task ID:", id);
                       Assignees
                     </label>
                     <textarea
-                      class="ass appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                      class="ass appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 italic"
                       id="grid-city"
                       type="text"
                     >{{ props.assignees?.trim() || "Unassigned" }}</textarea>
@@ -220,5 +220,8 @@ console.log("Task ID:", id);
   padding: 15px;
 }
 
-
+.itbkk-description,
+.itbkk-assignees {
+  font-style: italic;
+}
 </style>

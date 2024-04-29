@@ -8,8 +8,8 @@ import sit.int221.BEOR2.services.TaskService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/tasks")
-@CrossOrigin(origins = {"http://localhost:5173", "http://ip23or2.sit.kmutt.ac.th"}) // Front-end
+@RequestMapping("/itb-kk/v1/tasks")
+@CrossOrigin // Front-end
 public class TaskController {
     @Autowired
     private TaskService taskService;
