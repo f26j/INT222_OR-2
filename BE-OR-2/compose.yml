@@ -3,10 +3,11 @@ services:
   mysqldb:
     container_name: mysqldb
     image: mysql/mysql-server
+    restart: always
     ports:
       - "3306:3306"
     volumes:
-      - ./mysql-data:/var/lib/mysql
+      - ./int221project.sql:/docker-entrypoint-initdb.d/int221project.sql
     environment:
       - MYSQL_DATABASE=int221project
       - MYSQL_USER=root
@@ -19,7 +20,7 @@ services:
   springapi:
     container_name: springapi
     image: spring-boot
-    restart: on-failure
+    restart: always
     build: .
     ports:
       - "8080:8080"

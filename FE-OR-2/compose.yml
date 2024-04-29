@@ -3,9 +3,7 @@ services:
   website:
     container_name: website
     image: vue-app
-    restart: unless-stopped
-    build:
-      context: .
-      dockerfile: Dockerfile
+    restart: always
+    build: .
     ports:
       - "80:80"
