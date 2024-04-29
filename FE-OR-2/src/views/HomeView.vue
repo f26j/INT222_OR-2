@@ -6,6 +6,7 @@ import ModalDetail from "./ModalDetail.vue";
 import { onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 
+const fetchURL = ref(import.meta.env.VITE_API)
 const router = useRouter();
 const tasks = ref([]);
 const route = useRoute();
@@ -28,7 +29,7 @@ function formatDate(date) {
 }
 
 async function fetchData() {
-  const response = await fetch(`http://localhost:8080/api/v1/tasks`);
+  const response = await fetch(`${fetchURL.value}`);
   const data = await response.json();
   return data;
 }
@@ -42,7 +43,7 @@ onMounted(async () => {
 const show = ref(false);
 
 const openModal = async (id) => {
-  const data = await fetch(`http://localhost:8080/api/v1/tasks/${id}`);
+  const data = await fetch(`${fetchURL.value}/${id}`);
   const res = await data.json();
   if (!data.ok) {
       alert("The requested task does not exist");
@@ -64,6 +65,7 @@ const openModal = async (id) => {
 if (taskId) {
   openModal(taskId);
 }
+
 const closeModal = () => {
   show.value = false;
   router.push({ name: "task" });
@@ -96,7 +98,7 @@ const closeModal = () => {
               class="itbkk-item"
               :data-task-id="task.id"
             >
-              <td>{{ task.id }}</td>
+              <td class="bgd"><span class="bgi">id : </span>{{ task.id }}</td>
               <td class="itbkk-title">
                 <p @click="openModal(task.id)" value="id">{{ task.title }}</p>
               </td>
@@ -142,10 +144,22 @@ const closeModal = () => {
   transition: transform 0.3s ease;
   color: #ad386f;
 }
+
 .itbkk-title p:hover {
   cursor: pointer;
   transform: scale(1.01);
   color: rgb(250, 133, 188);
+}
+
+.itbkk-item p {
+  width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itbkk-title {
+  max-width: 700px;
 }
 
 header {
@@ -164,15 +178,19 @@ h1 {
 
 .tb {
   padding: 2rem;
+  width: 100%;
+  overflow: auto;
 }
+
 table {
-  width: auto;
-  max-width: 800px;
   border-collapse: collapse;
+  width: 100%;
+  max-width: 900px;
   overflow: hidden;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.432);
   margin: 0 auto;
   border-radius: 25px;
+  /* table-layout: fixed; */
 }
 
 th,
@@ -201,6 +219,10 @@ tbody tr:hover {
   background-color: rgba(255, 255, 255, 0.63);
 }
 
+.bgi {
+  display: none;
+}
+
 tbody {
   td {
     position: relative;
@@ -215,5 +237,45 @@ tbody {
       z-index: -1;
     }
   }
+}
+
+@media screen and (max-width: 745px) {
+  table, thead, tbody, th, td, tr {
+		display: block;
+	}
+
+	thead tr {
+		position: absolute;
+		top: -9999px;
+		left: -9999px;
+	}
+
+  .bgd {
+    background-color:#47467b;
+    color: rgba(255, 255, 255, 0.774);
+  }
+
+  .bgi {
+  display:inline;
+  margin-left: -1rem;
+}
+
+	tr { border: 1px solid #ccc; }
+
+	td {
+		border: none;
+		border-bottom: 1px solid #eee;
+		position: relative;
+		padding-left: 3rem;
+	}
+
+	td:before {
+		position: absolute;
+		top: 6px;
+		left: 6px;
+		width: 45%;
+		padding-right: 10px;
+		white-space: nowrap;
+	}
 }
 </style>

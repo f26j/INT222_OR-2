@@ -20,9 +20,9 @@ const assignees = ref(props.assignees);
 const status = ref(props.status);
 const createdOn = ref(props.createdOn);
 const updatedOn = ref(props.updatedOn);
+var textarea = document.querySelector("#description");
 
 console.log(id)
-
 
 console.log("Task ID:", id);
 </script>
@@ -38,7 +38,7 @@ console.log("Task ID:", id);
             <form @submit.prevent="handleSubmit" >
           <div class="modal-header">
             <div class="itbkk-title text-left">
-                <h1>{{title}}</h1> 
+                <h1>{{title}}</h1>
             </div>
           </div>
           <hr />
@@ -57,7 +57,8 @@ console.log("Task ID:", id);
                     class="itbkk-description descinput appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                     id="description"
                     type="text"
-                  >{{ description }}</textarea>
+                  >{{ props.description?.trim() || "No Description Provided" }}</textarea>
+
                 </div>
               </div>
             </div>
@@ -73,7 +74,7 @@ console.log("Task ID:", id);
                       Assignees
                     </label>
                     <textarea
-                      class="ass appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                      class="ass appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 italic"
                       id="grid-city"
                       type="text"
                     >{{ props.assignees?.trim() || "Unassigned" }}</textarea>
@@ -89,7 +90,7 @@ console.log("Task ID:", id);
                   >
                     Status
                   </label>
-                  <div class="relative">
+                  <div class="relative itbkk-status">
                     <select
                       class="statusbx block w-60 bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                       id="grid-state" v-model="status"
@@ -114,7 +115,6 @@ console.log("Task ID:", id);
           <div class="modal-footer">
             <div class="itbkk-button">
               <hr />
-
               <button @click="($event) => $emit('close')" class="close border">
                 Close
               </button>
@@ -157,6 +157,11 @@ console.log("Task ID:", id);
   border-radius: 50px;
 }
 
+.ok:hover {
+  background-color: rgb(28, 126, 36);
+  color: rgb(179, 236, 168);
+}
+
 .close {
   width: 4rem;
   background-color: rgb(248, 195, 199);
@@ -165,6 +170,11 @@ console.log("Task ID:", id);
   margin-right: 20px;
   float: right;
   border-radius: 50px;
+}
+
+.close:hover {
+  background-color: rgb(133, 32, 37);
+  color: rgb(248, 195, 199);
 }
 
 .modal-header {
@@ -189,6 +199,10 @@ console.log("Task ID:", id);
   width: 15rem;
   height: 10rem;
 }
+.ass[value="Unassigned"] {
+  font-style: italic;
+  color: gray;
+}
 
 .time {
   margin-top: 10px;
@@ -204,5 +218,10 @@ console.log("Task ID:", id);
 
 .detailright {
   padding: 15px;
+}
+
+.itbkk-description,
+.itbkk-assignees {
+  font-style: italic;
 }
 </style>
