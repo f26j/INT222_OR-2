@@ -15,9 +15,9 @@ const assignees = ref("");
 const status = ref("");
 const createdOn = ref("");
 const updatedOn = ref("");
-const taskId = route.params.id
+const taskId = route.params.id;
 const localTimeZone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone);
-console.log(taskId)
+console.log(taskId);
 
 function formatDate(date) {
   const d = new Date(date);
@@ -33,7 +33,6 @@ async function fetchData() {
   return data;
 }
 
-
 onMounted(async () => {
   const data = await fetchData();
   tasks.value = data;
@@ -45,12 +44,12 @@ const openModal = async (id) => {
   const data = await fetch(`http://localhost:8080/api/v1/tasks/${id}`);
   const res = await data.json();
   if (!data.ok) {
-      alert("The requested task does not exist");
-      router.push("/");
-      return;
-    }
-  console.log(data)
-  console.log(res)
+    alert("The requested task does not exist");
+    router.push("/");
+    return;
+  }
+  console.log(data);
+  console.log(res);
   title.value = res.title;
   description.value = res.description;
   assignees.value = res.assignees;
@@ -59,7 +58,8 @@ const openModal = async (id) => {
   updatedOn.value = formatDate(res.updatedOn);
   show.value = true;
   router.push({ name: "task-detail", params: { id: id } });
-  console.log(title.value)
+  console.log(title.value);
+  
 };
 if (taskId) {
   openModal(taskId);
@@ -70,6 +70,15 @@ const closeModal = () => {
   router.push({ name: "task" });
 };
 
+window.onload = function() {
+  const assignees = document.querySelectorAll('.itbkk-assignees');
+  assignees.forEach(assignee => {
+    if (assignee.textContent.trim() === 'Unassigned') {
+      assignee.style.fontStyle = 'italic';
+      assignee.style.color = 'gray';
+    }
+  });
+};
 </script>
 
 <template>
@@ -97,7 +106,7 @@ const closeModal = () => {
               class="itbkk-item"
               :data-task-id="task.id"
             >
-              <td>{{ task.id }}</td>
+              <td class="bgd"><span class="bgi">id : </span>{{ task.id }}</td>
               <td class="itbkk-title">
                 <p @click="openModal(task.id)" value="id">{{ task.title }}</p>
               </td>
@@ -109,9 +118,21 @@ const closeModal = () => {
           </tbody>
         </table>
       </div>
-      <ModalDetail v-if="show" :title="title" :description="description" :assignees="assignees" :status="status" :createdOn="createdOn" :updatedOn="updatedOn" :localTimeZone="localTimeZone" @close="closeModal"></ModalDetail>
+      <ModalDetail
+        v-if="show"
+        :title="title"
+        :description="description"
+        :assignees="assignees"
+        :status="status"
+        :createdOn="createdOn"
+        :updatedOn="updatedOn"
+        :localTimeZone="localTimeZone"
+        @close="closeModal"
+      ></ModalDetail>
     </main>
-    <Copyright />
+    <footer>
+      <Copyright />
+    </footer>
     <Bg_effect />
   </div>
 </template>
@@ -137,18 +158,34 @@ const closeModal = () => {
   background: #333;
 }
 .itbkk-assignees {
-  font-style: italic;
+  font-style: normal;
 }
 .itbkk-title p {
   transition: transform 0.3s ease;
   color: #ad386f;
 }
+
 .itbkk-title p:hover {
   cursor: pointer;
   transform: scale(1.01);
   color: rgb(250, 133, 188);
 }
 
+.itbkk-item p {
+  width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itbkk-title {
+  max-width: 700px;
+}
+
+.notext {
+  color: gray;
+  font-style: italic;
+}
 header {
   margin-bottom: 20px;
 }
@@ -165,11 +202,14 @@ h1 {
 
 .tb {
   padding: 2rem;
+  width: 100%;
+  overflow: auto;
 }
+
 table {
-  width: auto;
-  max-width: 800px;
   border-collapse: collapse;
+  width: 100%;
+  max-width: 900px;
   overflow: hidden;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.432);
   margin: 0 auto;
@@ -202,6 +242,10 @@ tbody tr:hover {
   background-color: rgba(255, 255, 255, 0.63);
 }
 
+.bgi {
+  display: none;
+}
+
 tbody {
   td {
     position: relative;
@@ -215,6 +259,57 @@ tbody {
       background-color: rgba(255, 255, 255, 0.726);
       z-index: -1;
     }
+  }
+}
+
+footer {
+  padding-bottom: 5rem;
+}
+
+@media screen and (max-width: 745px) {
+  table,
+  thead,
+  tbody,
+  th,
+  td,
+  tr {
+    display: block;
+  }
+
+  thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+
+  .bgd {
+    background-color: #47467b;
+    color: rgba(255, 255, 255, 0.774);
+  }
+
+  .bgi {
+    display: inline;
+    margin-left: -1rem;
+  }
+
+  tr {
+    border: 1px solid #ccc;
+  }
+
+  td {
+    border: none;
+    border-bottom: 1px solid #eee;
+    position: relative;
+    padding-left: 3rem;
+  }
+
+  td:before {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    width: 45%;
+    padding-right: 10px;
+    white-space: nowrap;
   }
 }
 </style>
