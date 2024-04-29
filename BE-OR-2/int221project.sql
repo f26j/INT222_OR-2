@@ -19,11 +19,11 @@ CREATE TABLE task (
 );
 
 -- Insert
-INSERT INTO task (taskTitle, taskDescription, taskAssignees, taskStatus)
-VALUES ('TaskTitle1TaskTitle2TaskTitle3TaskTitle4TaskTitle5TaskTitle6TaskTitle7TaskTitle8TaskTitle9TaskTitle0', 'Descripti1Descripti2Descripti3Descripti4Descripti5Descripti6Descripti7Descripti8Descripti9Descripti1Descripti1Descripti2Descripti3Descripti4Descripti5Descripti6Descripti7Descripti8Descripti9Descripti2Descripti1Descripti2Descripti3Descripti4Descripti5Descripti6Descripti7Descripti8Descripti9Descripti3Descripti1Descripti2Descripti3Descripti4Descripti5Descripti6Descripti7Descripti8Descripti9Descripti4Descripti1Descripti2Descripti3Descripti4Descripti5Descripti6Descripti7Descripti8Descripti9Descripti5', 'Assignees1Assignees2Assignees3', 'No Status');
-INSERT INTO task (taskTitle, taskDescription, taskAssignees, taskStatus)
-VALUES ('Repository', ' ', ' ', 'To Do');
-INSERT INTO task (taskTitle, taskDescription, taskAssignees, taskStatus)
-VALUES ('ดาต้าเบส', 'ສ້າງຖານຂໍ້ມູນ', 'あなた、彼、彼女 (私ではありません)', 'Doing');
-INSERT INTO task (taskTitle, taskDescription, taskAssignees, taskStatus)
-VALUES (' _Infrastructure_ ', ' _Setup containers_ ', 'ไก่งวง กับ เพนกวิน', 'Done');
+INSERT INTO task (taskTitle, taskDescription, taskAssignees, taskStatus, createdOn, updatedOn)
+VALUES ('TaskTitle1TaskTitle2TaskTitle3TaskTitle4TaskTitle5TaskTitle6TaskTitle7TaskTitle8TaskTitle9TaskTitle0', 'Descripti1Descripti2Descripti3Descripti4Descripti5Descripti6Descripti7Descripti8Descripti9Descripti1Descripti1Descripti2Descripti3Descripti4Descripti5Descripti6Descripti7Descripti8Descripti9Descripti2Descripti1Descripti2Descripti3Descripti4Descripti5Descripti6Descripti7Descripti8Descripti9Descripti3Descripti1Descripti2Descripti3Descripti4Descripti5Descripti6Descripti7Descripti8Descripti9Descripti4Descripti1Descripti2Descripti3Descripti4Descripti5Descripti6Descripti7Descripti8Descripti9Descripti5', 'Assignees1Assignees2Assignees3', 'No Status', '2024-04-22 16:00:00', '2024-04-22 16:00:00');
+INSERT INTO task (taskTitle, taskDescription, taskAssignees, taskStatus, createdOn, updatedOn)
+VALUES ('Repository', ' ', ' ', 'To Do', '2024-04-22 16:05:00', '2024-04-22 21:00:00');
+INSERT INTO task (taskTitle, taskDescription, taskAssignees, taskStatus, createdOn, updatedOn)
+VALUES ('ดาต้าเบส', 'ສ້າງຖານຂໍ້ມູນ', 'あなた、彼、彼女 (私ではありません)', 'Doing', '2024-04-22 16:10:00', '2024-04-25 07:00:00');
+INSERT INTO task (taskTitle, taskDescription, taskAssignees, taskStatus, createdOn, updatedOn)
+VALUES (' _Infrastructure_ ', ' _Setup containers_ ', 'ไก่งวง กับ เพนกวิน', 'Done', '2024-04-22 16:15:00', '2024-04-22 17:00:00');
