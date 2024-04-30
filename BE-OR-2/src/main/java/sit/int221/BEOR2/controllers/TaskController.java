@@ -1,7 +1,10 @@
 package sit.int221.BEOR2.controllers;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import sit.int221.BEOR2.dtos.SimpleTaskDTO;
+import sit.int221.BEOR2.dtos.TaskDTO;
 import sit.int221.BEOR2.entities.Task;
 import sit.int221.BEOR2.services.TaskService;
 
@@ -13,25 +16,28 @@ import java.util.List;
 public class TaskController {
     @Autowired
     private TaskService taskService;
+    @Autowired
+    private ModelMapper modelMapper;
 
     @GetMapping
-    public List<Task> getTasks() {
-        return taskService.getTasks();
+    public List<SimpleTaskDTO> getTasks() {
+        List<Task> tasks = taskService.getTasks();
+        return tasks.stream().map(task -> new SimpleTaskDTO(task.getId(), task.getTitle(), task.getAssignees(), task.getStatus())).toList();
     }
 
     @GetMapping("/{id}")
-    public Task getTaskById(@PathVariable Integer id) {
-        return taskService.getTaskById(id);
+    public TaskDTO getTaskById(@PathVariable Integer id) {
+        return modelMapper.map(taskService.getTaskById(id), TaskDTO.class);
     }
 
     @PostMapping
-    public Task addTask(@RequestBody Task task) {
-        return taskService.addTask(task);
+    public SimpleTaskDTO addTask(@RequestBody Task task) {
+        return modelMapper.map(taskService.addTask(task), SimpleTaskDTO.class);
     }
 
     @PutMapping("/{id}")
-    public Task updateTask(@PathVariable Integer id, @RequestBody Task updatedTask) {
-        return taskService.updateTask(id, updatedTask);
+    public SimpleTaskDTO updateTask(@PathVariable Integer id, @RequestBody Task updatedTask) {
+        return modelMapper.map(taskService.updateTask(id, updatedTask), SimpleTaskDTO.class);
     }
 
     @DeleteMapping("/{id}")
