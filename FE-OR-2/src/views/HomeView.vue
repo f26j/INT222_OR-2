@@ -80,7 +80,6 @@ window.onload = function() {
   });
 };
 </script>
-
 <template>
   <div class="body">
     <header>
@@ -88,7 +87,15 @@ window.onload = function() {
       <h1 class="text-center">IT-Bangmod Kradan Kanban</h1>
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
     </header>
+  
     <main>
+      
+      <div class="btn-a">
+        <div class="button iconbutton">
+          <i class="plus">+</i>
+        </div>
+      </div>
+
       <div class="tb">
         <table>
           <thead>
@@ -143,6 +150,7 @@ window.onload = function() {
 @import url("https://fonts.gstatic.com");
 @import url("https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
 
+
 * {
   user-select: none;
   box-sizing: border-box;
@@ -150,6 +158,50 @@ window.onload = function() {
   padding: 0;
   scroll-behavior: smooth;
 }
+
+.addtask {
+  margin-right:45rem;
+  text-align: center;
+}
+
+.plus {
+  font-size: 30px;
+  font-weight: 10px;
+  color: #d1ffca;
+}
+
+.btn-a{
+  position:fixed;
+  bottom:50px;
+  right:50px;
+  cursor: pointer;
+}
+
+.iconbutton{
+  width:50px;
+  height:50px;
+  border-radius: 100%;
+  box-shadow: 5px 5px 5px #00000046;
+}
+
+.button{
+  width:60px;
+  height:60px;
+  background:#ad386f;
+}
+
+.iconbutton i{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height: 100%;
+  color:white;
+}
+
+.button:hover {
+  background-color: #66163b; 
+  color: white;
+} 
 
 ::-webkit-scrollbar {
   width: 0px;
@@ -159,6 +211,7 @@ window.onload = function() {
 }
 .itbkk-assignees {
   font-style: normal;
+  width: auto;
 }
 .itbkk-title p {
   transition: transform 0.3s ease;
@@ -182,10 +235,6 @@ window.onload = function() {
   max-width: 700px;
 }
 
-.notext {
-  color: gray;
-  font-style: italic;
-}
 header {
   margin-bottom: 20px;
 }
@@ -311,5 +360,14 @@ footer {
     padding-right: 10px;
     white-space: nowrap;
   }
+  .btn-a{
+  z-index: 2;
+  position: fixed;
+}
+.tb {
+  z-index: 1;
+  position: relative;
+}
+
 }
 </style>

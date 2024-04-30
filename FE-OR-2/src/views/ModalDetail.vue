@@ -177,6 +177,7 @@ console.log("Task ID:", id);
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 3;
 }
 
 .ok {
@@ -214,7 +215,7 @@ console.log("Task ID:", id);
   font-style: normal;
   font-size: 30px;
   margin: 15px;
-  overflow-x: scroll;
+  overflow-x: auto;
 }
 
 .desc {
@@ -262,7 +263,7 @@ console.log("Task ID:", id);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #6e6d6d; 
+  background: #8d8d8d; 
 }
 @media screen and (max-width: 800px) {
 
