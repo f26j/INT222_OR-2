@@ -17,7 +17,7 @@ const id = route.params.id;
 const title = ref(props.title);
 const description = ref(props.description);
 const assignees = ref(props.assignees);
-const status = ref(props.status);
+const status = ref("");
 const createdOn = ref(props.createdOn);
 const updatedOn = ref(props.updatedOn);
 var textarea = document.querySelector("#description");
@@ -57,8 +57,9 @@ console.log("Task ID:", id);
                       class="itbkk-description descinput appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                       id="description"
                       type="text"
+                      placeholder="No Description Provided"
                       >{{
-                        props.description?.trim() || "No Description Provided"
+                        props.description
                       }}</textarea
                     >
                   </div>
@@ -80,7 +81,8 @@ console.log("Task ID:", id);
 
                         id="assign"
                         type="text"
-                        >{{ props.assignees?.trim() || "Unassigned" }}</textarea
+                        placeholder="Unassigned"
+                        >{{ props.assignees }}</textarea
                       >
                     </div>
                   </div>
@@ -100,6 +102,7 @@ console.log("Task ID:", id);
                         id="grid-state"
                         v-model="status"
                       >
+                        <option disabled value>Status</option>
                         <option>No Status</option>
                         <option>To Do</option>
                         <option>Doing</option>
@@ -154,8 +157,17 @@ console.log("Task ID:", id);
 @import url("https://fonts.gstatic.com");
 @import url("https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
 
-.itbkk-description, .itbkk-assignees{
-  font-style: normal;
+::-webkit-input-placeholder {
+   font-style: italic;
+}
+:-moz-placeholder {
+   font-style: italic;
+}
+::-moz-placeholder {
+   font-style: italic;
+}
+:-ms-input-placeholder {
+   font-style: italic;
 }
 
 .notex {
