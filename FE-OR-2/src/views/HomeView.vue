@@ -104,7 +104,7 @@ const closeModal = () => {
                 <p @click="openModal(task.id)" value="id">{{ task.title }}</p>
               </td>
               <td class="itbkk-assignees">
-                <span v-if="!task.assignees?.trim()" class="unassigned"
+                <span v-if="!task.assignees?.trim()" class="itbkk-assignees unassigned"
                   >Unassigned</span
                 >
                 <span v-else>{{ task.assignees }}</span>
