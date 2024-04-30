@@ -6,6 +6,7 @@ import ModalDetail from "./ModalDetail.vue";
 import { onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 
+
 const fetchURL = ref(import.meta.env.VITE_API)
 const router = useRouter();
 const tasks = ref([]);
@@ -45,8 +46,10 @@ const openModal = async (id) => {
   const data = await fetch(`${fetchURL.value}/${id}`);
   const res = await data.json();
   if (!data.ok) {
-    alert("The requested task does not exist");
     router.push("/");
+    setTimeout(() => {
+      alert("The requested task does not exist");
+    }, 500);
     return;
   }
   console.log(data);
@@ -147,6 +150,11 @@ const closeModal = () => {
   scroll-behavior: smooth;
 }
 
+.unassigned{
+  font-style: italic;
+  color: gray;
+}
+
 ::-webkit-scrollbar {
   width: 0px;
 }
@@ -231,7 +239,6 @@ table {
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.432);
   margin: 0 auto;
   border-radius: 25px;
-  /* table-layout: fixed; */
 }
 
 th,
