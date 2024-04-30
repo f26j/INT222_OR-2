@@ -16,9 +16,9 @@ const assignees = ref("");
 const status = ref("");
 const createdOn = ref("");
 const updatedOn = ref("");
-const taskId = route.params.id
+const taskId = route.params.id;
 const localTimeZone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone);
-console.log(taskId)
+console.log(taskId);
 
 function formatDate(date) {
   const d = new Date(date);
@@ -34,7 +34,6 @@ async function fetchData() {
   return data;
 }
 
-
 onMounted(async () => {
   const data = await fetchData();
   tasks.value = data;
@@ -46,12 +45,12 @@ const openModal = async (id) => {
   const data = await fetch(`${fetchURL.value}/${id}`);
   const res = await data.json();
   if (!data.ok) {
-      alert("The requested task does not exist");
-      router.push("/");
-      return;
-    }
-  console.log(data)
-  console.log(res)
+    alert("The requested task does not exist");
+    router.push("/");
+    return;
+  }
+  console.log(data);
+  console.log(res);
   title.value = res.title;
   description.value = res.description;
   assignees.value = res.assignees;
@@ -60,7 +59,8 @@ const openModal = async (id) => {
   updatedOn.value = formatDate(res.updatedOn);
   show.value = true;
   router.push({ name: "task-detail", params: { id: id } });
-  console.log(title.value)
+  console.log(title.value);
+
 };
 if (taskId) {
   openModal(taskId);
@@ -71,6 +71,15 @@ const closeModal = () => {
   router.push({ name: "task" });
 };
 
+window.onload = function() {
+  const assignees = document.querySelectorAll('.itbkk-assignees');
+  assignees.forEach(assignee => {
+    if (assignee.textContent.trim() === 'Unassigned') {
+      assignee.style.fontStyle = 'italic';
+      assignee.style.color = 'gray';
+    }
+  });
+};
 </script>
 
 <template>
@@ -110,9 +119,21 @@ const closeModal = () => {
           </tbody>
         </table>
       </div>
-      <ModalDetail v-if="show" :title="title" :description="description" :assignees="assignees" :status="status" :createdOn="createdOn" :updatedOn="updatedOn" :localTimeZone="localTimeZone" @close="closeModal"></ModalDetail>
+      <ModalDetail
+        v-if="show"
+        :title="title"
+        :description="description"
+        :assignees="assignees"
+        :status="status"
+        :createdOn="createdOn"
+        :updatedOn="updatedOn"
+        :localTimeZone="localTimeZone"
+        @close="closeModal"
+      ></ModalDetail>
     </main>
-    <Copyright />
+    <footer>
+      <Copyright />
+    </footer>
     <Bg_effect />
   </div>
 </template>
@@ -138,7 +159,7 @@ const closeModal = () => {
   background: #333;
 }
 .itbkk-assignees {
-  font-style: italic;
+  font-style: normal;
 }
 .itbkk-title p {
   transition: transform 0.3s ease;
@@ -162,6 +183,10 @@ const closeModal = () => {
   max-width: 700px;
 }
 
+.notext {
+  color: gray;
+  font-style: italic;
+}
 header {
   margin-bottom: 20px;
 }
@@ -239,43 +264,54 @@ tbody {
   }
 }
 
-@media screen and (max-width: 745px) {
-  table, thead, tbody, th, td, tr {
-		display: block;
-	}
+footer {
+  padding-bottom: 5rem;
+}
 
-	thead tr {
-		position: absolute;
-		top: -9999px;
-		left: -9999px;
-	}
+@media screen and (max-width: 745px) {
+  table,
+  thead,
+  tbody,
+  th,
+  td,
+  tr {
+    display: block;
+  }
+
+  thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
 
   .bgd {
-    background-color:#47467b;
+    background-color: #47467b;
     color: rgba(255, 255, 255, 0.774);
   }
 
   .bgi {
-  display:inline;
-  margin-left: -1rem;
-}
+    display: inline;
+    margin-left: -1rem;
+  }
 
-	tr { border: 1px solid #ccc; }
+  tr {
+    border: 1px solid #ccc;
+  }
 
-	td {
-		border: none;
-		border-bottom: 1px solid #eee;
-		position: relative;
-		padding-left: 3rem;
-	}
+  td {
+    border: none;
+    border-bottom: 1px solid #eee;
+    position: relative;
+    padding-left: 3rem;
+  }
 
-	td:before {
-		position: absolute;
-		top: 6px;
-		left: 6px;
-		width: 45%;
-		padding-right: 10px;
-		white-space: nowrap;
-	}
+  td:before {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    width: 45%;
+    padding-right: 10px;
+    white-space: nowrap;
+  }
 }
 </style>
