@@ -8,7 +8,7 @@ import sit.int221.BEOR2.services.TaskService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/itb-kk/v1/tasks")
+@RequestMapping("/v1/tasks")
 @CrossOrigin // Front-end
 public class TaskController {
     @Autowired

@@ -183,10 +183,6 @@ window.onload = function() {
   max-width: 700px;
 }
 
-.notext {
-  color: gray;
-  font-style: italic;
-}
 header {
   margin-bottom: 20px;
 }

@@ -59,7 +59,7 @@ console.log("Task ID:", id);
                       type="text"
                       placeholder="No Description Provided"
                       >{{
-                        props.description
+                        props.description?.trim() || "No Description Provided"
                       }}</textarea
                     >
                   </div>
@@ -82,7 +82,7 @@ console.log("Task ID:", id);
                         id="assign"
                         type="text"
                         placeholder="Unassigned"
-                        >{{ props.assignees }}</textarea
+                        >{{ props.assignees?.trim() || "Unassigned" }}</textarea
                       >
                     </div>
                   </div>
