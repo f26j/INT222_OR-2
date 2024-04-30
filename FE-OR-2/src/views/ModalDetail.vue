@@ -59,7 +59,7 @@ console.log("Task ID:", id);
                       type="text"
                       placeholder="No Description Provided"
                       >{{
-                        props.description?.trim() || "No Description Provided"
+                        props.description?.trim() || ""
                       }}</textarea
                     >
                   </div>
@@ -77,12 +77,11 @@ console.log("Task ID:", id);
                         Assignees
                       </label>
                       <textarea
-                        class="itbkk-assignees ass appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-
+                        class="itbkk-assignees ass appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none"
                         id="assign"
                         type="text"
                         placeholder="Unassigned"
-                        >{{ props.assignees?.trim() || "Unassigned" }}</textarea
+                        >{{ props.assignees.trim() || "" }}</textarea
                       >
                     </div>
                   </div>
@@ -157,28 +156,18 @@ console.log("Task ID:", id);
 @import url("https://fonts.gstatic.com");
 @import url("https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
 
-::-webkit-input-placeholder {
-   font-style: italic;
-}
-:-moz-placeholder {
-   font-style: italic;
-}
-::-moz-placeholder {
-   font-style: italic;
-}
-:-ms-input-placeholder {
-   font-style: italic;
+.itbkk-description,
+.itbkk-assignees {
+  font-style: normal;
+}textarea::placeholder {
+  font-style: italic;
+  color: gray;
 }
 
-.notex {
-  color: gray;
-  font-style: italic;
-}
 .modals {
   background-color: #bfb8da;
   color: #47467b;
   width: 800px;
-  
 }
 
 .details {
@@ -231,7 +220,8 @@ console.log("Task ID:", id);
   font-style: normal;
   font-size: 30px;
   margin: 15px;
-  overflow: scroll;
+  overflow-y: hidden;
+  overflow-x: scroll;
 }
 
 .desc {
@@ -262,5 +252,46 @@ console.log("Task ID:", id);
 
 .detailright {
   padding: 15px;
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background: #a8a8a8;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9b9b9b;
+}
+@media screen and (max-width: 800px) {
+  .modals {
+    width: 400px;
+    height: 500px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    padding-top: 2rem;
+    padding-bottom: 5rem;
+  }
+
+  .modal-body {
+    display: block;
+  }
+
+  .itbkk-assignees {
+    width: 21rem;
+  }
+
+  .descinput {
+    width: 21rem;
+    height: 20rem;
+  }
 }
 </style>

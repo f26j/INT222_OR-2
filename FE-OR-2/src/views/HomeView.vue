@@ -60,7 +60,6 @@ const openModal = async (id) => {
   show.value = true;
   router.push({ name: "task-detail", params: { id: id } });
   console.log(title.value);
-
 };
 if (taskId) {
   openModal(taskId);
@@ -69,16 +68,6 @@ if (taskId) {
 const closeModal = () => {
   show.value = false;
   router.push({ name: "task" });
-};
-
-window.onload = function() {
-  const assignees = document.querySelectorAll('.itbkk-assignees');
-  assignees.forEach(assignee => {
-    if (assignee.textContent.trim() === 'Unassigned') {
-      assignee.style.fontStyle = 'italic';
-      assignee.style.color = 'gray';
-    }
-  });
 };
 </script>
 
@@ -90,6 +79,9 @@ window.onload = function() {
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
     </header>
     <main>
+      <div class="addtask">
+        <button class="btna">ADD TASK</button>
+    </div>
       <div class="tb">
         <table>
           <thead>
@@ -112,7 +104,10 @@ window.onload = function() {
                 <p @click="openModal(task.id)" value="id">{{ task.title }}</p>
               </td>
               <td class="itbkk-assignees">
-                {{ task.assignees?.trim() || "Unassigned" }}
+                <span v-if="!task.assignees?.trim()" class="unassigned"
+                  >Unassigned</span
+                >
+                <span v-else>{{ task.assignees }}</span>
               </td>
               <td class="itbkk-status"><Badges :status="task.status" /></td>
             </tr>
@@ -183,8 +178,33 @@ window.onload = function() {
   max-width: 700px;
 }
 
+.unassigned {
+  color: gray;
+  font-style: italic;
+}
 header {
   margin-bottom: 20px;
+}
+
+.btna {
+  background-color: #04aa6d76;
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  border-radius: 50px;
+  border: 2px solid #04AA6D;
+}
+.btna:hover {
+  background-color: #adcdc1;
+  color: white;
+}
+.addtask {
+  margin-right: 45rem;
+  text-align: center;
 }
 
 h1 {
