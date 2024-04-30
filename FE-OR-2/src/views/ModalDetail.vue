@@ -50,7 +50,7 @@ console.log("Task ID:", id);
     class="itbkk-description descinput appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
     id="description"
     type="text"
-    :class="{'italic text-gray-400':!props.description}"
+    :class="{'italic !text-gray-400':!props.description}"
     disabled
 >{{ props.description?.trim() || "No Description Provided" }}</textarea>
                   </div>
@@ -71,7 +71,7 @@ console.log("Task ID:", id);
                         class="itbkk-assignees ass appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
                         id="assign"
                         type="text"
-                        :class="{'italic text-gray-400':!props.assignees}"
+                        :class="{'italic !text-gray-400':!props.assignees}"
                         disabled
                         >{{ props.assignees.trim() || "Unassigned" }}</textarea
                       >
