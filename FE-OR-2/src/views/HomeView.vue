@@ -147,6 +147,11 @@ const closeModal = () => {
   scroll-behavior: smooth;
 }
 
+.unassigned{
+  font-style: italic;
+  color: gray;
+}
+
 ::-webkit-scrollbar {
   width: 0px;
 }

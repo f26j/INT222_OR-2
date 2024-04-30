@@ -59,8 +59,7 @@ console.log("Task ID:", id);
                       type="text"
                       placeholder="No Description Provided"
                       >{{
-                        props.description?.trim() || ""
-                      }}</textarea
+                        props.description?.trim() || ""}}</textarea
                     >
                   </div>
                 </div>
