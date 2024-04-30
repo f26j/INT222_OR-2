@@ -162,6 +162,7 @@ console.log("Task ID:", id);
   color: gray;
   font-style: italic;
 }
+
 .modals {
   background-color: #bfb8da;
   color: #47467b;
@@ -213,6 +214,7 @@ console.log("Task ID:", id);
   background-color: rgb(216, 106, 112);
   color: rgb(255, 232, 234);
 }
+
 .modal-header {
   color: #47467b;
   font-family: "Ubuntu", sans-serif;

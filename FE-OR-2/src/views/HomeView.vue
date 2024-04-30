@@ -88,9 +88,9 @@ const closeModal = () => {
         </div>
       </div>
 
-      <div class="addtask">
+      <!-- <div class="addtask">
         <button class="btna">ADD TASK</button>
-    </div>
+      </div> -->
       <div class="tb">
         <table>
           <thead>
@@ -204,13 +204,16 @@ const closeModal = () => {
 ::-webkit-scrollbar {
   width: 0px;
 }
+
 ::-webkit-scrollbar-thumb {
   background: #333;
 }
+
 .itbkk-assignees {
   font-style: normal;
   width: auto;
 }
+
 .itbkk-title p {
   transition: transform 0.3s ease;
   color: #ad386f;
@@ -367,11 +370,11 @@ footer {
   .btn-a{
   z-index: 2;
   position: fixed;
-}
+  }
+
 .tb {
   z-index: 1;
   position: relative;
-}
-
+  }
 }
 </style>
