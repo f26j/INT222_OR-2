@@ -6,6 +6,7 @@ import ModalDetail from "./ModalDetail.vue";
 import { onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 
+const fetchURL = ref(import.meta.env.VITE_API)
 const router = useRouter();
 const tasks = ref([]);
 const route = useRoute();
@@ -28,7 +29,7 @@ function formatDate(date) {
 }
 
 async function fetchData() {
-  const response = await fetch(`http://localhost:8080/api/v1/tasks`);
+  const response = await fetch(`${fetchURL.value}`);
   const data = await response.json();
   return data;
 }
@@ -41,7 +42,7 @@ onMounted(async () => {
 const show = ref(false);
 
 const openModal = async (id) => {
-  const data = await fetch(`http://localhost:8080/api/v1/tasks/${id}`);
+  const data = await fetch(`${fetchURL.value}/${id}`);
   const res = await data.json();
   if (!data.ok) {
     alert("The requested task does not exist");
@@ -177,10 +178,6 @@ const closeModal = () => {
   max-width: 700px;
 }
 
-.unassigned {
-  color: gray;
-  font-style: italic;
-}
 header {
   margin-bottom: 20px;
 }
@@ -230,6 +227,7 @@ table {
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.432);
   margin: 0 auto;
   border-radius: 25px;
+  /* table-layout: fixed; */
 }
 
 th,

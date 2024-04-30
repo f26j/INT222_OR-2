@@ -1,0 +1,32 @@
+version: "3.8"
+services:
+  mysqldb:
+    container_name: mysqldb
+    image: mysql/mysql-server
+    restart: always
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./int221project.sql:/docker-entrypoint-initdb.d/int221project.sql
+    environment:
+      - MYSQL_DATABASE=int221project
+      - MYSQL_USER=root
+      - MYSQL_ROOT_PASSWORD=mysql@sit
+      - MYSQL_PASSWORD=mysql@sit
+      - LANG=C.UTF-8
+    command: ["mysqld", "--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+
+  springapi:
+    container_name: springapi
+    image: spring-boot
+    restart: always
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - MYSQL_HOST=mysqldb
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=mysql@sit
+      - MYSQL_PORT=3306
+    depends_on:
+      - mysqldb
