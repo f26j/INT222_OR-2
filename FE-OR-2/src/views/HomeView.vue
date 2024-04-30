@@ -61,6 +61,7 @@ const openModal = async (id) => {
   router.push({ name: "task-detail", params: { id: id } });
   console.log(title.value);
 };
+
 if (taskId) {
   openModal(taskId);
 }
@@ -78,7 +79,15 @@ const closeModal = () => {
       <h1 class="text-center">IT-Bangmod Kradan Kanban</h1>
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
     </header>
+  
     <main>
+
+      <div class="btn-a">
+        <div class="button iconbutton">
+          <i class="plus">+</i>
+        </div>
+      </div>
+
       <div class="addtask">
         <button class="btna">ADD TASK</button>
     </div>
@@ -139,6 +148,7 @@ const closeModal = () => {
 @import url("https://fonts.gstatic.com");
 @import url("https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
 
+
 * {
   user-select: none;
   box-sizing: border-box;
@@ -146,6 +156,50 @@ const closeModal = () => {
   padding: 0;
   scroll-behavior: smooth;
 }
+
+.addtask {
+  margin-right:45rem;
+  text-align: center;
+}
+
+.plus {
+  font-size: 30px;
+  font-weight: 10px;
+  color: #d1ffca;
+}
+
+.btn-a{
+  position:fixed;
+  bottom:50px;
+  right:50px;
+  cursor: pointer;
+}
+
+.iconbutton{
+  width:50px;
+  height:50px;
+  border-radius: 100%;
+  box-shadow: 5px 5px 5px #00000046;
+}
+
+.button{
+  width:60px;
+  height:60px;
+  background:#ad386f;
+}
+
+.iconbutton i{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height: 100%;
+  color:white;
+}
+
+.button:hover {
+  background-color: #66163b; 
+  color: white;
+} 
 
 ::-webkit-scrollbar {
   width: 0px;
@@ -155,6 +209,7 @@ const closeModal = () => {
 }
 .itbkk-assignees {
   font-style: normal;
+  width: auto;
 }
 .itbkk-title p {
   transition: transform 0.3s ease;
@@ -182,29 +237,9 @@ const closeModal = () => {
   color: gray;
   font-style: italic;
 }
+
 header {
   margin-bottom: 20px;
-}
-
-.btna {
-  background-color: #04aa6d76;
-  border: none;
-  color: white;
-  padding: 15px 32px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  border-radius: 50px;
-  border: 2px solid #04AA6D;
-}
-.btna:hover {
-  background-color: #adcdc1;
-  color: white;
-}
-.addtask {
-  margin-right: 45rem;
-  text-align: center;
 }
 
 h1 {
@@ -329,5 +364,14 @@ footer {
     padding-right: 10px;
     white-space: nowrap;
   }
+  .btn-a{
+  z-index: 2;
+  position: fixed;
+}
+.tb {
+  z-index: 1;
+  position: relative;
+}
+
 }
 </style>

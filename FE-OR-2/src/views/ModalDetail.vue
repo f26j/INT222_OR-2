@@ -148,25 +148,25 @@ console.log("Task ID:", id);
     </div>
   </div>
 </template>
-
 <style>
 @import url("https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono");
 @import url("https://fonts.googleapis.com");
 @import url("https://fonts.gstatic.com");
 @import url("https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
 
-.itbkk-description,
-.itbkk-assignees {
+.itbkk-description, .itbkk-assignees{
   font-style: normal;
-}textarea::placeholder {
-  font-style: italic;
-  color: gray;
 }
 
+.notex {
+  color: gray;
+  font-style: italic;
+}
 .modals {
   background-color: #bfb8da;
   color: #47467b;
   width: 800px;
+  
 }
 
 .details {
@@ -177,6 +177,7 @@ console.log("Task ID:", id);
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 3;
 }
 
 .ok {
@@ -204,13 +205,13 @@ console.log("Task ID:", id);
 }
 
 .ok:hover {
-  background-color: rgb(28, 126, 36);
-  color: rgb(179, 236, 168);
+  background-color: rgb(83, 150, 88);
+  color: rgb(234, 255, 230);
 }
 
 .close:hover {
-  background-color: rgb(163, 42, 48);
-  color: rgb(248, 195, 199);
+  background-color: rgb(216, 106, 112);
+  color: rgb(255, 232, 234);
 }
 .modal-header {
   color: #47467b;
@@ -219,8 +220,7 @@ console.log("Task ID:", id);
   font-style: normal;
   font-size: 30px;
   margin: 15px;
-  overflow-y: hidden;
-  overflow-x: scroll;
+  overflow-x: auto;
 }
 
 .desc {
@@ -264,21 +264,20 @@ console.log("Task ID:", id);
 
 ::-webkit-scrollbar-thumb {
   border-radius: 10px;
-  background: #a8a8a8;
+  background: #a8a8a8; 
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #9b9b9b;
+  background: #8d8d8d; 
 }
 @media screen and (max-width: 800px) {
+
   .modals {
-    width: 400px;
-    height: 500px;
-    overflow-y: scroll;
-    overflow-x: hidden;
-    padding-top: 2rem;
-    padding-bottom: 5rem;
-  }
+  width: 400px;
+  height: 500px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
 
   .modal-body {
     display: block;
