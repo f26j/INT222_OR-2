@@ -17,7 +17,7 @@ const id = route.params.id;
 const title = ref(props.title);
 const description = ref(props.description);
 const assignees = ref(props.assignees);
-const status = ref("");
+const status = ref(props.status);
 const createdOn = ref(props.createdOn);
 const updatedOn = ref(props.updatedOn);
 var textarea = document.querySelector("#description");
@@ -59,7 +59,7 @@ console.log("Task ID:", id);
                       type="text"
                       placeholder="No Description Provided"
                       >{{
-                        props.description
+                        props.description?.trim() || ""
                       }}</textarea
                     >
                   </div>
@@ -77,10 +77,12 @@ console.log("Task ID:", id);
                         Assignees
                       </label>
                       <textarea
-                        class="itbkk-assignees ass appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                        class="itbkk-assignees ass appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none"
                         id="assign"
                         type="text"
-                        >{{ props.assignees?.trim() || "Unassigned" }}</textarea>
+                        placeholder="Unassigned"
+                        >{{ props.assignees.trim() || "" }}</textarea
+                      >
                     </div>
                   </div>
                 </div>
@@ -99,11 +101,10 @@ console.log("Task ID:", id);
                         id="grid-state"
                         v-model="status"
                       >
-                        <option disabled value>Status</option>
-                        <option>No Status</option>
-                        <option>To Do</option>
-                        <option>Doing</option>
-                        <option>Done</option>
+                        <option :value="'NO_STATUS'">No Status</option>
+                        <option :value="'TO_DO'">To Do</option>
+                        <option :value="'DOING'">Doing</option>
+                        <option :value="'DONE'">Done</option>
                       </select>
                     </div>
                   </div>
@@ -154,19 +155,18 @@ console.log("Task ID:", id);
 @import url("https://fonts.gstatic.com");
 @import url("https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
 
-.itbkk-description, .itbkk-assignees{
+.itbkk-description,
+.itbkk-assignees {
   font-style: normal;
+}textarea::placeholder {
+  font-style: italic;
+  color: gray;
 }
 
-.notex {
-  color: gray;
-  font-style: italic;
-}
 .modals {
   background-color: #bfb8da;
   color: #47467b;
   width: 800px;
-  
 }
 
 .details {
@@ -215,7 +215,8 @@ console.log("Task ID:", id);
   font-style: normal;
   font-size: 30px;
   margin: 15px;
-  overflow-x: auto;
+  overflow-y: hidden;
+  overflow-x: scroll;
 }
 
 .desc {
@@ -259,20 +260,21 @@ console.log("Task ID:", id);
 
 ::-webkit-scrollbar-thumb {
   border-radius: 10px;
-  background: #a8a8a8; 
+  background: #a8a8a8;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #8d8d8d; 
+  background: #9b9b9b;
 }
 @media screen and (max-width: 800px) {
-
   .modals {
-  width: 400px;
-  height: 500px;
-  overflow-y: scroll;
-  overflow-x: hidden;
-}
+    width: 400px;
+    height: 500px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    padding-top: 2rem;
+    padding-bottom: 5rem;
+  }
 
   .modal-body {
     display: block;

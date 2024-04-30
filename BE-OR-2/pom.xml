@@ -66,6 +66,7 @@
 							<artifactId>lombok</artifactId>
 						</exclude>
 					</excludes>
+					<jvmArguments>-Dfile.encoding=UTF8</jvmArguments>
 				</configuration>
 			</plugin>
 		</plugins>
