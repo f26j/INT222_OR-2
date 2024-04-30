@@ -3,9 +3,9 @@ import { computed,defineProps } from 'vue';
 
 const props = defineProps({
   status : String
-}) 
+})
 
-const className = computed(() => { 
+const className = computed(() => {
   switch (props.status) {
         case "TO_DO":
           return "status-To";
@@ -124,8 +124,8 @@ const className = computed(() => {
 }
 
 .flex-align-items {
-  display: flex; 
-  align-items: center; 
+  display: flex;
+  align-items: center;
   justify-content: center;
 }
 
