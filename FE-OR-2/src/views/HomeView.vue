@@ -183,6 +183,10 @@ const closeModal = () => {
   max-width: 700px;
 }
 
+.unassigned {
+  color: gray;
+  font-style: italic;
+}
 header {
   margin-bottom: 20px;
 }

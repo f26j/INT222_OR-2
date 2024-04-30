@@ -59,7 +59,8 @@ console.log("Task ID:", id);
                       type="text"
                       placeholder="No Description Provided"
                       >{{
-                        props.description?.trim() || ""}}</textarea
+                        props.description?.trim() || ""
+                      }}</textarea
                     >
                   </div>
                 </div>
@@ -100,10 +101,10 @@ console.log("Task ID:", id);
                         id="grid-state"
                         v-model="status"
                       >
-                        <option>No Status</option>
-                        <option>To Do</option>
-                        <option>Doing</option>
-                        <option>Done</option>
+                        <option :value="'NO_STATUS'">No Status</option>
+                        <option :value="'TO_DO'">To Do</option>
+                        <option :value="'DOING'">Doing</option>
+                        <option :value="'DONE'">Done</option>
                       </select>
                     </div>
                   </div>
