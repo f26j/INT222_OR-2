@@ -61,6 +61,7 @@ const openModal = async (id) => {
   router.push({ name: "task-detail", params: { id: id } });
   console.log(title.value);
 };
+
 if (taskId) {
   openModal(taskId);
 }
@@ -70,6 +71,7 @@ const closeModal = () => {
   router.push({ name: "task" });
 };
 </script>
+
 <template>
   <div class="body">
     <header>
@@ -79,6 +81,13 @@ const closeModal = () => {
     </header>
   
     <main>
+
+      <div class="btn-a">
+        <div class="button iconbutton">
+          <i class="plus">+</i>
+        </div>
+      </div>
+
       <div class="addtask">
         <button class="btna">ADD TASK</button>
     </div>
@@ -224,33 +233,8 @@ const closeModal = () => {
   max-width: 700px;
 }
 
-.unassigned {
-  color: gray;
-  font-style: italic;
-}
 header {
   margin-bottom: 20px;
-}
-
-.btna {
-  background-color: #04aa6d76;
-  border: none;
-  color: white;
-  padding: 15px 32px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  border-radius: 50px;
-  border: 2px solid #04AA6D;
-}
-.btna:hover {
-  background-color: #adcdc1;
-  color: white;
-}
-.addtask {
-  margin-right: 45rem;
-  text-align: center;
 }
 
 h1 {
@@ -374,5 +358,14 @@ footer {
     padding-right: 10px;
     white-space: nowrap;
   }
+  .btn-a{
+  z-index: 2;
+  position: fixed;
+}
+.tb {
+  z-index: 1;
+  position: relative;
+}
+
 }
 </style>
