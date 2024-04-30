@@ -14,8 +14,7 @@ services:
       - MYSQL_ROOT_PASSWORD=mysql@sit
       - MYSQL_PASSWORD=mysql@sit
       - LANG=C.UTF-8
-      - TZ=Asia/Bangkok
-    command: ["mysqld", "--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci", "--default-time-zone=+07:00"]
+    command: ["mysqld", "--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
 
   springapi:
     container_name: springapi
