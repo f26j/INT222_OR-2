@@ -177,6 +177,8 @@ console.log("Task ID:", id);
 .modals {
   background-color: #bfb8da;
   color: #47467b;
+  width: 800px;
+  
 }
 
 .details {
@@ -229,6 +231,7 @@ console.log("Task ID:", id);
   font-style: normal;
   font-size: 30px;
   margin: 15px;
+  overflow: scroll;
 }
 
 .desc {
