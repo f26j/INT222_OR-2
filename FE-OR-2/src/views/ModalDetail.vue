@@ -17,7 +17,7 @@ const id = route.params.id;
 const title = ref(props.title);
 const description = ref(props.description);
 const assignees = ref(props.assignees);
-const status = ref(props.status);
+const status = ref("");
 const createdOn = ref(props.createdOn);
 const updatedOn = ref(props.updatedOn);
 var textarea = document.querySelector("#description");
@@ -57,8 +57,9 @@ console.log("Task ID:", id);
                       class="itbkk-description descinput appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                       id="description"
                       type="text"
+                      placeholder="No Description Provided"
                       >{{
-                        props.description?.trim() || "No Description Provided"
+                        props.description
                       }}</textarea
                     >
                   </div>
@@ -77,11 +78,9 @@ console.log("Task ID:", id);
                       </label>
                       <textarea
                         class="itbkk-assignees ass appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                       
                         id="assign"
                         type="text"
-                        >{{ props.assignees?.trim() || "Unassigned" }}</textarea
-                      >
+                        >{{ props.assignees?.trim() || "Unassigned" }}</textarea>
                     </div>
                   </div>
                 </div>
@@ -100,6 +99,7 @@ console.log("Task ID:", id);
                         id="grid-state"
                         v-model="status"
                       >
+                        <option disabled value>Status</option>
                         <option>No Status</option>
                         <option>To Do</option>
                         <option>Doing</option>
@@ -165,6 +165,8 @@ console.log("Task ID:", id);
 .modals {
   background-color: #bfb8da;
   color: #47467b;
+  width: 800px;
+  
 }
 
 .details {
@@ -212,6 +214,7 @@ console.log("Task ID:", id);
   font-style: normal;
   font-size: 30px;
   margin: 15px;
+  overflow-x: scroll;
 }
 
 .desc {
@@ -242,5 +245,45 @@ console.log("Task ID:", id);
 
 .detailright {
   padding: 15px;
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background: #a8a8a8; 
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6e6d6d; 
+}
+@media screen and (max-width: 800px) {
+
+  .modals {
+  width: 400px;
+  height: 500px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+  .modal-body {
+    display: block;
+  }
+
+  .itbkk-assignees {
+    width: 21rem;
+  }
+
+  .descinput {
+    width: 21rem;
+    height: 20rem;
+  }
 }
 </style>

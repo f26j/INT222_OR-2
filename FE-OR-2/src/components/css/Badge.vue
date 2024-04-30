@@ -7,13 +7,13 @@ const props = defineProps({
 
 const className = computed(() => { 
   switch (props.status) {
-        case "To Do":
+        case "TO_DO":
           return "status-To";
-        case "Done":
+        case "DONE":
           return "status-Done";
-        case "Doing":
+        case "DOING":
           return "status-Doing";
-        case "No Status":
+        case "NO_STATUS":
           return "status-No";
         default:
           return "";
@@ -23,7 +23,7 @@ const className = computed(() => {
 
 <template>
   <div :class="{ 'status-badge': true, [className]: status }">
-    <span v-if="status === 'To Do'" class="flex-align-items">
+    <span v-if="status === 'TO_DO'" class="flex-align-items">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="1em"
@@ -37,7 +37,7 @@ const className = computed(() => {
       </svg>
       To Do
     </span>
-    <span v-if="status === 'Done'" class="flex-align-items">
+    <span v-if="status === 'DONE'" class="flex-align-items">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="1em"
@@ -51,7 +51,7 @@ const className = computed(() => {
       </svg>
       Done
     </span>
-    <span v-if="status === 'Doing'" class="flex-align-items">
+    <span v-if="status === 'DOING'" class="flex-align-items">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="1em"
@@ -65,7 +65,7 @@ const className = computed(() => {
       </svg>
       Doing
     </span>
-    <span v-if="status === 'No Status'" class="flex-align-items">
+    <span v-if="status === 'NO_STATUS'" class="flex-align-items">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="1em"
