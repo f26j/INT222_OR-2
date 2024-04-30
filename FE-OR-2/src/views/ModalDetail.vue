@@ -17,7 +17,7 @@ const id = route.params.id;
 const title = ref(props.title);
 const description = ref(props.description);
 const assignees = ref(props.assignees);
-const status = ref(props.status);
+const status = ref("");
 const createdOn = ref(props.createdOn);
 const updatedOn = ref(props.updatedOn);
 var textarea = document.querySelector("#description");
@@ -57,8 +57,9 @@ console.log("Task ID:", id);
                       class="itbkk-description descinput appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                       id="description"
                       type="text"
+                      placeholder="No Description Provided"
                       >{{
-                        props.description?.trim() || "No Description Provided"
+                        props.description
                       }}</textarea
                     >
                   </div>
@@ -100,6 +101,7 @@ console.log("Task ID:", id);
                         id="grid-state"
                         v-model="status"
                       >
+                        <option disabled value>Status</option>
                         <option>No Status</option>
                         <option>To Do</option>
                         <option>Doing</option>
@@ -165,6 +167,8 @@ console.log("Task ID:", id);
 .modals {
   background-color: #bfb8da;
   color: #47467b;
+  width: 800px;
+  
 }
 
 .details {
@@ -212,6 +216,7 @@ console.log("Task ID:", id);
   font-style: normal;
   font-size: 30px;
   margin: 15px;
+  overflow: scroll;
 }
 
 .desc {
