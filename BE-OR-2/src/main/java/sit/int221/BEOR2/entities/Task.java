@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.ZonedDateTime;
+
 @Getter
 @Setter
 @Entity
@@ -26,8 +28,8 @@ public class Task {
     private String status;
 
     @Column(name = "createdOn")
-    private String createdOn;
+    private ZonedDateTime createdOn;
 
     @Column(name = "updatedOn")
-    private String updatedOn;
+    private ZonedDateTime updatedOn;
 }

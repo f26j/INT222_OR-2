@@ -17,7 +17,7 @@ const id = route.params.id;
 const title = ref(props.title);
 const description = ref(props.description);
 const assignees = ref(props.assignees);
-const status = ref("");
+const status = ref(props.status);
 const createdOn = ref(props.createdOn);
 const updatedOn = ref(props.updatedOn);
 var textarea = document.querySelector("#description");
@@ -101,7 +101,6 @@ console.log("Task ID:", id);
                         id="grid-state"
                         v-model="status"
                       >
-                        <option disabled value>Status</option>
                         <option>No Status</option>
                         <option>To Do</option>
                         <option>Doing</option>
