@@ -1,7 +1,7 @@
 <script>
 </script>
 <template>
-  <div class="cp mx-auto w-full p-4 pt-4">
+  <div class="mx-auto w-full p-4 pt-4">
     <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
     <p class="text-sm text-center text-neutral-400">
       © 2024
@@ -15,7 +15,4 @@
   </div>
 </template>
 <style>
-.cp {
-  padding-bottom: 3rem;
-}
 </style>
