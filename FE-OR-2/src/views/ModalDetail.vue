@@ -14,13 +14,6 @@ const props = defineProps({
 
 const route = useRoute();
 const id = route.params.id;
-const title = ref(props.title);
-const description = ref(props.description);
-const assignees = ref(props.assignees);
-const status = ref(props.status);
-const createdOn = ref(props.createdOn);
-const updatedOn = ref(props.updatedOn);
-var textarea = document.querySelector("#description");
 
 console.log(id);
 
@@ -54,14 +47,12 @@ console.log("Task ID:", id);
                       Description
                     </label>
                     <textarea
-                      class="itbkk-description descinput appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                      id="description"
-                      type="text"
-                      placeholder="No Description Provided"
-                      >{{
-                        props.description?.trim() || ""
-                      }}</textarea
-                    >
+    class="itbkk-description descinput appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+    id="description"
+    type="text"
+    :class="{'italic text-gray-400':!props.description}"
+    disabled
+>{{ props.description?.trim() || "No Description Provided" }}</textarea>
                   </div>
                 </div>
               </div>
@@ -77,11 +68,12 @@ console.log("Task ID:", id);
                         Assignees
                       </label>
                       <textarea
-                        class="itbkk-assignees ass appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none"
+                        class="itbkk-assignees ass appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
                         id="assign"
                         type="text"
-                        placeholder="Unassigned"
-                        >{{ props.assignees.trim() || "" }}</textarea
+                        :class="{'italic text-gray-400':!props.assignees}"
+                        disabled
+                        >{{ props.assignees.trim() || "Unassigned" }}</textarea
                       >
                     </div>
                   </div>
@@ -99,7 +91,7 @@ console.log("Task ID:", id);
                       <select
                         class="statusbx block w-60 bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                         id="grid-state"
-                        v-model="status"
+                        v-model="props.status"
                       >
                         <option :value="'NO_STATUS'">No Status</option>
                         <option :value="'TO_DO'">To Do</option>
@@ -155,13 +147,14 @@ console.log("Task ID:", id);
 @import url("https://fonts.gstatic.com");
 @import url("https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
 
-.itbkk-description,
+/* .itbkk-description,
 .itbkk-assignees {
-  font-style: normal;
-}textarea::placeholder {
+  font-style: italic;
+}
+textarea::placeholder {
   font-style: italic;
   color: gray;
-}
+} */
 
 .modals {
   background-color: #bfb8da;
@@ -186,11 +179,6 @@ console.log("Task ID:", id);
   margin: 10px;
   float: right;
   border-radius: 50px;
-}
-
-.ok:hover {
-  background-color: rgb(28, 126, 36);
-  color: rgb(179, 236, 168);
 }
 
 .close {
