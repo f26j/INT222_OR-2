@@ -15,7 +15,4 @@
   </div>
 </template>
 <style>
-.cp {
-  padding-bottom: 3rem;
-}
 </style>
