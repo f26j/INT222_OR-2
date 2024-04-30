@@ -77,7 +77,7 @@ console.log("Task ID:", id);
                         Assignees
                       </label>
                       <textarea
-                        class="itbkk-assignees ass appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none"
+                        class="itbkk-assignees asgn appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none"
                         id="assign"
                         type="text"
                         placeholder="Unassigned"
@@ -154,14 +154,14 @@ console.log("Task ID:", id);
 @import url("https://fonts.gstatic.com");
 @import url("https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
 
-.itbkk-description, .itbkk-assignees{
+.itbkk-description, .itbkk-assignees {
   font-style: normal;
 }
 
-.notex {
+/* .notex {
   color: gray;
   font-style: italic;
-}
+} */
 
 .modals {
   background-color: #bfb8da;
@@ -225,6 +225,14 @@ console.log("Task ID:", id);
   overflow-x: auto;
 }
 
+.modal-header::-webkit-scrollbar {
+  height: 12px;
+}
+
+h1 {
+  padding-bottom: 5px;
+}
+
 .desc {
   margin: 15px;
 }
@@ -234,7 +242,7 @@ console.log("Task ID:", id);
   height: 20rem;
 }
 
-.ass {
+.asgn {
   width: 15rem;
   height: 10rem;
 }
@@ -272,6 +280,7 @@ console.log("Task ID:", id);
 ::-webkit-scrollbar-thumb:hover {
   background: #8d8d8d; 
 }
+
 @media screen and (max-width: 800px) {
 
   .modals {
@@ -279,7 +288,15 @@ console.log("Task ID:", id);
   height: 500px;
   overflow-y: scroll;
   overflow-x: hidden;
-}
+  }
+
+  .modal-header::-webkit-scrollbar {
+    height: 12px;
+  }
+
+  h1 {
+    padding-bottom: 5px;
+  }
 
   .modal-body {
     display: block;
@@ -292,6 +309,10 @@ console.log("Task ID:", id);
   .descinput {
     width: 21rem;
     height: 20rem;
+  }
+
+  .modal-footer {
+    height: 3rem;
   }
 }
 </style>

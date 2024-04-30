@@ -82,7 +82,7 @@ const closeModal = () => {
   
     <main>
 
-      <div class="btn-a">
+      <div class="btn-add">
         <div class="button iconbutton">
           <i class="plus">+</i>
         </div>
@@ -168,27 +168,27 @@ const closeModal = () => {
   color: #d1ffca;
 }
 
-.btn-a{
+.btn-add {
   position:fixed;
   bottom:50px;
   right:50px;
   cursor: pointer;
 }
 
-.iconbutton{
+.iconbutton {
   width:50px;
   height:50px;
   border-radius: 100%;
   box-shadow: 5px 5px 5px #00000046;
 }
 
-.button{
+.button {
   width:60px;
   height:60px;
   background:#ad386f;
 }
 
-.iconbutton i{
+.iconbutton i {
   display:flex;
   align-items:center;
   justify-content:center;
@@ -201,13 +201,13 @@ const closeModal = () => {
   color: white;
 } 
 
-::-webkit-scrollbar {
+/* ::-webkit-scrollbar {
   width: 0px;
 }
 
 ::-webkit-scrollbar-thumb {
   background: #333;
-}
+} */
 
 .itbkk-assignees {
   font-style: normal;
@@ -323,6 +323,7 @@ footer {
 }
 
 @media screen and (max-width: 745px) {
+
   table,
   thead,
   tbody,
@@ -367,14 +368,15 @@ footer {
     padding-right: 10px;
     white-space: nowrap;
   }
-  .btn-a{
+
+  .btn-add {
   z-index: 2;
   position: fixed;
   }
 
-.tb {
-  z-index: 1;
-  position: relative;
+  .tb {
+    z-index: 1;
+    position: relative;
   }
 }
 </style>
