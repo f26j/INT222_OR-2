@@ -3,7 +3,11 @@ import Bg_effect from "../components/css/Background.vue";
 import Badges from "../components/css/Badge.vue";
 import Copyright from "../components/css/Copyright.vue";
 import ModalDetail from "./ModalDetail.vue";
+<<<<<<< Updated upstream
 import ModalAdd from "./ModalAdd.vue"
+=======
+import ModalAdd from "./ModalAdd.vue";
+>>>>>>> Stashed changes
 import { onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 
@@ -81,6 +85,7 @@ const openModalAdd = async () => {
   router.push({ name: "task-add" });
 }
 
+
 const closeModal = () => {
   show.value = false;
   router.push({ name: "task" });
@@ -95,6 +100,7 @@ const closeModal = () => {
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
     </header>
     <main>
+<<<<<<< Updated upstream
       <div class="btn-a"    v-for="task in tasks">
         <div class="button iconbutton" @click="openModalAdd(task.id)">
           <i class="plus">
@@ -103,6 +109,11 @@ const closeModal = () => {
               <path fill="currentColor" d="M10.5 20a1.5 1.5 0 0 0 3 0v-6.5H20a1.5 1.5 0 0 0 0-3h-6.5V4a1.5 1.5 0 0 0-3 0v6.5H4a1.5 1.5 0 0 0 0 3h6.5z"></path>
             </g></svg>
           </i>
+=======
+      <div class="btn-a">
+        <div @click="openModal()" class="button iconbutton" >
+          <i class="plus">+</i>
+>>>>>>> Stashed changes
         </div>
       </div>
       <div class="tb">
@@ -156,8 +167,24 @@ const closeModal = () => {
         :createdOn="createdOn"
         :updatedOn="updatedOn"
         :localTimeZone="localTimeZone"
+<<<<<<< Updated upstream
         @close="closeModal">
       </ModalDetail>
+=======
+        @close="closeModal"
+      ></ModalDetail>
+      <ModalAdd
+        v-if="show"
+        :title="title"
+        :description="description"
+        :assignees="assignees"
+        :status="status"
+        :createdOn="createdOn"
+        :updatedOn="updatedOn"
+        :localTimeZone="localTimeZone"
+        @close="closeModal"
+      ></ModalAdd>
+>>>>>>> Stashed changes
     </main>
 
     <footer>
