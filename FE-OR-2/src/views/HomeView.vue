@@ -52,6 +52,7 @@ const openModal = async (id) => {
     }, 500);
     return;
   }
+
   console.log(data);
   console.log(res);
   title.value = res.title;
@@ -64,6 +65,7 @@ const openModal = async (id) => {
   router.push({ name: "task-detail", params: { id: id } });
   console.log(title.value);
 };
+
 if (taskId) {
   openModal(taskId);
 }
@@ -107,9 +109,9 @@ const closeModal = () => {
                 <p @click="openModal(task.id)" value="id">{{ task.title }}</p>
               </td>
               <td class="itbkk-assignees">
-                <span v-if="!task.assignees?.trim()" class="itbkk-assignees unassigned"
-                  >Unassigned</span
-                >
+                <span v-if="!task.assignees?.trim()" class="itbkk-assignees unassigned">
+                  Unassigned
+                </span>
                 <span v-else>{{ task.assignees }}</span>
               </td>
               <td class="itbkk-status"><Badges :status="task.status" /></td>
@@ -117,6 +119,7 @@ const closeModal = () => {
           </tbody>
         </table>
       </div>
+
       <ModalDetail
         v-if="show"
         :title="title"
@@ -126,9 +129,10 @@ const closeModal = () => {
         :createdOn="createdOn"
         :updatedOn="updatedOn"
         :localTimeZone="localTimeZone"
-        @close="closeModal"
-      ></ModalDetail>
+        @close="closeModal">
+      </ModalDetail>
     </main>
+
     <footer>
       <Copyright />
     </footer>
@@ -150,20 +154,23 @@ const closeModal = () => {
   scroll-behavior: smooth;
 }
 
-.unassigned{
+.unassigned {
   font-style: italic;
   color: gray;
 }
 
-::-webkit-scrollbar {
+/* ::-webkit-scrollbar {
   width: 0px;
 }
 ::-webkit-scrollbar-thumb {
   background: #333;
-}
+} */
+
 .itbkk-assignees {
   font-style: normal;
+  width: auto;
 }
+
 .itbkk-title p {
   transition: transform 0.3s ease;
   color: #ad386f;
@@ -190,6 +197,7 @@ const closeModal = () => {
   color: gray;
   font-style: italic;
 }
+
 header {
   margin-bottom: 20px;
 }
@@ -206,10 +214,12 @@ header {
   border-radius: 50px;
   border: 2px solid #04AA6D;
 }
+
 .btna:hover {
   background-color: #adcdc1;
   color: white;
 }
+
 .addtask {
   margin-right: 45rem;
   text-align: center;
