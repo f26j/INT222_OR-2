@@ -3,6 +3,7 @@ import Bg_effect from "../components/css/Background.vue";
 import Badges from "../components/css/Badge.vue";
 import Copyright from "../components/css/Copyright.vue";
 import ModalDetail from "./ModalDetail.vue";
+import ModalAdd from "./ModalAdd.vue"
 import { onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 
@@ -65,9 +66,19 @@ const openModal = async (id) => {
   router.push({ name: "task-detail", params: { id: id } });
   console.log(title.value);
 };
-
 if (taskId) {
   openModal(taskId);
+}
+const openModalAdd = async () => {
+  title.value = "";
+  description.value = "";
+  assignees.value = "";
+  status.value = "NO_STATUS"; 
+  createdOn.value = formatDate(new Date());
+  updatedOn.value = formatDate(new Date());
+
+  show.value = true;
+  router.push({ name: "task-add" });
 }
 
 const closeModal = () => {
@@ -84,9 +95,14 @@ const closeModal = () => {
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
     </header>
     <main>
-      <div class="btn-a">
-        <div class="button iconbutton">
-          <i class="plus">+</i>
+      <div class="btn-a"    v-for="task in tasks">
+        <div class="button iconbutton" @click="openModalAdd(task.id)">
+          <i class="plus">
+            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><g fill="none">
+              <path d="M24 0v24H0V0zM12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035c-.01-.004-.019-.001-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427c-.002-.01-.009-.017-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093c.012.004.023 0 .029-.008l.004-.014l-.034-.614c-.003-.012-.01-.02-.02-.022m-.715.002a.023.023 0 0 0-.027.006l-.006.014l-.034.614c0 .012.007.02.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"></path>
+              <path fill="currentColor" d="M10.5 20a1.5 1.5 0 0 0 3 0v-6.5H20a1.5 1.5 0 0 0 0-3h-6.5V4a1.5 1.5 0 0 0-3 0v6.5H4a1.5 1.5 0 0 0 0 3h6.5z"></path>
+            </g></svg>
+          </i>
         </div>
       </div>
       <div class="tb">
@@ -106,7 +122,16 @@ const closeModal = () => {
               class="itbkk-item"
               :data-task-id="task.id"
             >
-              <td class="bgd"><span class="bgi">id : </span>{{ task.id }}</td>
+              <td class="bgd">
+                <span class="bgi">id : </span>
+                <div class="idkb">
+                  {{ task.id }}
+                  <span class="kebab">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20">
+                    <path fill="currentColor" d="M10 9a2 2 0 1 1 0-4a2 2 0 0 1 0 4m0 6a2 2 0 1 1 0-4a2 2 0 0 1 0 4"></path></svg>
+                  </span>
+                </div>
+              </td>
               <td class="itbkk-title">
                 <p @click="openModal(task.id)" value="id">{{ task.title }}</p>
               </td>
@@ -121,7 +146,7 @@ const closeModal = () => {
           </tbody>
         </table>
       </div>
-
+      
       <ModalDetail
         v-if="show"
         :title="title"
@@ -269,6 +294,14 @@ header {
 .addtask {
   margin-right: 45rem;
   text-align: center;
+}
+
+.kebab {
+  color: #939393;
+}
+
+.idkb {
+  display: inline;
 }
 
 h1 {
