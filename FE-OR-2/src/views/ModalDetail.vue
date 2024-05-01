@@ -212,6 +212,15 @@ textarea::placeholder {
   margin: 15px;
   overflow-x: auto;
 }
+
+.modal-header::-webkit-scrollbar {
+    height: 12px;
+  }
+
+  h1 {
+    padding-bottom: 5px;
+  }
+
 .desc {
   margin: 15px;
 }

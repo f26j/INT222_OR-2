@@ -167,7 +167,7 @@ const closeModal = () => {
 }
 
 .plus {
-  font-size: 30px;
+  font-size: 40px;
   font-weight: 10px;
   color: #d1ffca;
 }
@@ -187,8 +187,8 @@ const closeModal = () => {
 }
 
 .button {
-  width:60px;
-  height:60px;
+  width:80px;
+  height:80px;
   background:#ad386f;
 }
 
@@ -248,7 +248,7 @@ header {
   margin-bottom: 20px;
 }
 
-.btna {
+/* .btna {
   background-color: #04aa6d76;
   border: none;
   color: white;
@@ -264,7 +264,7 @@ header {
 .btna:hover {
   background-color: #adcdc1;
   color: white;
-}
+} */
 
 .addtask {
   margin-right: 45rem;
@@ -280,8 +280,6 @@ h1 {
   font-weight: 800;
   margin: 4rem 0 2rem;
 }
-
-
 
 .tb {
   padding: 2rem;
@@ -375,6 +373,11 @@ footer {
     margin-left: -1rem;
   }
 
+  .button {
+  width:60px;
+  height:60px;
+}
+
   tr {
     border: 1px solid #ccc;
   }
@@ -394,13 +397,15 @@ footer {
     padding-right: 10px;
     white-space: nowrap;
   }
-  .btn-a{
+
+  .btn-a {
   z-index: 2;
   position: fixed;
 }
-.tb {
-  z-index: 1;
-  position: relative;
-}
+
+  .tb {
+    z-index: 1;
+    position: relative;
+  }
 }
 </style>
