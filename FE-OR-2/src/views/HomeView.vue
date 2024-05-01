@@ -82,9 +82,11 @@ const closeModal = () => {
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
     </header>
     <main>
-      <div class="addtask">
-        <button class="btna">ADD TASK</button>
-    </div>
+      <div class="btn-a">
+        <div class="button iconbutton">
+          <i class="plus">+</i>
+        </div>
+      </div>
       <div class="tb">
         <table>
           <thead>
@@ -155,6 +157,50 @@ const closeModal = () => {
   color: gray;
 }
 
+.addtask {
+  margin-right:45rem;
+  text-align: center;
+}
+
+.plus {
+  font-size: 30px;
+  font-weight: 10px;
+  color: #d1ffca;
+}
+
+.btn-a{
+  position:fixed;
+  bottom:50px;
+  right:50px;
+  cursor: pointer;
+}
+
+.iconbutton{
+  width:50px;
+  height:50px;
+  border-radius: 100%;
+  box-shadow: 5px 5px 5px #00000046;
+}
+
+.button{
+  width:60px;
+  height:60px;
+  background:#ad386f;
+}
+
+.iconbutton i{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height: 100%;
+  color:white;
+}
+
+.button:hover {
+  background-color: #66163b; 
+  color: white;
+} 
+
 ::-webkit-scrollbar {
   width: 0px;
 }
@@ -163,6 +209,8 @@ const closeModal = () => {
 }
 .itbkk-assignees {
   font-style: normal;
+  width: auto;
+
 }
 .itbkk-title p {
   transition: transform 0.3s ease;
@@ -224,6 +272,8 @@ h1 {
   font-weight: 800;
   margin: 4rem 0 2rem;
 }
+
+
 
 .tb {
   padding: 2rem;
@@ -336,5 +386,13 @@ footer {
     padding-right: 10px;
     white-space: nowrap;
   }
+  .btn-a{
+  z-index: 2;
+  position: fixed;
+}
+.tb {
+  z-index: 1;
+  position: relative;
+}
 }
 </style>

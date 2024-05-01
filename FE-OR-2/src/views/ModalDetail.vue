@@ -170,6 +170,7 @@ textarea::placeholder {
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 3;
 }
 
 .ok {
@@ -207,10 +208,8 @@ textarea::placeholder {
   font-style: normal;
   font-size: 30px;
   margin: 15px;
-  overflow-y: hidden;
-  overflow-x: scroll;
+  overflow-x: auto;
 }
-
 .desc {
   margin: 15px;
 }
@@ -260,13 +259,11 @@ textarea::placeholder {
 }
 @media screen and (max-width: 800px) {
   .modals {
-    width: 400px;
-    height: 500px;
-    overflow-y: scroll;
-    overflow-x: hidden;
-    padding-top: 2rem;
-    padding-bottom: 5rem;
-  }
+  width: 400px;
+  height: 500px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
 
   .modal-body {
     display: block;
