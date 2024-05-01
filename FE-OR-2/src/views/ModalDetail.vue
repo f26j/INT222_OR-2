@@ -14,13 +14,6 @@ const props = defineProps({
 
 const route = useRoute();
 const id = route.params.id;
-const title = ref(props.title);
-const description = ref(props.description);
-const assignees = ref(props.assignees);
-const status = ref(props.status);
-const createdOn = ref(props.createdOn);
-const updatedOn = ref(props.updatedOn);
-var textarea = document.querySelector("#description");
 
 console.log(id);
 
@@ -54,14 +47,12 @@ console.log("Task ID:", id);
                       Description
                     </label>
                     <textarea
-                      class="itbkk-description descinput appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                      id="description"
-                      type="text"
-                      placeholder="No Description Provided"
-                      >{{
-                        props.description?.trim() || ""
-                      }}</textarea
-                    >
+    class="itbkk-description descinput appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+    id="description"
+    type="text"
+    :class="{'italic !text-gray-400':!props.description}"
+    disabled
+>{{ props.description?.trim() || "No Description Provided" }}</textarea>
                   </div>
                 </div>
               </div>
@@ -77,11 +68,12 @@ console.log("Task ID:", id);
                         Assignees
                       </label>
                       <textarea
-                        class="itbkk-assignees asgn appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none"
+                        class="itbkk-assignees ass appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
                         id="assign"
                         type="text"
-                        placeholder="Unassigned"
-                        >{{ props.assignees.trim() || "" }}</textarea
+                        :class="{'italic !text-gray-400':!props.assignees}"
+                        disabled
+                        >{{ props.assignees.trim() || "Unassigned" }}</textarea
                       >
                     </div>
                   </div>
@@ -99,7 +91,7 @@ console.log("Task ID:", id);
                       <select
                         class="statusbx block w-60 bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                         id="grid-state"
-                        v-model="status"
+                        v-model="props.status"
                       >
                         <option :value="'NO_STATUS'">No Status</option>
                         <option :value="'TO_DO'">To Do</option>
@@ -148,26 +140,26 @@ console.log("Task ID:", id);
     </div>
   </div>
 </template>
+
 <style>
 @import url("https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono");
 @import url("https://fonts.googleapis.com");
 @import url("https://fonts.gstatic.com");
 @import url("https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
 
-.itbkk-description, .itbkk-assignees {
-  font-style: normal;
-}
-
-/* .notex {
-  color: gray;
+/* .itbkk-description,
+.itbkk-assignees {
   font-style: italic;
+}
+textarea::placeholder {
+  font-style: italic;
+  color: gray;
 } */
 
 .modals {
   background-color: #bfb8da;
   color: #47467b;
   width: 800px;
-  
 }
 
 .details {
@@ -178,7 +170,6 @@ console.log("Task ID:", id);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 3;
 }
 
 .ok {
@@ -188,11 +179,6 @@ console.log("Task ID:", id);
   margin: 10px;
   float: right;
   border-radius: 50px;
-}
-
-.ok:hover {
-  background-color: rgb(28, 126, 36);
-  color: rgb(179, 236, 168);
 }
 
 .close {
@@ -206,15 +192,14 @@ console.log("Task ID:", id);
 }
 
 .ok:hover {
-  background-color: rgb(83, 150, 88);
-  color: rgb(234, 255, 230);
+  background-color: rgb(28, 126, 36);
+  color: rgb(179, 236, 168);
 }
 
 .close:hover {
-  background-color: rgb(216, 106, 112);
-  color: rgb(255, 232, 234);
+  background-color: rgb(163, 42, 48);
+  color: rgb(248, 195, 199);
 }
-
 .modal-header {
   color: #47467b;
   font-family: "Ubuntu", sans-serif;
@@ -222,15 +207,8 @@ console.log("Task ID:", id);
   font-style: normal;
   font-size: 30px;
   margin: 15px;
-  overflow-x: auto;
-}
-
-.modal-header::-webkit-scrollbar {
-  height: 12px;
-}
-
-h1 {
-  padding-bottom: 5px;
+  overflow-y: hidden;
+  overflow-x: scroll;
 }
 
 .desc {
@@ -242,7 +220,7 @@ h1 {
   height: 20rem;
 }
 
-.asgn {
+.ass {
   width: 15rem;
   height: 10rem;
 }
@@ -274,28 +252,20 @@ h1 {
 
 ::-webkit-scrollbar-thumb {
   border-radius: 10px;
-  background: #a8a8a8; 
+  background: #a8a8a8;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #8d8d8d; 
+  background: #9b9b9b;
 }
-
 @media screen and (max-width: 800px) {
-
   .modals {
-  width: 400px;
-  height: 500px;
-  overflow-y: scroll;
-  overflow-x: hidden;
-  }
-
-  .modal-header::-webkit-scrollbar {
-    height: 12px;
-  }
-
-  h1 {
-    padding-bottom: 5px;
+    width: 400px;
+    height: 500px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    padding-top: 2rem;
+    padding-bottom: 5rem;
   }
 
   .modal-body {
@@ -309,10 +279,6 @@ h1 {
   .descinput {
     width: 21rem;
     height: 20rem;
-  }
-
-  .modal-footer {
-    height: 3rem;
   }
 }
 </style>
