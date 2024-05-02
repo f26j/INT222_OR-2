@@ -1,16 +1,6 @@
 <script setup>
-import { ref, defineProps, defineEmits } from "vue";
+import { onMounted, ref, defineEmits } from "vue";
 import { useRoute } from "vue-router";
-
-const props = defineProps({
-  title: String,
-  description: String,
-  assignees: String,
-  status: String,
-  createdOn: String,
-  updatedOn: String,
-  localTimeZone: String,
-});
 
 const route = useRoute();
 
@@ -21,6 +11,8 @@ const handleSubmit = () => {
 const closeModal = () => {
 
 }
+
+
 </script>
 
 <template>
@@ -135,8 +127,8 @@ const closeModal = () => {
 @import url("https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
 
 .modals {
-  background-color: #dbbad4;
-  color: #7b466b;
+  background-color: #c8badb;
+  color: #3a2864;
   width: 800px;
 }
 
