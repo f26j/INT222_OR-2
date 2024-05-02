@@ -107,7 +107,10 @@ const closeModal = () => {
           </i>
         </div>
       </div>
+<<<<<<< Updated upstream
       
+=======
+>>>>>>> Stashed changes
       <div class="tb">
         <table>
           <thead>
@@ -158,7 +161,11 @@ const closeModal = () => {
         :localTimeZone="localTimeZone"
         @close="closeModal">
       </ModalDetail>
+<<<<<<< Updated upstream
       <ModalAdd></ModalAdd>
+=======
+      <ModalAdd  @close="closeModal"></ModalAdd>
+>>>>>>> Stashed changes
     </main>
 
     <footer>
