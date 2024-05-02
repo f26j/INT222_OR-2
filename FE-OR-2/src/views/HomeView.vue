@@ -3,6 +3,8 @@ import Bg_effect from "../components/css/Background.vue";
 import Badges from "../components/css/Badge.vue";
 import Copyright from "../components/css/Copyright.vue";
 import ModalDetail from "./ModalDetail.vue";
+import ModalAdd from "./ModalAdd.vue";
+
 import { onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 
@@ -52,6 +54,7 @@ const openModal = async (id) => {
     }, 500);
     return;
   }
+
   console.log(data);
   console.log(res);
   title.value = res.title;
@@ -67,6 +70,18 @@ const openModal = async (id) => {
 if (taskId) {
   openModal(taskId);
 }
+const openModalAdd = async () => {
+  title.value = "";
+  description.value = "";
+  assignees.value = "";
+  status.value = "NO_STATUS"; 
+  createdOn.value = formatDate(new Date());
+  updatedOn.value = formatDate(new Date());
+
+  show.value = true;
+  router.push({ name: "task-add" });
+}
+
 
 const closeModal = () => {
   show.value = false;
@@ -82,9 +97,21 @@ const closeModal = () => {
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
     </header>
     <main>
-      <div class="addtask">
-        <button class="btna">ADD TASK</button>
-    </div>
+      <div class="btn-a"  v-for="task in tasks">
+        <div class="button iconbutton" @click="openModalAdd()">
+          <i class="plus">
+            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><g fill="none">
+              <path d="M24 0v24H0V0zM12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035c-.01-.004-.019-.001-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427c-.002-.01-.009-.017-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093c.012.004.023 0 .029-.008l.004-.014l-.034-.614c-.003-.012-.01-.02-.02-.022m-.715.002a.023.023 0 0 0-.027.006l-.006.014l-.034.614c0 .012.007.02.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"></path>
+              <path fill="currentColor" d="M10.5 20a1.5 1.5 0 0 0 3 0v-6.5H20a1.5 1.5 0 0 0 0-3h-6.5V4a1.5 1.5 0 0 0-3 0v6.5H4a1.5 1.5 0 0 0 0 3h6.5z"></path>
+            </g></svg>
+          </i>
+        </div>
+      </div>
+      <div class="btn-a">
+        <div @click="openModal()" class="button iconbutton" >
+          <i class="plus">+</i>
+        </div>
+      </div>
       <div class="tb">
         <table>
           <thead>
@@ -102,14 +129,23 @@ const closeModal = () => {
               class="itbkk-item"
               :data-task-id="task.id"
             >
-              <td class="bgd"><span class="bgi">id : </span>{{ task.id }}</td>
+              <td class="bgd">
+                <span class="bgi">id : </span>
+                <div class="idkb flex-">
+                  {{ task.id }}
+                  <span class="kebab">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20">
+                    <path fill="currentColor" d="M10 9a2 2 0 1 1 0-4a2 2 0 0 1 0 4m0 6a2 2 0 1 1 0-4a2 2 0 0 1 0 4"></path></svg>
+                  </span>
+                </div>
+              </td>
               <td class="itbkk-title">
                 <p @click="openModal(task.id)" value="id">{{ task.title }}</p>
               </td>
               <td class="itbkk-assignees">
-                <span v-if="!task.assignees?.trim()" class="itbkk-assignees unassigned"
-                  >Unassigned</span
-                >
+                <span v-if="!task.assignees?.trim()" class="itbkk-assignees unassigned">
+                  Unassigned
+                </span>
                 <span v-else>{{ task.assignees }}</span>
               </td>
               <td class="itbkk-status"><Badges :status="task.status" /></td>
@@ -117,6 +153,7 @@ const closeModal = () => {
           </tbody>
         </table>
       </div>
+      
       <ModalDetail
         v-if="show"
         :title="title"
@@ -126,9 +163,10 @@ const closeModal = () => {
         :createdOn="createdOn"
         :updatedOn="updatedOn"
         :localTimeZone="localTimeZone"
-        @close="closeModal"
-      ></ModalDetail>
+        @close="closeModal">
+      </ModalDetail>
     </main>
+
     <footer>
       <Copyright />
     </footer>
@@ -150,20 +188,67 @@ const closeModal = () => {
   scroll-behavior: smooth;
 }
 
-.unassigned{
+.unassigned {
   font-style: italic;
   color: gray;
 }
 
-::-webkit-scrollbar {
+.addtask {
+  margin-right:45rem;
+  text-align: center;
+}
+
+.plus {
+  font-size: 40px;
+  font-weight: 10px;
+  color: #d1ffca;
+}
+
+.btn-a {
+  position:fixed;
+  bottom:50px;
+  right:50px;
+  cursor: pointer;
+}
+
+.iconbutton {
+  width:50px;
+  height:50px;
+  border-radius: 100%;
+  box-shadow: 5px 5px 5px #00000046;
+}
+
+.button {
+  width:80px;
+  height:80px;
+  background:#ad386f;
+}
+
+.iconbutton i {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height: 100%;
+  color:white;
+}
+
+.button:hover {
+  background-color: #66163b; 
+  color: white;
+} 
+
+/* ::-webkit-scrollbar {
   width: 0px;
 }
 ::-webkit-scrollbar-thumb {
   background: #333;
-}
+} */
+
 .itbkk-assignees {
   font-style: normal;
+  width: auto;
 }
+
 .itbkk-title p {
   transition: transform 0.3s ease;
   color: #ad386f;
@@ -190,11 +275,12 @@ const closeModal = () => {
   color: gray;
   font-style: italic;
 }
+
 header {
   margin-bottom: 20px;
 }
 
-.btna {
+/* .btna {
   background-color: #04aa6d76;
   border: none;
   color: white;
@@ -206,13 +292,23 @@ header {
   border-radius: 50px;
   border: 2px solid #04AA6D;
 }
+
 .btna:hover {
   background-color: #adcdc1;
   color: white;
-}
+} */
+
 .addtask {
   margin-right: 45rem;
   text-align: center;
+}
+
+.kebab {
+  color: #939393;
+}
+
+.idkb {
+  display: inline;
 }
 
 h1 {
@@ -317,6 +413,11 @@ footer {
     margin-left: -1rem;
   }
 
+  .button {
+  width:60px;
+  height:60px;
+}
+
   tr {
     border: 1px solid #ccc;
   }
@@ -335,6 +436,16 @@ footer {
     width: 45%;
     padding-right: 10px;
     white-space: nowrap;
+  }
+
+  .btn-a {
+  z-index: 2;
+  position: fixed;
+}
+
+  .tb {
+    z-index: 1;
+    position: relative;
   }
 }
 </style>
