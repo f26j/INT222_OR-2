@@ -4,12 +4,10 @@ import Badges from "../components/css/Badge.vue";
 import Copyright from "../components/css/Copyright.vue";
 import ModalDetail from "./ModalDetail.vue";
 import ModalAdd from "./ModalAdd.vue";
-
 import { onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 
-
-const fetchURL = ref(import.meta.env.VITE_API)
+const fetchURL = ref(import.meta.env.VITE_API);
 const router = useRouter();
 const tasks = ref([]);
 const route = useRoute();
@@ -42,9 +40,8 @@ onMounted(async () => {
   tasks.value = data;
 });
 
-const show = ref(false);
-
-const openModal = async (id) => {
+const show1 = ref(false);
+const openModalDetail = async (id) => {
   const data = await fetch(`${fetchURL.value}/${id}`);
   const res = await data.json();
   if (!data.ok) {
@@ -63,28 +60,58 @@ const openModal = async (id) => {
   status.value = res.status;
   createdOn.value = formatDate(res.createdOn);
   updatedOn.value = formatDate(res.updatedOn);
-  show.value = true;
+  show1.value = true;
   router.push({ name: "task-detail", params: { id: id } });
   console.log(title.value);
 };
 if (taskId) {
-  openModal(taskId);
+  openModalDetail(taskId);
 }
-const openModalAdd = async () => {
+
+const show2 = ref(false);
+const openModalAdd = async (task) => {
   title.value = "";
   description.value = "";
   assignees.value = "";
-  status.value = "NO_STATUS"; 
+  status.value = "NO_STATUS";
   createdOn.value = formatDate(new Date());
   updatedOn.value = formatDate(new Date());
 
-  show.value = true;
+  show2.value = true;
   router.push({ name: "task-add" });
-}
+};
 
-
+const addTask = async () => {
+  const newTask = {
+    id: 1, // <<<< ทำให้เป็น id ล่าสุด
+    title: newTitle.value,
+    description: newDescription.value,
+    assignees: newAssignees.value,
+    status: newStatus.value,
+    createdOn: new Date(),
+    updatedOn: new Date(),
+  };
+  try {
+    const response = await fetch(`${fetchURL.value}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newTask),
+    });
+    if (!response.ok) {
+      throw new Error("Failed to add new task");
+    }
+    const data = await response.json();
+    tasks.value.push(data);
+  } catch (error) {
+    console.error("Error adding new task:", error.message);
+  }
+  
+};
 const closeModal = () => {
-  show.value = false;
+  show1.value = false;
+  show2.value = false; 
   router.push({ name: "task" });
 };
 </script>
@@ -97,20 +124,28 @@ const closeModal = () => {
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
     </header>
     <main>
-      <div class="btn-a"  v-for="task in tasks">
-        <div class="button iconbutton" @click="openModalAdd()">
+      <div class="btn-a" v-for="task in tasks">
+        <div class="button iconbutton" @click="openModalAdd(task)">
           <i class="plus">
-            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><g fill="none">
-              <path d="M24 0v24H0V0zM12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035c-.01-.004-.019-.001-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427c-.002-.01-.009-.017-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093c.012.004.023 0 .029-.008l.004-.014l-.034-.614c-.003-.012-.01-.02-.02-.022m-.715.002a.023.023 0 0 0-.027.006l-.006.014l-.034.614c0 .012.007.02.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"></path>
-              <path fill="currentColor" d="M10.5 20a1.5 1.5 0 0 0 3 0v-6.5H20a1.5 1.5 0 0 0 0-3h-6.5V4a1.5 1.5 0 0 0-3 0v6.5H4a1.5 1.5 0 0 0 0 3h6.5z"></path>
-            </g></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="1em"
+              height="1em"
+              viewBox="0 0 24 24"
+            >
+              <g fill="none">
+                <path
+                  d="M24 0v24H0V0zM12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035c-.01-.004-.019-.001-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427c-.002-.01-.009-.017-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093c.012.004.023 0 .029-.008l.004-.014l-.034-.614c-.003-.012-.01-.02-.02-.022m-.715.002a.023.023 0 0 0-.027.006l-.006.014l-.034.614c0 .012.007.02.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"
+                ></path>
+                <path
+                  fill="currentColor"
+                  d="M10.5 20a1.5 1.5 0 0 0 3 0v-6.5H20a1.5 1.5 0 0 0 0-3h-6.5V4a1.5 1.5 0 0 0-3 0v6.5H4a1.5 1.5 0 0 0 0 3h6.5z"
+                ></path>
+              </g>
+            </svg>
           </i>
         </div>
       </div>
-<<<<<<< Updated upstream
-      
-=======
->>>>>>> Stashed changes
       <div class="tb">
         <table>
           <thead>
@@ -132,14 +167,16 @@ const closeModal = () => {
                 <span class="bgi">id : </span>
                 <div class="idkb flex-">
                   {{ task.id }}
-                  
                 </div>
               </td>
               <td class="itbkk-title">
-                <p @click="openModal(task.id)" value="id">{{ task.title }}</p>
+                <p @click="openModalDetail(task.id)" value="id">{{ task.title }}</p>
               </td>
               <td class="itbkk-assignees">
-                <span v-if="!task.assignees?.trim()" class="itbkk-assignees unassigned">
+                <span
+                  v-if="!task.assignees?.trim()"
+                  class="itbkk-assignees unassigned"
+                >
                   Unassigned
                 </span>
                 <span v-else>{{ task.assignees }}</span>
@@ -149,9 +186,9 @@ const closeModal = () => {
           </tbody>
         </table>
       </div>
-      
+
       <ModalDetail
-        v-if="show"
+        v-if="show1"
         :title="title"
         :description="description"
         :assignees="assignees"
@@ -159,13 +196,10 @@ const closeModal = () => {
         :createdOn="createdOn"
         :updatedOn="updatedOn"
         :localTimeZone="localTimeZone"
-        @close="closeModal">
+        @close="closeModal"
+      >
       </ModalDetail>
-<<<<<<< Updated upstream
-      <ModalAdd></ModalAdd>
-=======
-      <ModalAdd  @close="closeModal"></ModalAdd>
->>>>>>> Stashed changes
+      <ModalAdd v-if="show2" @close="closeModal"></ModalAdd>
     </main>
 
     <footer>
@@ -195,7 +229,7 @@ const closeModal = () => {
 }
 
 .addtask {
-  margin-right:45rem;
+  margin-right: 45rem;
   text-align: center;
 }
 
@@ -206,37 +240,37 @@ const closeModal = () => {
 }
 
 .btn-a {
-  position:fixed;
-  bottom:50px;
-  right:50px;
+  position: fixed;
+  bottom: 50px;
+  right: 50px;
   cursor: pointer;
 }
 
 .iconbutton {
-  width:50px;
-  height:50px;
+  width: 50px;
+  height: 50px;
   border-radius: 100%;
   box-shadow: 5px 5px 5px #00000046;
 }
 
 .button {
-  width:80px;
-  height:80px;
-  background:#ad386f;
+  width: 80px;
+  height: 80px;
+  background: #ad386f;
 }
 
 .iconbutton i {
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   height: 100%;
-  color:white;
+  color: white;
 }
 
 .button:hover {
-  background-color: #66163b; 
+  background-color: #66163b;
   color: white;
-} 
+}
 
 /* ::-webkit-scrollbar {
   width: 0px;
@@ -415,9 +449,9 @@ footer {
   }
 
   .button {
-  width:60px;
-  height:60px;
-}
+    width: 60px;
+    height: 60px;
+  }
 
   tr {
     border: 1px solid #ccc;
@@ -440,9 +474,9 @@ footer {
   }
 
   .btn-a {
-  z-index: 2;
-  position: fixed;
-}
+    z-index: 2;
+    position: fixed;
+  }
 
   .tb {
     z-index: 1;
