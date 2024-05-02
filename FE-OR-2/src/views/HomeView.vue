@@ -107,11 +107,7 @@ const closeModal = () => {
           </i>
         </div>
       </div>
-      <div class="btn-a">
-        <div @click="openModal()" class="button iconbutton" >
-          <i class="plus">+</i>
-        </div>
-      </div>
+      
       <div class="tb">
         <table>
           <thead>
@@ -133,10 +129,7 @@ const closeModal = () => {
                 <span class="bgi">id : </span>
                 <div class="idkb flex-">
                   {{ task.id }}
-                  <span class="kebab">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20">
-                    <path fill="currentColor" d="M10 9a2 2 0 1 1 0-4a2 2 0 0 1 0 4m0 6a2 2 0 1 1 0-4a2 2 0 0 1 0 4"></path></svg>
-                  </span>
+                  
                 </div>
               </td>
               <td class="itbkk-title">
@@ -165,6 +158,7 @@ const closeModal = () => {
         :localTimeZone="localTimeZone"
         @close="closeModal">
       </ModalDetail>
+      <ModalAdd></ModalAdd>
     </main>
 
     <footer>

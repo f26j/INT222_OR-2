@@ -34,29 +34,43 @@ const closeModal = () => {
         <div class="modal-content">
           <form @submit.prevent="handleSubmit">
             <div class="modal-header">
-              <div class="itbkk-title text-left">
-                <h3>Add New Task</h3>
+              <div class="itbkktitle text-left">
+                <h4>Add New Task</h4>
               </div>
             </div>
             <hr />
 
             <div class="modal-body">
-              <div class="itbkk-description text-left">
+
+                <div class="text-left flex-col">
+                  <div class="titlee flex flex-wrap -mx-3 mb-2">
+                    <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
+                      <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-city">
+                        Title
+                      </label>
+                      <textarea
+                        class="ttitle appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
+                        id="assign"
+                        type="text"
+                        placeholder="Enter title..."></textarea>
+                    </div>
+                  </div>
+                
+
+              <div class="itbkk-description text-left ">
                 <div class="flex flex-wrap -mx-3 mb-2">
                   <div class="desc w-full md:w-1/3 px-3 mb-6 md:mb-0">
-                    <label
-                      class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                      for="grid-city"
-                    >
-                      Description
+                    <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                      for="grid-city">Description
                     </label>
-                    <textarea class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                                    id="description" type="text" placeholder="Albuquerque" ></textarea>
+                    <textarea class="itbkkdesc appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                                    id="description" type="text" placeholder="Enter description..." ></textarea>
                   </div>
                 </div>
               </div>
-
+            </div>
               <div class="detailright flex-col">
+
                 <div class="text-left">
                   <div class="assign flex flex-wrap -mx-3 mb-2">
                     <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
@@ -67,7 +81,7 @@ const closeModal = () => {
                         Assignees
                       </label>
                       <textarea
-                        class="itbkk-assignees ass appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
+                        class="itbkkassignees appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
                         id="assign"
                         type="text"
                         placeholder="Enter assignees..."
@@ -88,8 +102,7 @@ const closeModal = () => {
                       <select
                         v-model="props.status"
                         class="statusbx block w-60 bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                        id="grid-state"
-                      >
+                        id="grid-state">
                         <option value="NO_STATUS">No Status</option>
                         <option value="TO_DO">To Do</option>
                         <option value="DOING">Doing</option>
@@ -104,8 +117,8 @@ const closeModal = () => {
             <div class="modal-footer">
               <div class="itbkk-button">
                 <hr />
-                <button @click="closeModal" class="close border">Close</button>
-                <button type="submit" class="ok border">Add</button>
+                <button @click="closeModal" class="close border">Cancel</button>
+                <button type="submit" class="ok border">Save</button>
               </div>
             </div>
           </form>
@@ -122,8 +135,8 @@ const closeModal = () => {
 @import url("https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
 
 .modals {
-  background-color: #bfb8da;
-  color: #47467b;
+  background-color: #dbbad4;
+  color: #7b466b;
   width: 800px;
 }
 
@@ -136,6 +149,25 @@ const closeModal = () => {
   justify-content: center;
   align-items: center;
   z-index: 3;
+}
+
+.titlee {
+  padding: 10px;
+}
+
+.ttitle {
+  width: 400px;
+  height: 50px;
+}
+
+.itbkkdesc {
+  width: 400px;
+  height: 200px;
+}
+
+.itbkkassignees {
+  width: 320px;
+  height: 220px;
 }
 
 .ok {
@@ -185,8 +217,8 @@ const closeModal = () => {
     padding-bottom: 5px;
   }
 
-  h3 {
-    color: #47467b;
+  h4 {
+    color: #692153;
   }
 
 .desc {
