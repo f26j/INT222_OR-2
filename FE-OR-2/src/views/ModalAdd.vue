@@ -13,18 +13,13 @@ const props = defineProps({
 });
 
 const route = useRoute();
-const id = route.params.id;
-
-console.log(id);
-
-console.log("Task ID:", id);
 
 const handleSubmit = () => {
-  // ส่งข้อมูลที่กรอกในฟอร์มไปยัง API หรือทำการประมวลผลตามที่ต้องการ
+
 }
 
 const closeModal = () => {
-  // ปิด Modal เมื่อไม่ต้องการใช้งาน
+
 }
 </script>
 
@@ -72,7 +67,6 @@ const closeModal = () => {
                         Assignees
                       </label>
                       <textarea
-                        v-model="props.assignees"
                         class="itbkk-assignees ass appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
                         id="assign"
                         type="text"

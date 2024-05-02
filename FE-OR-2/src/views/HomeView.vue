@@ -97,7 +97,7 @@ const closeModal = () => {
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
     </header>
     <main>
-      <div class="btn-a"    v-for="task in tasks">
+      <div class="btn-a"  v-for="task in tasks">
         <div class="button iconbutton" @click="openModalAdd()">
           <i class="plus">
             <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><g fill="none">
@@ -131,7 +131,7 @@ const closeModal = () => {
             >
               <td class="bgd">
                 <span class="bgi">id : </span>
-                <div class="idkb">
+                <div class="idkb flex-">
                   {{ task.id }}
                   <span class="kebab">
                     <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20">
@@ -165,9 +165,6 @@ const closeModal = () => {
         :localTimeZone="localTimeZone"
         @close="closeModal">
       </ModalDetail>
-      <ModalAdd
-        @close="closeModal"
-      ></ModalAdd>
     </main>
 
     <footer>
