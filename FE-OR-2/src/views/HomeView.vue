@@ -83,7 +83,6 @@ const openModalAdd = async (task) => {
 
 const addTask = async () => {
   const newTask = {
-    id: 1, // <<<< ทำให้เป็น id ล่าสุด
     title: newTitle.value,
     description: newDescription.value,
     assignees: newAssignees.value,
