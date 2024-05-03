@@ -4,6 +4,7 @@ import Badges from "../components/css/Badge.vue";
 import Copyright from "../components/css/Copyright.vue";
 import ModalDetail from "./ModalDetail.vue";
 import ModalAdd from "./ModalAdd.vue";
+import Alert from "./Alert.vue";
 import { onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 
@@ -81,12 +82,18 @@ const openModalAdd = async (task) => {
   router.push({ name: "task-add" });
 };
 
+const closeModal = () => {
+  show1.value = false;
+  show2.value = false;
+  router.push({ name: "task" });
+};
+
 const addTask = async () => {
   const newTask = {
-    title: newTitle.value,
-    description: newDescription.value,
-    assignees: newAssignees.value,
-    status: newStatus.value,
+    title: title.value,
+    description: description.value,
+    assignees: assignees.value,
+    status: status.value,
     createdOn: new Date(),
     updatedOn: new Date(),
   };
@@ -106,13 +113,9 @@ const addTask = async () => {
   } catch (error) {
     console.error("Error adding new task:", error.message);
   }
-  
+  closeModal()
 };
-const closeModal = () => {
-  show1.value = false;
-  show2.value = false; 
-  router.push({ name: "task" });
-};
+
 </script>
 
 <template>
@@ -198,7 +201,7 @@ const closeModal = () => {
         @close="closeModal"
       >
       </ModalDetail>
-      <ModalAdd v-if="show2" @close="closeModal"></ModalAdd>
+      <ModalAdd v-if="show2" @close="closeModal" @addTask="addTask"></ModalAdd>
     </main>
 
     <footer>

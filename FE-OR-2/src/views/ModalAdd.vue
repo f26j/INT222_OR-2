@@ -3,7 +3,7 @@ import { ref } from "vue";
 import { useRoute } from "vue-router";
 
 const fetchURL = ref(import.meta.env.VITE_API);
-const route = useRoute();
+const router = useRoute();
 const newTitle = ref("");
 const newDescription = ref("");
 const newAssignees = ref("");
@@ -12,7 +12,7 @@ const tasks = ref([]);
 
 const addTask = async () => {
   const newTask = {
-    id: 1,
+    // id: 9,
     title: newTitle.value,
     description: newDescription.value,
     assignees: newAssignees.value,
@@ -40,7 +40,6 @@ const addTask = async () => {
   newDescription.value = "";
   newAssignees.value = "";
   newStatus.value = "NO_STATUS";
-  
 };
 </script>
 <template>
@@ -52,7 +51,7 @@ const addTask = async () => {
         aria-modal="true"
       >
         <div class="modal-content">
-          <form @submit.prevent="addTask">
+          <form @submit="addTask">
             <div class="modal-header">
               <div class="itbkktitle text-left">
                 <h4>Add New Task</h4>
@@ -154,13 +153,7 @@ const addTask = async () => {
                 >
                   Cancel
                 </button>
-                <button
-                  @click="($event) => $emit('close')"
-                  class="ok border"
-                  type="submit"
-                >
-                  Save
-                </button>
+                <button class="ok border" type="submit">Save</button>
               </div>
             </div>
           </form>
