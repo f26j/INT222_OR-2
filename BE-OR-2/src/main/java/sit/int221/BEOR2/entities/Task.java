@@ -12,6 +12,7 @@ import java.time.ZonedDateTime;
 @Table(name = "task")
 public class Task {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Integer id;
 

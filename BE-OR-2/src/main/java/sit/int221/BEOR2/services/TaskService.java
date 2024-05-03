@@ -5,6 +5,7 @@ import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
 import sit.int221.BEOR2.entities.Task;
+import sit.int221.BEOR2.exceptions.TaskNotFoundException;
 import sit.int221.BEOR2.repositories.TaskRepository;
 
 import java.util.List;
@@ -35,6 +36,10 @@ public class TaskService {
     }
 
     public void deleteTask(@PathVariable Integer id) {
-        taskRepository.deleteById(id);
+        if (taskRepository.existsById(id)) {
+            taskRepository.deleteById(id);
+        } else {
+            throw new TaskNotFoundException("NOT FOUND", "/v1/tasks/" + id);
+        }
     }
 }
