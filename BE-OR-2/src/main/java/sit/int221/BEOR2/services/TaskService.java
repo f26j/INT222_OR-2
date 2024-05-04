@@ -32,14 +32,13 @@ public class TaskService {
             updatedTask.setId(id);
             return taskRepository.save(updatedTask);
         }
-        return null;
+        throw new TaskNotFoundException("NOT FOUND", "/v1/tasks/" + id);
     }
 
     public void deleteTask(@PathVariable Integer id) {
         if (taskRepository.existsById(id)) {
             taskRepository.deleteById(id);
-        } else {
-            throw new TaskNotFoundException("NOT FOUND", "/v1/tasks/" + id);
         }
+        throw new TaskNotFoundException("NOT FOUND", "/v1/tasks/" + id);
     }
 }

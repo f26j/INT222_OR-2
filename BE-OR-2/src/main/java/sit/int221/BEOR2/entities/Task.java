@@ -28,9 +28,9 @@ public class Task {
     @Column(name = "taskStatus")
     private String status;
 
-    @Column(name = "createdOn")
+    @Column(name = "createdOn", insertable = false, updatable = false)
     private ZonedDateTime createdOn;
 
-    @Column(name = "updatedOn")
+    @Column(name = "updatedOn", insertable = false, updatable = false)
     private ZonedDateTime updatedOn;
 }
