@@ -5,14 +5,14 @@ import lombok.Setter;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class ErrorResponse {
-    private ZonedDateTime timestamp;
+    private LocalDateTime timestamp;
     private Integer status;
     private String message;
     private String instance;
