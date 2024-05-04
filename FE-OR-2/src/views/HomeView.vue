@@ -90,6 +90,7 @@ const openModalAdd = async () => {
 
 const closeModal = () => {
   show.value = false;
+  showModal.value = false;
   router.push({ name: "task" });
 };
 
@@ -102,10 +103,6 @@ const deleteTaskBtn = (taskId, title) => {
   selectDeleteTaskId.value = taskId
   selectDeleteTaskTitle.value = title
   console.log(showModal.value)
-}
-
-const closeDeleteModal = () => {
-  showModal.value = false
 }
 
 async function deleteTask(taskId) {
@@ -182,7 +179,7 @@ async function deleteTask(taskId) {
                 <span v-else>{{ task.assignees }}</span>
               </td>
               <td class="itbkk-status"><Badges :status="task.status" /></td>
-              <td class="edit-delete">
+              <td class="itbkk-button-action flex">
                 <svg class="edit" @click="editTask()" xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24">
                   <path fill="currentColor" fill-rule="evenodd" d="M17.907 4.93c.104-.105.294-.186.539-.18a.848.848 0 0 1 .572.216c.13.13.222.34.231.575c.01.234-.065.413-.167.515l-7.49 7.5l-1.273.116l.1-1.245zm2.173-1.024c-.437-.438-1.037-.643-1.6-.656c-.564-.013-1.182.167-1.635.62l-7.682 7.692a.75.75 0 0 0-.217.47l-.194 2.407a.75.75 0 0 0 .816.807l2.43-.22a.75.75 0 0 0 .463-.218l7.682-7.692c.456-.456.627-1.073.605-1.635a2.373 2.373 0 0 0-.668-1.575M5.812 4.75a2.568 2.568 0 0 0-2.563 2.562v10.875a2.568 2.568 0 0 0 2.563 2.563h10.875a2.568 2.568 0 0 0 2.563-2.562V12.75a.75.75 0 0 0-1.5 0v5.438c0 .582-.48 1.062-1.063 1.062H5.812c-.583 0-1.063-.48-1.063-1.062V7.312c0-.582.48-1.062 1.063-1.062h5.437a.75.75 0 0 0 0-1.5z" clip-rule="evenodd"/>
                 </svg>
@@ -212,7 +209,7 @@ async function deleteTask(taskId) {
           :showModal="showModal"
           :taskId="selectDeleteTaskId"
           :title="selectDeleteTaskTitle"
-          @closeDeleteModal="closeDeleteModal"
+          @closeModal="closeModal"
           @confirmDeleteModal="deleteTask">
         </ModalDelete>
       <!-- </teleport> -->
@@ -252,16 +249,21 @@ async function deleteTask(taskId) {
 .plus {
   font-size: 40px;
   font-weight: 10px;
-  color: #d1ffca;
 }
 
-.edit-delete {
-  display: flex;
-  padding: 15px 5px 10px;
-}
-
-.delete {
+.itbkk-button-action {
+  /* padding: 15px 5px 10px; */
   cursor: pointer;
+}
+
+.itbkk-button-action svg {
+  transition: transform 0.3s ease;
+}
+
+.itbkk-button-action svg:hover {
+  transform: scale(1.08);
+  transition: transform 0.3s ease;
+  color: #ad386f;
 }
 
 .btn-a {
