@@ -28,17 +28,24 @@ public class TaskService {
     }
 
     public Task updateTask(@PathVariable Integer id, @RequestBody Task updatedTask) {
-        if (taskRepository.existsById(id)) {
-            updatedTask.setId(id);
-            return taskRepository.save(updatedTask);
+        try {
+            if (taskRepository.existsById(id)) {
+                updatedTask.setId(id);
+                return taskRepository.save(updatedTask);
+            }
+            return null;
+        } catch (Exception e) {
+            throw new TaskNotFoundException("NOT FOUND", "/v1/tasks/" + id);
         }
-        throw new TaskNotFoundException("NOT FOUND", "/v1/tasks/" + id);
     }
 
     public void deleteTask(@PathVariable Integer id) {
-        if (taskRepository.existsById(id)) {
-            taskRepository.deleteById(id);
+        try {
+            if (taskRepository.existsById(id)) {
+                taskRepository.deleteById(id);
+            }
+        } catch (Exception e) {
+            throw new TaskNotFoundException("NOT FOUND", "/v1/tasks/" + id);
         }
-        throw new TaskNotFoundException("NOT FOUND", "/v1/tasks/" + id);
     }
 }
