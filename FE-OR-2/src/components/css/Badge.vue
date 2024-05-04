@@ -20,6 +20,7 @@ const className = computed(() => {
       }
 });
 </script>
+
 <template>
   <div :class="{ 'status-badge': true, [className]: status }">
     <span v-if="status === 'TO_DO'" class="flex-align-items">

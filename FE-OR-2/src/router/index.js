@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import Modal from '../views/ModalDetail.vue'
+import ModalAdd from '../views/ModalAdd.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -18,6 +19,11 @@ const router = createRouter({
           path: "/task/:id",
           name: "task-detail",
           component: Modal,
+        },
+        {
+          path: "/task/add",
+          name: "task-add",
+          component: ModalAdd,
         },
       ],
     },

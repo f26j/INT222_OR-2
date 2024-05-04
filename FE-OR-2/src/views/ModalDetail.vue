@@ -16,7 +16,6 @@ const route = useRoute();
 const id = route.params.id;
 
 console.log(id);
-
 console.log("Task ID:", id);
 </script>
 <template>
@@ -47,12 +46,13 @@ console.log("Task ID:", id);
                       Description
                     </label>
                     <textarea
-    class="itbkk-description descinput appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-    id="description"
-    type="text"
-    :class="{'italic !text-gray-400':!props.description}"
-    disabled
->{{ props.description?.trim() || "No Description Provided" }}</textarea>
+                      class="itbkk-description descinput appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                      id="description"
+                      type="text"
+                      :class="{'italic !text-gray-400':!props.description}"
+                      disabled
+                      >{{ props.description?.trim() || "No Description Provided" }}
+                    </textarea>
                   </div>
                 </div>
               </div>
@@ -73,8 +73,8 @@ console.log("Task ID:", id);
                         type="text"
                         :class="{'italic !text-gray-400':!props.assignees}"
                         disabled
-                        >{{ props.assignees.trim() || "Unassigned" }}</textarea
-                      >
+                        >{{ props.assignees.trim() || "Unassigned" }}
+                      </textarea>
                     </div>
                   </div>
                 </div>
@@ -170,6 +170,7 @@ textarea::placeholder {
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 3;
 }
 
 .ok {
@@ -200,6 +201,7 @@ textarea::placeholder {
   background-color: rgb(163, 42, 48);
   color: rgb(248, 195, 199);
 }
+
 .modal-header {
   color: #47467b;
   font-family: "Ubuntu", sans-serif;
@@ -207,9 +209,16 @@ textarea::placeholder {
   font-style: normal;
   font-size: 30px;
   margin: 15px;
-  overflow-y: hidden;
-  overflow-x: scroll;
+  overflow-x: auto;
 }
+
+.modal-header::-webkit-scrollbar {
+    height: 12px;
+  }
+
+  h1 {
+    padding-bottom: 5px;
+  }
 
 .desc {
   margin: 15px;
@@ -258,14 +267,22 @@ textarea::placeholder {
 ::-webkit-scrollbar-thumb:hover {
   background: #9b9b9b;
 }
+
 @media screen and (max-width: 800px) {
   .modals {
     width: 400px;
     height: 500px;
     overflow-y: scroll;
     overflow-x: hidden;
-    padding-top: 2rem;
-    padding-bottom: 5rem;
+    padding-bottom: 3rem;
+  }
+
+  .modal-header::-webkit-scrollbar {
+    height: 12px;
+  }
+
+  h1 {
+    padding-bottom: 5px;
   }
 
   .modal-body {
