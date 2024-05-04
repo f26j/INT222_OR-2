@@ -16,7 +16,6 @@ const route = useRoute();
 const id = route.params.id;
 
 console.log(id);
-
 console.log("Task ID:", id);
 </script>
 <template>

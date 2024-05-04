@@ -1,9 +1,9 @@
 <script setup>
 import { ref } from "vue";
-import { useRoute } from "vue-router";
+import { useRouter } from "vue-router";
 
 const fetchURL = ref(import.meta.env.VITE_API);
-const router = useRoute();
+const router = useRouter();
 const newTitle = ref("");
 const newDescription = ref("");
 const newAssignees = ref("");
@@ -12,7 +12,6 @@ const tasks = ref([]);
 
 const addTask = async () => {
   const newTask = {
-    // id: 9,
     title: newTitle.value,
     description: newDescription.value,
     assignees: newAssignees.value,
@@ -31,11 +30,11 @@ const addTask = async () => {
     if (!response.ok) {
       throw new Error("Failed to add new task");
     }
+    router.push({ name: "task" });
   } catch (error) {
     console.error("Error adding new task:", error.message);
   }
   tasks.value.push(newTask);
-
   newTitle.value = "";
   newDescription.value = "";
   newAssignees.value = "";
@@ -153,7 +152,8 @@ const addTask = async () => {
                 >
                   Cancel
                 </button>
-                <button class="ok border" type="submit">Save</button>
+                <button @click="($event) => $emit('path')" class="ok border" type="submit" 
+                  :disabled="newTitle.length === 0">Save</button>
               </div>
             </div>
           </form>
