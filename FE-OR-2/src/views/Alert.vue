@@ -42,15 +42,6 @@
 </template>
 
 <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      body {
-        background-color: #f6f6f8;
-        font-family: Poppins;
-      }
       /* success */
       .wrapper-success {
         margin: 120px;
