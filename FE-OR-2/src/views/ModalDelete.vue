@@ -2,7 +2,7 @@
 
 const props = defineProps({
   showModal: Boolean,
-  taskId: String,
+  taskId: Number,
   title: String,
 })
 
@@ -10,7 +10,7 @@ defineEmits(["closeModal", "confirmDeleteModal"])
 </script>
 
 <template>
-  <div v-if="showModal" class="details fixed inset-0 overflow-y-auto bg-black bg-opacity-50">
+  <div class="details fixed inset-0 overflow-y-auto bg-black bg-opacity-50">
     <!-- <div class="flex items-start justify-center mt-24 text-center"> -->
       <div
         class="itbkk-button-delete rounded-lg text-center shadow-xlp-6 w-min"
@@ -21,7 +21,7 @@ defineEmits(["closeModal", "confirmDeleteModal"])
           <svg class="mb-4" xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24">
             <path fill="#e05555" d="M12 21a9 9 0 1 1 9-9a9 9 0 0 1-9 9m0-16.5a7.5 7.5 0 1 0 7.5 7.5A7.5 7.5 0 0 0 12 4.5"/><path fill="#e05555" d="M12 13a.76.76 0 0 1-.75-.75v-3.5a.75.75 0 0 1 1.5 0v3.5A.76.76 0 0 1 12 13m0 3a.76.76 0 0 1-.75-.75v-.5a.75.75 0 0 1 1.5 0v.5A.76.76 0 0 1 12 16"/>
           </svg>
-          <div class="w-11/12 break-words text-ellipsis overflow-hidden">Do you want to delete the task number {{ taskId }} - {{ title }}</div>
+          <div class="w-10/12 break-all text-ellipsis overflow-hidden">Do you want to delete the task <br> number {{ taskId }} - {{ title }}</div>
           <div class="Button h-32 flex justify-center items-center gap-10 rounded-full">
             <button class="cancelBtn" @click="$emit('closeModal')">Cancel</button> <!-- ไปเรียกใช้ fn closeDeleteModal ของ HomeView -->
             <button class="confirmBtn" @click="$emit('confirmDeleteModal', taskId)">Confirm</button> <!-- ไปเรียกใช้ fn deleteTask ของ HomeView -->

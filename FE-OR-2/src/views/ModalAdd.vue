@@ -1,20 +1,46 @@
 <script setup>
-import { onMounted, ref, defineEmits } from "vue";
-import { useRoute } from "vue-router";
+import { ref } from "vue";
+import { useRouter } from "vue-router";
 
-const route = useRoute();
+const fetchURL = ref(import.meta.env.VITE_API);
+const router = useRouter();
+const newTitle = ref("");
+const newDescription = ref("");
+const newAssignees = ref("");
+const newStatus = ref("NO_STATUS");
+const tasks = ref([]);
 
-const handleSubmit = () => {
-
-}
-
-const closeModal = () => {
-
-}
-
-
+const addTask = async () => {
+  const newTask = {
+    title: newTitle.value,
+    description: newDescription.value,
+    assignees: newAssignees.value,
+    status: newStatus.value,
+    createdOn: new Date(),
+    updatedOn: new Date(),
+  };
+  try {
+    const response = await fetch(`${fetchURL.value}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newTask),
+    });
+    if (!response.ok) {
+      throw new Error("Failed to add new task");
+    }
+    router.push({ name: "task" });
+  } catch (error) {
+    console.error("Error adding new task:", error.message);
+  }
+  tasks.value.push(newTask);
+  newTitle.value = "";
+  newDescription.value = "";
+  newAssignees.value = "";
+  newStatus.value = "NO_STATUS";
+};
 </script>
-
 <template>
   <div class="details fixed inset-0 overflow-y-auto bg-black bg-opacity-50">
     <div class="flex items-start justify-center mt-24 text-center">
@@ -24,7 +50,7 @@ const closeModal = () => {
         aria-modal="true"
       >
         <div class="modal-content">
-          <form @submit.prevent="handleSubmit">
+          <form @submit="addTask">
             <div class="modal-header">
               <div class="itbkktitle text-left">
                 <h4>Add New Task</h4>
@@ -33,36 +59,45 @@ const closeModal = () => {
             <hr />
 
             <div class="modal-body">
+              <div class="text-left flex-col">
+                <div class="titlee flex flex-wrap -mx-3 mb-2">
+                  <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
+                    <label
+                      class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                      for="grid-city"
+                    >
+                      Title
+                    </label>
+                    <textarea
+                      class="ttitle appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
+                      id="assign"
+                      type="text"
+                      placeholder="Enter title..."
+                      v-model="newTitle"
+                    ></textarea>
+                  </div>
+                </div>
 
-                <div class="text-left flex-col">
-                  <div class="titlee flex flex-wrap -mx-3 mb-2">
-                    <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
-                      <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-city">
-                        Title
+                <div class="itbkk-description text-left">
+                  <div class="flex flex-wrap -mx-3 mb-2">
+                    <div class="desc w-full md:w-1/3 px-3 mb-6 md:mb-0">
+                      <label
+                        class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                        for="grid-city"
+                        >Description
                       </label>
                       <textarea
-                        class="ttitle appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
-                        id="assign"
+                        class="itbkkdesc appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                        id="description"
                         type="text"
-                        placeholder="Enter title..."></textarea>
+                        placeholder="Enter description..."
+                        v-model="newDescription"
+                      ></textarea>
                     </div>
-                  </div>
-                
-
-              <div class="itbkk-description text-left ">
-                <div class="flex flex-wrap -mx-3 mb-2">
-                  <div class="desc w-full md:w-1/3 px-3 mb-6 md:mb-0">
-                    <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                      for="grid-city">Description
-                    </label>
-                    <textarea class="itbkkdesc appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                                    id="description" type="text" placeholder="Enter description..." ></textarea>
                   </div>
                 </div>
               </div>
-            </div>
               <div class="detailright flex-col">
-
                 <div class="text-left">
                   <div class="assign flex flex-wrap -mx-3 mb-2">
                     <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
@@ -77,6 +112,7 @@ const closeModal = () => {
                         id="assign"
                         type="text"
                         placeholder="Enter assignees..."
+                        v-model="newAssignees"
                       ></textarea>
                     </div>
                   </div>
@@ -92,9 +128,10 @@ const closeModal = () => {
                     </label>
                     <div class="relative itbkk-status">
                       <select
-                        v-model="props.status"
                         class="statusbx block w-60 bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                        id="grid-state">
+                        id="grid-state"
+                        v-model="newStatus"
+                      >
                         <option value="NO_STATUS">No Status</option>
                         <option value="TO_DO">To Do</option>
                         <option value="DOING">Doing</option>
@@ -109,8 +146,14 @@ const closeModal = () => {
             <div class="modal-footer">
               <div class="itbkk-button">
                 <hr />
-                <button @click="closeModal" class="close border">Cancel</button>
-                <button type="submit" class="ok border">Save</button>
+                <button
+                  @click="($event) => $emit('close')"
+                  class="close border"
+                >
+                  Cancel
+                </button>
+                <button @click="($event) => $emit('path')" class="ok border" type="submit" 
+                  :disabled="newTitle.length === 0">Save</button>
               </div>
             </div>
           </form>
@@ -202,16 +245,16 @@ const closeModal = () => {
 }
 
 .modal-header::-webkit-scrollbar {
-    height: 12px;
-  }
+  height: 12px;
+}
 
-  h1 {
-    padding-bottom: 5px;
-  }
+h1 {
+  padding-bottom: 5px;
+}
 
-  h4 {
-    color: #692153;
-  }
+h4 {
+  color: #692153;
+}
 
 .desc {
   margin: 15px;
