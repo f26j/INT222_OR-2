@@ -4,8 +4,8 @@ import Badges from "../components/css/Badge.vue"
 import Copyright from "../components/css/Copyright.vue"
 import ModalDetail from "./ModalDetail.vue"
 import ModalAdd from "./ModalAdd.vue"
-import ModalDelete from "./ModalDelete.vue"
 // import AlertAdd from "./AlertAdd.vue"
+import ModalDelete from "./ModalDelete.vue"
 import ToastDelete from "./ToastDelete.vue"
 
 import { onMounted, ref } from "vue"
@@ -86,9 +86,9 @@ const openModalAdd = async (task) => {
   createdOn.value = formatDate(new Date())
   updatedOn.value = formatDate(new Date())
 
-  showAdd.value = true
-  router.push({ name: "task-add" })
-}
+  showAdd.value = true;
+  router.push({ name: "task-add" });
+};
 
 const hideAlertAdd = () => {
   showAlertAdd.value = false;
@@ -99,18 +99,15 @@ const deleteSuccess = ref(false)
 const showDelete = ref(false)
 const toastSuccess = ref(false)
 const openModalDelete = (taskId, title) => {
-  showDelete.value = true
-  selectDeleteTaskId.value = taskId
-  selectDeleteTaskTitle.value = title
-  // console.log(showModal.value)
-}
-
+  showDelete.value = true;
+  selectDeleteTaskId.value = taskId;
+  selectDeleteTaskTitle.value = title;
+};
 async function deleteTask(taskId) {
   try {
     const response = await fetch(`${fetchURL.value}/${taskId}`, {
       method: "DELETE",
-    })
-
+    });
     if (response.ok) {
       tasks.value = tasks.value.filter((task) => task.id !== taskId)
       deleteSuccess.value = true
@@ -150,8 +147,8 @@ const confirmDelete = async () => {
 }
 
 const path = () => {
-  router.push({ name: "task" })
-}
+  router.push({ name: "task" });
+};
 const closeModal = () => {
   showDetail.value = false //change from show.value to showDelail
   showAdd.value = false
@@ -216,7 +213,9 @@ const closeModal = () => {
                 </div>
               </td>
               <td class="itbkk-title">
-                <p @click="openModalDetail(task.id)" value="id">{{ task.title }}</p>
+                <p @click="openModalDetail(task.id)" value="id">
+                  {{ task.title }}
+                </p>
               </td>
               <td class="itbkk-assignees">
                 <span
@@ -255,15 +254,15 @@ const closeModal = () => {
         @close="closeModal"
       >
       </ModalDetail>
-      <ModalAdd v-if="showAdd" @close="closeModal" @path="path"></ModalAdd>
-      <!-- <AlertAdd></AlertAdd> -->
+      <ModalAdd v-if="showAdd" @close="closeModal" @path="path" :showAlertAdd="showAlertAdd"></ModalAdd>
+      <AlertAdd ></AlertAdd>
       <ModalDelete
         v-if="showDelete"
-        :showModal="showDelete"
         :taskId="selectDeleteTaskId"
         :title="selectDeleteTaskTitle"
         @closeModal="closeModal"
-        @confirmDeleteModal="deleteTask">
+        @confirmDeleteModal="deleteTask"
+      >
       </ModalDelete>
       <ToastDelete
         v-if="showToastDelete"
@@ -356,6 +355,15 @@ const closeModal = () => {
 .itbkk-button-add:hover {
   background-color: #66163b;
   color: white;
+}
+
+.edit-delete {
+  display: flex;
+  padding: 15px 5px 10px;
+}
+
+.delete {
+  cursor: pointer;
 }
 
 .itbkk-assignees {
