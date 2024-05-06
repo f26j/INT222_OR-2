@@ -21,7 +21,7 @@ const closeToast = () => {
 <template>
   <!-- <transition name="toast"> -->
     <div
-      class="deleteToast active"
+      class="deleteToast active toast toast-top toast-end"
       :class="{ 'bg-white': !isDeleteSuccess, 'bg-green-50': isDeleteSuccess }"
     >
       <div class="deleteToast-content">
@@ -84,7 +84,7 @@ const closeToast = () => {
   position: fixed;
   height: 5rem;
   width: 25rem;
-  top: 25px;
+  top: 45px;
   right: 30px;
   border-radius: 12px;
   /* background: #e7ffe7; */
