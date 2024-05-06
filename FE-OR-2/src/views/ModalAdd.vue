@@ -28,6 +28,7 @@ const addTask = async () => {
       body: JSON.stringify(newTask),
     });
     if (!response.ok) {
+      
       throw new Error("Failed to add new task");
     }
     router.push({ name: "task" });

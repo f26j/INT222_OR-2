@@ -5,7 +5,8 @@ import Copyright from "../components/css/Copyright.vue"
 import ModalDetail from "./ModalDetail.vue"
 import ModalAdd from "./ModalAdd.vue"
 import ModalDelete from "./ModalDelete.vue"
-import AlertAdd from "./AlertAdd.vue"
+// import AlertAdd from "./AlertAdd.vue"
+import ToastDelete from "./ToastDelete.vue"
 
 import { onMounted, ref } from "vue"
 import { useRouter, useRoute } from "vue-router"
@@ -22,7 +23,7 @@ const createdOn = ref("")
 const updatedOn = ref("")
 const taskId = route.params.id
 const localTimeZone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone)
-const showModal = ref(false)
+const showDeleteModal = ref(false)
 const selectDeleteTaskId = ref(null)
 const selectDeleteTaskTitle = ref("")
 // console.log(taskId);
@@ -58,15 +59,15 @@ const openModalDetail = async (id) => {
     return
   }
 
-  console.log(data)
-  console.log(res)
+  // console.log(data)
+  // console.log(res)
   title.value = res.title
   description.value = res.description
   assignees.value = res.assignees
   status.value = res.status
   createdOn.value = formatDate(res.createdOn)
   updatedOn.value = formatDate(res.updatedOn)
-  show.value = true
+  showDetail.value = true // //change from show to showDetail
   router.push({ name: "task-detail", params: { id: id } })
   console.log(title.value)
 }
@@ -75,6 +76,7 @@ if (taskId) {
   openModalDetail(taskId) // //change from openModal to openModalDetail
 }
 
+const showAlertAdd = ref(false)
 const showAdd = ref(false)
 const openModalAdd = async (task) => {
   title.value = ""
@@ -88,7 +90,14 @@ const openModalAdd = async (task) => {
   router.push({ name: "task-add" })
 }
 
+const hideAlertAdd = () => {
+  showAlertAdd.value = false;
+};
+
+const showToastDelete = ref(false)
+const deleteSuccess = ref(false)
 const showDelete = ref(false)
+const toastSuccess = ref(false)
 const openModalDelete = (taskId, title) => {
   showDelete.value = true
   selectDeleteTaskId.value = taskId
@@ -104,14 +113,40 @@ async function deleteTask(taskId) {
 
     if (response.ok) {
       tasks.value = tasks.value.filter((task) => task.id !== taskId)
-      router.push("/")
+      deleteSuccess.value = true
     } else {
+      deleteSuccess.value = false
       console.error("Failed to delete task")
     }
   } catch (error) {
+    deleteSuccess.value = false
     console.error("Error deleting task:", error)
   }
+  confirmDelete()
   showDelete.value = false //change from showModal to showDelete
+}
+
+const confirmDelete = async () => {
+  try {
+    showToastDelete.value = true
+    toastSuccess.value = true
+    setTimeout(() => {
+      showToastDelete.value = false
+      closeModal()
+    }, 5000)
+  } catch (error) {
+    toastSuccess.value = false
+    setTimeout(() => {
+      showToastDelete.value = false
+      closeModal()
+    }, 5000) 
+    console.error('Error deleting task:', error)
+  }
+  return {
+    showToastDelete,
+    closeModal,
+    confirmDelete
+  }
 }
 
 const path = () => {
@@ -134,7 +169,7 @@ const closeModal = () => {
     </header>
     <main>
       <div class="btn-a" v-for="task in tasks">
-        <div class="button iconbutton" @click="openModalAdd(task)"> <!-- change from openModalAdd() to openModalAdd(task) -->
+        <div class="itbkk-button-add iconbutton" @click="openModalAdd(task)"> <!-- change from openModalAdd() to openModalAdd(task) -->
           <i class="plus">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -159,7 +194,7 @@ const closeModal = () => {
         <table>
           <thead>
             <tr>
-              <th>id</th>
+              <th></th>
               <th>Title</th>
               <th>Assignees</th>
               <th>Status</th>
@@ -193,11 +228,12 @@ const closeModal = () => {
                 <span v-else>{{ task.assignees }}</span>
               </td>
               <td class="itbkk-status"><Badges :status="task.status" /></td>
-              <td class="itbkk-button-action flex">
-                <svg class="edit" @click="editTask()" xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24">
+              <td class="itbkk-button-action">
+                <svg class="itbkk-button-edit" @click="editTask()" xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24">
                   <path fill="currentColor" fill-rule="evenodd" d="M17.907 4.93c.104-.105.294-.186.539-.18a.848.848 0 0 1 .572.216c.13.13.222.34.231.575c.01.234-.065.413-.167.515l-7.49 7.5l-1.273.116l.1-1.245zm2.173-1.024c-.437-.438-1.037-.643-1.6-.656c-.564-.013-1.182.167-1.635.62l-7.682 7.692a.75.75 0 0 0-.217.47l-.194 2.407a.75.75 0 0 0 .816.807l2.43-.22a.75.75 0 0 0 .463-.218l7.682-7.692c.456-.456.627-1.073.605-1.635a2.373 2.373 0 0 0-.668-1.575M5.812 4.75a2.568 2.568 0 0 0-2.563 2.562v10.875a2.568 2.568 0 0 0 2.563 2.563h10.875a2.568 2.568 0 0 0 2.563-2.562V12.75a.75.75 0 0 0-1.5 0v5.438c0 .582-.48 1.062-1.063 1.062H5.812c-.583 0-1.063-.48-1.063-1.062V7.312c0-.582.48-1.062 1.063-1.062h5.437a.75.75 0 0 0 0-1.5z" clip-rule="evenodd"/>
                 </svg>
-                <svg class="delete" @click="openModalDelete(task.id, task.title)" xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24">
+                <!-- <svg class="delete" @click="openModalDelete((task.id, index + 1), task.title)" xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24"> -->
+                <svg class="itbkk-button-delete" @click="openModalDelete(task.id, task.title)" xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24">
                   <path fill="currentColor" d="M20 8.7H4a.75.75 0 1 1 0-1.5h16a.75.75 0 0 1 0 1.5"/>
                   <path fill="currentColor" d="M16.44 20.75H7.56A2.4 2.4 0 0 1 5 18.49V8a.75.75 0 0 1 1.5 0v10.49c0 .41.47.76 1 .76h8.88c.56 0 1-.35 1-.76V8A.75.75 0 1 1 19 8v10.49a2.4 2.4 0 0 1-2.56 2.26m.12-13a.74.74 0 0 1-.75-.75V5.51c0-.41-.48-.76-1-.76H9.22c-.55 0-1 .35-1 .76V7a.75.75 0 1 1-1.5 0V5.51a2.41 2.41 0 0 1 2.5-2.26h5.56a2.41 2.41 0 0 1 2.53 2.26V7a.75.75 0 0 1-.75.76Z"/>
                   <path fill="currentColor" d="M10.22 17a.76.76 0 0 1-.75-.75v-4.53a.75.75 0 0 1 1.5 0v4.52a.75.75 0 0 1-.75.76m3.56 0a.75.75 0 0 1-.75-.75v-4.53a.75.75 0 0 1 1.5 0v4.52a.76.76 0 0 1-.75.76"/>
@@ -229,6 +265,11 @@ const closeModal = () => {
         @closeModal="closeModal"
         @confirmDeleteModal="deleteTask">
       </ModalDelete>
+      <ToastDelete
+        v-if="showToastDelete"
+        :isDeleteSuccess="deleteSuccess"
+        @close="closeToast">
+      </ToastDelete>
     </main>
 
     <footer>
@@ -268,12 +309,13 @@ const closeModal = () => {
 }
 
 .itbkk-button-action {
-  /* padding: 15px 5px 10px; */
-  cursor: pointer;
+  padding: 15px 5px 10px;
+  display: flex;
 }
 
 .itbkk-button-action svg {
   transition: transform 0.3s ease;
+  cursor: pointer;
 }
 
 .itbkk-button-action svg:hover {
@@ -287,6 +329,7 @@ const closeModal = () => {
   bottom: 50px;
   right: 50px;
   cursor: pointer;
+  z-index: 2;
 }
 
 .iconbutton {
@@ -296,7 +339,7 @@ const closeModal = () => {
   box-shadow: 5px 5px 5px #00000046;
 }
 
-.button {
+.itbkk-button-add {
   width: 80px;
   height: 80px;
   background: #ad386f;
@@ -310,7 +353,7 @@ const closeModal = () => {
   color: white;
 }
 
-.button:hover {
+.itbkk-button-add:hover {
   background-color: #66163b;
   color: white;
 }

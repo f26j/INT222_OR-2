@@ -1,39 +1,7 @@
-<!-- <script>
-import { onMounted, ref, defineEmits, defineProps } from "vue";
-import { useRoute } from "vue-router";
-
-  const toast = document.querySelector(".toast");
-  (closeIcon = document.querySelector(".close")),
-    (progress = document.querySelector(".progress"));
-
-  let timer1, timer2;
-
-  button.addEventListener("click", () => {
-    toast.classList.add("active");
-    progress.classList.add("active");
-
-    timer1 = setTimeout(() => {
-      toast.classList.remove("active");
-    }, 5000); //1s = 1000 milliseconds
-
-    timer2 = setTimeout(() => {
-      progress.classList.remove("active");
-    }, 5300);
-  });
-
-  closeIcon.addEventListener("click", () => {
-    toast.classList.remove("active");
-
-    setTimeout(() => {
-      progress.classList.remove("active");
-    }, 300);
-
-    clearTimeout(timer1);
-    clearTimeout(timer2);
-  });
-
-</script> -->
-
+<!-- <script setup>
+import { defineProps } from "vue";
+const { showAlertAdd } = defineProps();
+</script>
 <template>
   <div class="toast active">
     <div class="toast-content">
@@ -42,8 +10,7 @@ import { useRoute } from "vue-router";
       </i>
       <div class="message">
         <span class="text text-1">Success</span>
-        <span class="text text-2">Your changes has been saved</span>
-      </div>
+        <span class="text text-2">The task has been successfully added</span></div>
     </div>
     <i class="close"></i>
     <div class="progress active"></div>
@@ -164,4 +131,4 @@ import { useRoute } from "vue-router";
 .toast.active ~ button {
   pointer-events: none;
 }
-</style>
+</style> -->
