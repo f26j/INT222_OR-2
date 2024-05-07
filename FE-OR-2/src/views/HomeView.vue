@@ -48,7 +48,7 @@ async function fetchData() {
 onMounted(async () => {
   const data = await fetchData();
   // tasks.value = data;
-  
+
   store.tasks.value = data
   console.log(store.tasks.value);
 });
@@ -103,9 +103,6 @@ const handleTaskAdded = () => {
     showToastAdd.value = false;
   }, 5000);
 };
-const onTaskAdded = () => {
-  handleTaskAdded();
-};
 
 const showToastDelete = ref(false)
 const deleteSuccess = ref(false)
@@ -150,7 +147,7 @@ const confirmDelete = async () => {
     setTimeout(() => {
       showToastDelete.value = false
       closeModal()
-    }, 5000) 
+    }, 5000)
     console.error('Error deleting task:', error)
   }
   return {
@@ -160,19 +157,16 @@ const confirmDelete = async () => {
   }
 }
 
-const path = () => {
-  router.push({ name: "task" });
-};
 const closeModal = () => {
   showDetail.value = false;
   showAdd.value = false;
   showDelete.value = false;
-  router.push({ name: "task" });
+  showToastAdd.value = false;
 };
 </script>
 
 <template>
-  
+
   <div class="body">
     <header>
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
@@ -181,7 +175,7 @@ const closeModal = () => {
     </header>
     <main>
       <div class="btn-a" v-for="task in store.tasks.value">
-        <div class="button iconbutton" @click="openModalAdd(task)">
+        <div class="itbkk-button-add button iconbutton" @click="openModalAdd(task)">
           <i class="plus">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -243,7 +237,7 @@ const closeModal = () => {
               <td class="itbkk-status"><Badges :status="task.status" /></td>
               <td class="itbkk-button-action">
                 <svg
-                  class="edit"
+                  class="itbkk-button-edit"
                   @click="editTask()"
                   xmlns="http://www.w3.org/2000/svg"
                   width="30"
@@ -258,7 +252,7 @@ const closeModal = () => {
                   />
                 </svg>
                 <svg
-                  class="delete"
+                  class="itbkk-button-delete"
                   @click="openModalDelete(task.id, task.title, (index+1))"
                   xmlns="http://www.w3.org/2000/svg"
                   width="30"
@@ -296,7 +290,7 @@ const closeModal = () => {
       >
       </ModalDetail>
       <!-- <ModalAdd v-if="showAdd" @close="closeModal" @path="path" @taskAdded="handleTaskAdded"></ModalAdd> -->
-      <ToastAdd v-if="showToastAdd" />
+      <ToastAdd v-if="showToastAdd" @close="closeModal" />
       <ModalDelete
         v-if="showDelete"
         :taskId="selectDeleteTaskId"
@@ -318,7 +312,7 @@ const closeModal = () => {
     </footer>
     <Bg_effect />
   </div>
-  <RouterView />
+  <RouterView @toastAdd="handleTaskAdded" />
 </template>
 
 <style scoped>
@@ -372,7 +366,7 @@ const closeModal = () => {
   bottom: 50px;
   right: 50px;
   cursor: pointer;
-  z-index: 999;
+  z-index: 2;
 }
 
 .iconbutton {
@@ -382,7 +376,7 @@ const closeModal = () => {
   box-shadow: 5px 5px 5px #00000046;
 }
 
-.button {
+.itbkk-button-add {
   width: 80px;
   height: 80px;
   background: #ad386f;

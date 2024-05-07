@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, defineProps, defineEmits } from "vue";
 import { useRouter } from "vue-router";
+import ToastAdd from "./ToastAdd.vue";
 
 import { useCounterStore } from "@/stores/counter.js"
 
@@ -14,12 +15,12 @@ const newAssignees = ref("");
 const newStatus = ref("NO_STATUS");
 const tasks = ref([]);
 
-const emit = defineEmits(['close','path'])
+const emit = defineEmits(['close','openToast','toastAdd'])
 
 const closeModal = () => {
-  
   router.push({ path: "/task" });
 };
+
 const addTask = async () => {
   const newTask = {
     title: newTitle.value,
@@ -170,7 +171,7 @@ const addTask = async () => {
                   Cancel
                 </button>
                 <button
-                  @click="$emit('path')"
+                @click="$emit('toastAdd')"
                   class="ok border"
                   type="submit"
                   :disabled="newTitle.length === 0"

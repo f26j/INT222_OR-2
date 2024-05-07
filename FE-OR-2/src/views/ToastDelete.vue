@@ -1,6 +1,8 @@
 <script setup>
-import { defineProps } from "vue"
+import { defineProps, defineEmits} from "vue"
 import { useRouter, useRoute } from "vue-router"
+
+const emit = defineEmits(['close'])
 
 const props = defineProps({
   showToastDelete: false,
@@ -58,6 +60,7 @@ const closeToast = () => {
               : "The task does not exist"
           }}</span>
         </div>
+        <i @click="$emit('close')" class="close"></i>
       </div>
       <div v-if="isDeleteSuccess" class="progress active"></div>
       <div v-else class="progress inactive"></div>
