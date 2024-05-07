@@ -75,7 +75,7 @@ console.log("Task ID:", id);
                         type="text"
                         :class="{'italic !text-gray-400':!props.assignees}"
                         disabled
-                        >{{ props.assignees?.trim() || "Unassigned" }}
+                        >{{ props.assignees.trim() || "Unassigned" }}
                       </textarea>
                     </div>
                   </div>
