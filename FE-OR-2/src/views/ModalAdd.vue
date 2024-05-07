@@ -252,6 +252,15 @@ const addTask = async () => {
   color: rgb(179, 236, 168);
 }
 
+.ok:disabled {
+  background-color: gray;
+  color: #ffffff;
+}
+.ok:disabled:hover {
+  transform: scale(1);
+}
+
+
 .close:hover {
   background-color: rgb(163, 42, 48);
   color: rgb(248, 195, 199);

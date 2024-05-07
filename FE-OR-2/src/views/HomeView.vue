@@ -103,7 +103,6 @@ const handleTaskAdded = () => {
     showToastAdd.value = false;
   }, 5000);
 };
-
 const onTaskAdded = () => {
   handleTaskAdded();
 };
