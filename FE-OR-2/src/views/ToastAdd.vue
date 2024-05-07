@@ -1,4 +1,6 @@
 <script setup>
+import { defineEmits } from "vue";
+const emit = defineEmits(['close'])
 </script>
 <template>
   <div class="toast active">
@@ -10,7 +12,7 @@
         <span class="text text-1">Success</span>
         <span class="text text-2">The task has been successfully added</span></div>
     </div>
-    <i @click="($event) => $emit('close')" class="close"></i>
+    <i @click="$emit('close')" class="close"></i>
     <div class="progress active"></div>
   </div>
 
