@@ -16,12 +16,12 @@ const router = createRouter({
       component: HomeView,
       children: [
         {
-          path: "/task/:id",
+          path: ":id",
           name: "task-detail",
           component: Modal,
         },
         {
-          path: "/task/add",
+          path: "add",
           name: "task-add",
           component: ModalAdd,
         },

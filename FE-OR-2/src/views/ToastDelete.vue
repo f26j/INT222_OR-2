@@ -19,7 +19,6 @@ const closeToast = () => {
 </script>
 
 <template>
-  <!-- <transition name="toast"> -->
     <div
       class="deleteToast active toast toast-top toast-end"
       :class="{ 'bg-white': !isDeleteSuccess, 'bg-green-50': isDeleteSuccess }"
@@ -59,24 +58,10 @@ const closeToast = () => {
               : "The task does not exist"
           }}</span>
         </div>
-        <!-- <svg
-          class="closeBtn"
-          @click="closeToast"
-          xmlns="http://www.w3.org/2000/svg"
-          width="32"
-          height="32"
-          viewBox="0 0 16 16"
-        >
-          <path
-            fill="currentColor"
-            d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"
-          />
-        </svg> -->
       </div>
       <div v-if="isDeleteSuccess" class="progress active"></div>
       <div v-else class="progress inactive"></div>
     </div>
-  <!-- </transition> -->
 </template>
 
 <style>
@@ -87,19 +72,11 @@ const closeToast = () => {
   top: 45px;
   right: 30px;
   border-radius: 12px;
-  /* background: #e7ffe7; */
   padding: 20px 35px 20px 25px;
   box-shadow: 0 6px 20px -5px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  /* transform: translateX(calc(100% + 30px)); */
-  /* transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.35); */
   z-index: 4;
 }
-
-/* .deleteToast.active {
-  transform: translateX(0%);
-} */
-
 .deleteToast .deleteToast-content {
   display: flex;
   align-items: center;
@@ -144,15 +121,6 @@ const closeToast = () => {
   color: #333;
 }
 
-/* .deleteToast .closeBtn {
-  padding: 5px;
-  opacity: 0.7;
-  cursor: pointer;
-}
-
-.deleteToast .closeBtn:hover {
-  opacity: 1;
-} */
 
 .deleteToast .progress {
   position: absolute;
@@ -186,34 +154,4 @@ const closeToast = () => {
     right: 100%;
   }
 }
-
-/* .deleteToast.active ~ button {
-  pointer-events: none;
-} */
-
-/* toast enter */
-/* .deleteToast-enter-from {
-  opacity: 0;
-  transform: translateX(-100px);
-}
-.deleteToast-enter-to {
-  opacity: 1;
-  transform: translateX(0);
-}
-.deleteToast-enter-active {
-  transition: all 0.5s ease;
-} */
-
-/* toast leave */
-/* .deleteToast-leave-from {
-  opacity: 1;
-  transform: translateX(0);
-}
-.deleteToast-leave-to {
-  opacity: 0;
-  transform: translateX(-100px);
-}
-.deleteToast-leave-active {
-  transition: all 0.5s ease;
-} */
 </style>
