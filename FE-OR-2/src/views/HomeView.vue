@@ -162,6 +162,8 @@ const closeModal = () => {
   showAdd.value = false;
   showDelete.value = false;
   showToastAdd.value = false;
+  showToastDelete.value = false;
+  router.push({ path: "/task" });
 };
 </script>
 
@@ -303,6 +305,7 @@ const closeModal = () => {
       <ToastDelete
         v-if="showToastDelete"
         :isDeleteSuccess="deleteSuccess"
+        @close="closeModal"
         >
       </ToastDelete>
     </main>
