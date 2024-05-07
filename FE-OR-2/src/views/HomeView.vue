@@ -4,9 +4,9 @@ import Badges from "../components/css/Badge.vue";
 import Copyright from "../components/css/Copyright.vue";
 import ModalDetail from "./ModalDetail.vue";
 import ModalAdd from "./ModalAdd.vue";
-import AlertAdd from "./AlertAdd.vue";
+import ToastAdd from "./ToastAdd.vue";
 import ModalDelete from "./ModalDelete.vue";
-import { onMounted, ref } from "vue";
+import { onMounted, ref, onUnmounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 
 const fetchURL = ref(import.meta.env.VITE_API);
@@ -23,6 +23,7 @@ const taskId = route.params.id;
 const localTimeZone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone);
 const selectDeleteTaskId = ref("");
 const selectDeleteTaskTitle = ref("");
+const selectDeleteTaskIndex = ref("");
 console.log(taskId);
 
 function formatDate(date) {
@@ -72,7 +73,6 @@ if (taskId) {
   openModalDetail(taskId);
 }
 
-const showAlertAdd = ref(false);
 const showAdd = ref(false);
 const openModalAdd = async (task) => {
   title.value = "";
@@ -85,15 +85,27 @@ const openModalAdd = async (task) => {
   showAdd.value = true;
   router.push({ name: "task-add" });
 };
-const hideAlertAdd = () => {
-  showAlertAdd.value = false;
+
+const showToastAdd = ref(false);
+console.log(showToastAdd.value);
+const handleTaskAdded = () => {
+  showToastAdd.value = true;
+  console.log(showToastAdd.value);
+  setTimeout(() => {
+    showToastAdd.value = false;
+  }, 5000);
+};
+
+const onTaskAdded = () => {
+  handleTaskAdded();
 };
 
 const showDelete = ref(false);
-const openModalDelete = (taskId, title) => {
+const openModalDelete = (taskId, title, index) => {
   showDelete.value = true;
   selectDeleteTaskId.value = taskId;
   selectDeleteTaskTitle.value = title;
+  selectDeleteTaskIndex.value = index;
 };
 async function deleteTask(taskId) {
   try {
@@ -157,7 +169,7 @@ const closeModal = () => {
         <table>
           <thead>
             <tr>
-              <th>id</th>
+              <th></th>
               <th>Title</th>
               <th>Assignees</th>
               <th>Status</th>
@@ -166,15 +178,15 @@ const closeModal = () => {
           </thead>
           <tbody>
             <tr
-              v-for="task in tasks"
+              v-for="(task, index) in tasks"
               :key="task.id"
               class="itbkk-item"
               :data-task-id="task.id"
             >
-              <td class="bgd">
+            <td class="bgd">
                 <span class="bgi">id : </span>
                 <div class="idkb flex-">
-                  {{ task.id }}
+                  {{ index + 1 }}
                 </div>
               </td>
               <td class="itbkk-title">
@@ -192,7 +204,7 @@ const closeModal = () => {
                 <span v-else>{{ task.assignees }}</span>
               </td>
               <td class="itbkk-status"><Badges :status="task.status" /></td>
-              <td class="edit-delete">
+              <td class="itbkk-button-action">
                 <svg
                   class="edit"
                   @click="editTask()"
@@ -210,7 +222,7 @@ const closeModal = () => {
                 </svg>
                 <svg
                   class="delete"
-                  @click="openModalDelete(task.id, task.title)"
+                  @click="openModalDelete(task.id, task.title, (index+1))"
                   xmlns="http://www.w3.org/2000/svg"
                   width="30"
                   height="30"
@@ -246,12 +258,13 @@ const closeModal = () => {
         @close="closeModal"
       >
       </ModalDetail>
-      <ModalAdd v-if="showAdd" @close="closeModal" @path="path" :showAlertAdd="showAlertAdd"></ModalAdd>
-      <AlertAdd ></AlertAdd>
+      <ModalAdd v-if="showAdd" @close="closeModal" @path="path" @taskAdded="handleTaskAdded"></ModalAdd>
+      <ToastAdd v-if="showToastAdd" />
       <ModalDelete
         v-if="showDelete"
         :taskId="selectDeleteTaskId"
         :title="selectDeleteTaskTitle"
+        :indexs="selectDeleteTaskIndex"
         @closeModal="closeModal"
         @confirmDeleteModal="deleteTask"
       >
@@ -295,11 +308,28 @@ const closeModal = () => {
   color: #d1ffca;
 }
 
+.itbkk-button-action {
+  padding: 15px 5px 10px;
+  display: flex;
+}
+
+.itbkk-button-action svg {
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+
+.itbkk-button-action svg:hover {
+  transform: scale(1.08);
+  transition: transform 0.3s ease;
+  color: #ad386f;
+}
+
 .btn-a {
   position: fixed;
   bottom: 50px;
   right: 50px;
   cursor: pointer;
+  z-index: 999;
 }
 
 .iconbutton {
@@ -326,15 +356,6 @@ const closeModal = () => {
 .button:hover {
   background-color: #66163b;
   color: white;
-}
-
-.edit-delete {
-  display: flex;
-  padding: 15px 5px 10px;
-}
-
-.delete {
-  cursor: pointer;
 }
 
 .itbkk-assignees {
@@ -532,7 +553,6 @@ footer {
   }
 
   .btn-a {
-    z-index: 2;
     position: fixed;
   }
 

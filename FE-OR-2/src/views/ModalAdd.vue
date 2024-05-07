@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted, onUnmounted, defineProps, defineEmits } from "vue";
 import { useRouter } from "vue-router";
 
 const fetchURL = ref(import.meta.env.VITE_API);
@@ -9,6 +9,8 @@ const newDescription = ref("");
 const newAssignees = ref("");
 const newStatus = ref("NO_STATUS");
 const tasks = ref([]);
+
+const { emit } = defineEmits(["taskAdded"]);
 
 const addTask = async () => {
   const newTask = {
@@ -29,7 +31,8 @@ const addTask = async () => {
     });
     if (!response.ok) {
       throw new Error("Failed to add new task");
-    }
+    } 
+    emit('taskAdded');
     router.push({ name: "task" });
   } catch (error) {
     console.error("Error adding new task:", error.message);
@@ -50,7 +53,7 @@ const addTask = async () => {
         aria-modal="true"
       >
         <div class="modal-content">
-          <form @submit="addTask">
+          <form @submit.prevent="addTask">
             <div class="modal-header">
               <div class="itbkktitle text-left">
                 <h4>Add New Task</h4>
