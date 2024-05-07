@@ -7,7 +7,6 @@ const emit = defineEmits(['close'])
 const props = defineProps({
   showToastDelete: false,
   isDeleteSuccess: false,
-  // router: useRouter()
 })
 
 const closeToast = () => {
