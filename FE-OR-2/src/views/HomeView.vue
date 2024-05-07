@@ -9,6 +9,10 @@ import ModalDelete from "./ModalDelete.vue"
 import ToastDelete from "./ToastDelete.vue"
 import { onMounted, ref, onUnmounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
+import { useCounterStore } from "@/stores/counter.js"
+
+const store = useCounterStore()
+
 
 const fetchURL = ref(import.meta.env.VITE_API);
 const router = useRouter();
@@ -43,7 +47,10 @@ async function fetchData() {
 
 onMounted(async () => {
   const data = await fetchData();
-  tasks.value = data;
+  // tasks.value = data;
+  
+  store.tasks.value = data
+  console.log(store.tasks.value);
 });
 
 const showDetail = ref(false);
@@ -76,14 +83,14 @@ if (taskId) {
 
 const showAdd = ref(false);
 const openModalAdd = async (task) => {
-  title.value = "";
-  description.value = "";
-  assignees.value = "";
-  status.value = "NO_STATUS";
-  createdOn.value = formatDate(new Date());
-  updatedOn.value = formatDate(new Date());
+  // title.value = "";
+  // description.value = "";
+  // assignees.value = "";
+  // status.value = "NO_STATUS";
+  // createdOn.value = formatDate(new Date());
+  // updatedOn.value = formatDate(new Date());
 
-  showAdd.value = true;
+  // showAdd.value = true;
   router.push({ name: "task-add" });
 };
 
@@ -117,7 +124,8 @@ async function deleteTask(taskId) {
       method: "DELETE",
     });
     if (response.ok) {
-      tasks.value = tasks.value.filter((task) => task.id !== taskId)
+      store.tasks.value = store.tasks.value.filter((task) => task.id !== taskId)
+      // tasks.value =tasks.value.filter((task) => task.id !== taskId)
       deleteSuccess.value = true
     } else {
       deleteSuccess.value = false
@@ -165,6 +173,7 @@ const closeModal = () => {
 </script>
 
 <template>
+  
   <div class="body">
     <header>
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
@@ -172,7 +181,7 @@ const closeModal = () => {
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
     </header>
     <main>
-      <div class="btn-a" v-for="task in tasks">
+      <div class="btn-a" v-for="task in store.tasks.value">
         <div class="button iconbutton" @click="openModalAdd(task)">
           <i class="plus">
             <svg
@@ -207,7 +216,7 @@ const closeModal = () => {
           </thead>
           <tbody>
             <tr
-              v-for="(task, index) in tasks"
+              v-for="(task, index) in store.tasks.value"
               :key="task.id"
               class="itbkk-item"
               :data-task-id="task.id"
@@ -287,7 +296,7 @@ const closeModal = () => {
         @close="closeModal"
       >
       </ModalDetail>
-      <ModalAdd v-if="showAdd" @close="closeModal" @path="path" @taskAdded="handleTaskAdded"></ModalAdd>
+      <!-- <ModalAdd v-if="showAdd" @close="closeModal" @path="path" @taskAdded="handleTaskAdded"></ModalAdd> -->
       <ToastAdd v-if="showToastAdd" />
       <ModalDelete
         v-if="showDelete"
@@ -301,7 +310,7 @@ const closeModal = () => {
       <ToastDelete
         v-if="showToastDelete"
         :isDeleteSuccess="deleteSuccess"
-        @close="closeToast">
+        >
       </ToastDelete>
     </main>
 
@@ -310,6 +319,7 @@ const closeModal = () => {
     </footer>
     <Bg_effect />
   </div>
+  <RouterView />
 </template>
 
 <style scoped>
