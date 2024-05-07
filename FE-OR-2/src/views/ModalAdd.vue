@@ -34,6 +34,7 @@ const addTask = async () => {
     } 
     emit('taskAdded');
     router.push({ name: "task" });
+
   } catch (error) {
     console.error("Error adding new task:", error.message);
   }
@@ -53,7 +54,7 @@ const addTask = async () => {
         aria-modal="true"
       >
         <div class="modal-content">
-          <form @submit.prevent="addTask">
+          <form @submitx="addTask">
             <div class="modal-header">
               <div class="itbkktitle text-left">
                 <h4>Add New Task</h4>
