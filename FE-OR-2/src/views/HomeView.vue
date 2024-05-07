@@ -32,50 +32,53 @@ const selectDeleteTaskIndex = ref("");
 console.log(taskId);
 
 function formatDate(date) {
-  const d = new Date(date)
+  const d = new Date(date);
   return d
     .toLocaleString("en-GB", { timeZone: localTimeZone.value })
     .split(",")
-    .join(" ")
+    .join(" ");
 }
 
 async function fetchData() {
-  const response = await fetch(`${fetchURL.value}`)
-  const data = await response.json()
-  return data
+  const response = await fetch(`${fetchURL.value}`);
+  const data = await response.json();
+  return data;
 }
 
 onMounted(async () => {
   const data = await fetchData();
   // tasks.value = data;
-
+  
   store.tasks.value = data
   console.log(store.tasks.value);
 });
 
-const showDetail = ref(false) //change from openModal to showDetail
+const showDetail = ref(false);
 const openModalDetail = async (id) => {
-  const data = await fetch(`${fetchURL.value}/${id}`)
-  const res = await data.json()
+  const data = await fetch(`${fetchURL.value}/${id}`);
+  const res = await data.json();
   if (!data.ok) {
-    router.push("/")
+    router.push("/");
     setTimeout(() => {
-      alert("The requested task does not exist")
-    }, 500)
-    return
+      alert("The requested task does not exist");
+    }, 500);
+    return;
   }
 
-  // console.log(data)
-  // console.log(res)
-  title.value = res.title
-  description.value = res.description
-  assignees.value = res.assignees
-  status.value = res.status
-  createdOn.value = formatDate(res.createdOn)
-  updatedOn.value = formatDate(res.updatedOn)
-  showDetail.value = true // //change from show to showDetail
-  router.push({ name: "task-detail", params: { id: id } })
-  console.log(title.value)
+  console.log(data);
+  console.log(res);
+  title.value = res.title;
+  description.value = res.description;
+  assignees.value = res.assignees;
+  status.value = res.status;
+  createdOn.value = formatDate(res.createdOn);
+  updatedOn.value = formatDate(res.updatedOn);
+  showDetail.value = true;
+  router.push({ name: "task-detail", params: { id: id } });
+  console.log(title.value);
+};
+if (taskId) {
+  openModalDetail(taskId);
 }
 
 const showAdd = ref(false);
@@ -100,7 +103,6 @@ const handleTaskAdded = () => {
     showToastAdd.value = false;
   }, 5000);
 };
-
 const onTaskAdded = () => {
   handleTaskAdded();
 };
@@ -148,7 +150,7 @@ const confirmDelete = async () => {
     setTimeout(() => {
       showToastDelete.value = false
       closeModal()
-    }, 5000)
+    }, 5000) 
     console.error('Error deleting task:', error)
   }
   return {
@@ -162,15 +164,15 @@ const path = () => {
   router.push({ name: "task" });
 };
 const closeModal = () => {
-  showDetail.value = false //change from show.value to showDelail
-  showAdd.value = false
-  showDelete.value = false
-  router.push({ name: "task" })
-}
+  showDetail.value = false;
+  showAdd.value = false;
+  showDelete.value = false;
+  router.push({ name: "task" });
+};
 </script>
 
 <template>
-
+  
   <div class="body">
     <header>
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
@@ -346,22 +348,7 @@ const closeModal = () => {
 .plus {
   font-size: 40px;
   font-weight: 10px;
-}
-
-.itbkk-button-action {
-  padding: 15px 5px 10px;
-  display: flex;
-}
-
-.itbkk-button-action svg {
-  transition: transform 0.3s ease;
-  cursor: pointer;
-}
-
-.itbkk-button-action svg:hover {
-  transform: scale(1.08);
-  transition: transform 0.3s ease;
-  color: #ad386f;
+  color: #d1ffca;
 }
 
 .itbkk-button-action {
@@ -395,7 +382,7 @@ const closeModal = () => {
   box-shadow: 5px 5px 5px #00000046;
 }
 
-.itbkk-button-add {
+.button {
   width: 80px;
   height: 80px;
   background: #ad386f;
@@ -409,7 +396,7 @@ const closeModal = () => {
   color: white;
 }
 
-.itbkk-button-add:hover {
+.button:hover {
   background-color: #66163b;
   color: white;
 }
@@ -473,6 +460,10 @@ header {
   text-align: center;
 }
 
+.kebab {
+  color: #939393;
+}
+
 .idkb {
   display: inline;
 }
@@ -490,7 +481,7 @@ h1 {
 .tb {
   padding: 2rem;
   width: 100%;
-  /* overflow: auto; */
+  overflow: auto;
 }
 
 table {
@@ -553,7 +544,7 @@ footer {
   padding-bottom: 5rem;
 }
 
-@media screen and (max-width: 800px) {
+@media screen and (max-width: 745px) {
   table,
   thead,
   tbody,
@@ -561,7 +552,6 @@ footer {
   td,
   tr {
     display: block;
-    max-width: 600px;
   }
 
   thead tr {
@@ -583,10 +573,6 @@ footer {
   .button {
     width: 60px;
     height: 60px;
-  }
-
-  .edit-delete {
-    display: flex;
   }
 
   tr {

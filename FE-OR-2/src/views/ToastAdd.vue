@@ -17,7 +17,7 @@
 </template>
 
 <style>
-
+ 
 .toast {
   position: fixed;
   height: 5rem;
@@ -129,4 +129,4 @@
 .toast.active ~ button {
   pointer-events: none;
 }
-</style> -->
+</style>

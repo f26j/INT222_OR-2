@@ -42,7 +42,6 @@ const addTask = async () => {
     });
     const data = await response.json()
     if (!response.ok) {
-      
       throw new Error("Failed to add new task");
     }else{
       store.tasks.value.push(data)
@@ -252,6 +251,15 @@ const addTask = async () => {
   background-color: rgb(28, 126, 36);
   color: rgb(179, 236, 168);
 }
+
+.ok:disabled {
+  background-color: gray;
+  color: #ffffff;
+}
+.ok:disabled:hover {
+  transform: scale(1);
+}
+
 
 .close:hover {
   background-color: rgb(163, 42, 48);

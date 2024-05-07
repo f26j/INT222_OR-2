@@ -7,7 +7,7 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - ./int221project.sql:/docker-entrypoint-initdb.d/int221project.sql
+      - ./database/int221project.sql:/docker-entrypoint-initdb.d/int221project.sql
     environment:
       - MYSQL_DATABASE=int221project
       - MYSQL_USER=root

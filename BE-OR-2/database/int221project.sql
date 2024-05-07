@@ -19,17 +19,6 @@ CREATE TABLE IF NOT EXISTS task
     updatedOn       DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-DROP TABLE IF EXISTS `int221project`.`status`;
-
-CREATE TABLE IF NOT EXISTS `int221project`.`status`
-(
-    `id`                INT                                                               NOT NULL AUTO_INCREMENT,
-    `statusName`        VARCHAR(50) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'  NOT NULL,
-    `statusDescription` VARCHAR(200) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci' NULL,
-    PRIMARY KEY (`id`),
-    UNIQUE INDEX `name_UNIQUE` (`statusName` ASC) VISIBLE
-);
-
 -- Insert
 INSERT INTO task (taskTitle, taskDescription, taskAssignees, taskStatus, createdOn, updatedOn)
 VALUES ('TaskTitle1TaskTitle2TaskTitle3TaskTitle4TaskTitle5TaskTitle6TaskTitle7TaskTitle8TaskTitle9TaskTitle0',
