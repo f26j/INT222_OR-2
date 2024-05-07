@@ -1,6 +1,11 @@
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted, onUnmounted, defineProps, defineEmits } from "vue";
 import { useRouter } from "vue-router";
+import ToastAdd from "./ToastAdd.vue";
+
+import { useCounterStore } from "@/stores/counter.js"
+
+const store = useCounterStore()
 
 const fetchURL = ref(import.meta.env.VITE_API);
 const router = useRouter();
@@ -9,6 +14,12 @@ const newDescription = ref("");
 const newAssignees = ref("");
 const newStatus = ref("NO_STATUS");
 const tasks = ref([]);
+
+const emit = defineEmits(['close','openToast','toastAdd'])
+
+const closeModal = () => {
+  router.push({ path: "/task" });
+};
 
 const addTask = async () => {
   const newTask = {
@@ -19,6 +30,9 @@ const addTask = async () => {
     createdOn: new Date(),
     updatedOn: new Date(),
   };
+  if(!newTask.title){
+    return
+  }
   try {
     const response = await fetch(`${fetchURL.value}`, {
       method: "POST",
@@ -27,11 +41,14 @@ const addTask = async () => {
       },
       body: JSON.stringify(newTask),
     });
+    const data = await response.json()
     if (!response.ok) {
-      
       throw new Error("Failed to add new task");
+    }else{
+      store.tasks.value.push(data)
     }
-    router.push({ name: "task" });
+    emit('close')
+    router.push({ name: "task" }).catch(() => {});
   } catch (error) {
     console.error("Error adding new task:", error.message);
   }
@@ -51,7 +68,7 @@ const addTask = async () => {
         aria-modal="true"
       >
         <div class="modal-content">
-          <form @submit="addTask">
+          <form @submit.prevent="addTask">
             <div class="modal-header">
               <div class="itbkktitle text-left">
                 <h4>Add New Task</h4>
@@ -148,13 +165,19 @@ const addTask = async () => {
               <div class="itbkk-button">
                 <hr />
                 <button
-                  @click="($event) => $emit('close')"
+                  @click="closeModal"
                   class="close border"
                 >
                   Cancel
                 </button>
-                <button @click="($event) => $emit('path')" class="ok border" type="submit" 
-                  :disabled="newTitle.length === 0">Save</button>
+                <button
+                @click="$emit('toastAdd')"
+                  class="ok border"
+                  type="submit"
+                  :disabled="newTitle.length === 0"
+                >
+                  Save
+                </button>
               </div>
             </div>
           </form>
@@ -229,6 +252,15 @@ const addTask = async () => {
   background-color: rgb(28, 126, 36);
   color: rgb(179, 236, 168);
 }
+
+.ok:disabled {
+  background-color: gray;
+  color: #ffffff;
+}
+.ok:disabled:hover {
+  transform: scale(1);
+}
+
 
 .close:hover {
   background-color: rgb(163, 42, 48);

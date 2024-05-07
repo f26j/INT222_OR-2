@@ -7,7 +7,7 @@ const props = defineProps({
   showModal: Boolean,
   taskId: Number,
   title: String,
-  showAlertDelete: Boolean,
+  indexs: Number,
 })
 
 defineEmits(["closeModal", "confirmDeleteModal"])
@@ -26,7 +26,7 @@ defineEmits(["closeModal", "confirmDeleteModal"])
             <path fill="#e05555" d="M12 21a9 9 0 1 1 9-9a9 9 0 0 1-9 9m0-16.5a7.5 7.5 0 1 0 7.5 7.5A7.5 7.5 0 0 0 12 4.5"/><path fill="#e05555" d="M12 13a.76.76 0 0 1-.75-.75v-3.5a.75.75 0 0 1 1.5 0v3.5A.76.76 0 0 1 12 13m0 3a.76.76 0 0 1-.75-.75v-.5a.75.75 0 0 1 1.5 0v.5A.76.76 0 0 1 12 16"/>
           </svg>
           <span class="text-2xl font-bold mb-4">Delete a Task</span>
-          <div class="itbkk-message w-10/12 break-all text-ellipsis overflow-hidden">Do you want to delete the task <br> number {{ taskId }} - "{{ title }}" ?</div>
+          <div class="itbkk-message w-10/12 break-all text-ellipsis overflow-hidden">Do you want to delete the task <br> number {{ indexs }} - "{{ title }}" ?</div>
           <div class="Button h-32 flex justify-center items-center gap-10 rounded-full">
             <button class="itbkk-button-cancel" @click="$emit('closeModal')">Cancel</button> <!-- ไปเรียกใช้ fn closeDeleteModal ของ HomeView -->
             <button class="itbkk-button-confirm" @click="$emit('confirmDeleteModal', taskId)">Confirm</button> <!-- ไปเรียกใช้ fn deleteTask ของ HomeView -->

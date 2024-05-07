@@ -2,6 +2,8 @@
 import { onMounted, ref, defineEmits, defineProps } from "vue";
 import { useRoute } from "vue-router";
 
+const emit = defineEmits(['close'])
+
 const props = defineProps({
   title: String,
   description: String,
@@ -20,7 +22,7 @@ console.log("Task ID:", id);
 </script>
 <template>
   <div class="details fixed inset-0 overflow-y-auto bg-black bg-opacity-50">
-    <!-- <div class="flex items-start justify-center mt-24 text-center"> -->
+    <div class="flex items-start justify-center mt-24 text-center">
       <div
         class="modals rounded-lg text-center shadow-xlp-6 w-min"
         role="dialog"
@@ -73,7 +75,7 @@ console.log("Task ID:", id);
                         type="text"
                         :class="{'italic !text-gray-400':!props.assignees}"
                         disabled
-                        >{{ props.assignees.trim() || "Unassigned" }}
+                        >{{ props.assignees?.trim() || "Unassigned" }}
                       </textarea>
                     </div>
                   </div>
@@ -120,13 +122,13 @@ console.log("Task ID:", id);
               <div class="itbkk-button">
                 <hr />
                 <button
-                  @click="($event) => $emit('close')"
+                  @click="$emit('close')"
                   class="close border"
                 >
                   Close
                 </button>
                 <button
-                  @click="($event) => $emit('close')"
+                  @click="$emit('close')"
                   class="ok border"
                   type="submit"
                 >
@@ -137,7 +139,7 @@ console.log("Task ID:", id);
           </form>
         </div>
       </div>
-    <!-- </div> -->
+    </div>
   </div>
 </template>
 
