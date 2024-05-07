@@ -10,8 +10,6 @@ const newAssignees = ref("");
 const newStatus = ref("NO_STATUS");
 const tasks = ref([]);
 
-const { emit } = defineEmits(["taskAdded"]);
-
 const addTask = async () => {
   const newTask = {
     title: newTitle.value,
@@ -31,10 +29,8 @@ const addTask = async () => {
     });
     if (!response.ok) {
       throw new Error("Failed to add new task");
-    } 
-    emit('taskAdded');
-    router.push({ name: "task" });
-
+    }
+    router.push({ name: "task" }).catch(() => {});
   } catch (error) {
     console.error("Error adding new task:", error.message);
   }
@@ -54,7 +50,7 @@ const addTask = async () => {
         aria-modal="true"
       >
         <div class="modal-content">
-          <form @submitx="addTask">
+          <form @submit="addTask">
             <div class="modal-header">
               <div class="itbkktitle text-left">
                 <h4>Add New Task</h4>
@@ -156,8 +152,14 @@ const addTask = async () => {
                 >
                   Cancel
                 </button>
-                <button @click="($event) => $emit('path')" class="ok border" type="submit" 
-                  :disabled="newTitle.length === 0">Save</button>
+                <button
+                  @click="($event) => $emit('path')"
+                  class="ok border"
+                  type="submit"
+                  :disabled="newTitle.length === 0"
+                >
+                  Save
+                </button>
               </div>
             </div>
           </form>

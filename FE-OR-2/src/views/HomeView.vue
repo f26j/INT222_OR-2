@@ -5,7 +5,8 @@ import Copyright from "../components/css/Copyright.vue";
 import ModalDetail from "./ModalDetail.vue";
 import ModalAdd from "./ModalAdd.vue";
 import ToastAdd from "./ToastAdd.vue";
-import ModalDelete from "./ModalDelete.vue";
+import ModalDelete from "./ModalDelete.vue"
+import ToastDelete from "./ToastDelete.vue"
 import { onMounted, ref, onUnmounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 
@@ -100,7 +101,10 @@ const onTaskAdded = () => {
   handleTaskAdded();
 };
 
-const showDelete = ref(false);
+const showToastDelete = ref(false)
+const deleteSuccess = ref(false)
+const showDelete = ref(false)
+const toastSuccess = ref(false)
 const openModalDelete = (taskId, title, index) => {
   showDelete.value = true;
   selectDeleteTaskId.value = taskId;
@@ -113,15 +117,40 @@ async function deleteTask(taskId) {
       method: "DELETE",
     });
     if (response.ok) {
-      tasks.value = tasks.value.filter((task) => task.id !== taskId);
-      router.push("/");
+      tasks.value = tasks.value.filter((task) => task.id !== taskId)
+      deleteSuccess.value = true
     } else {
-      console.error("Failed to delete task");
+      deleteSuccess.value = false
+      console.error("Failed to delete task")
     }
   } catch (error) {
-    console.error("Error deleting task:", error);
+    deleteSuccess.value = false
+    console.error("Error deleting task:", error)
   }
-  showDelete.value = false;
+  confirmDelete()
+  showDelete.value = false
+}
+const confirmDelete = async () => {
+  try {
+    showToastDelete.value = true
+    toastSuccess.value = true
+    setTimeout(() => {
+      showToastDelete.value = false
+      closeModal()
+    }, 5000)
+  } catch (error) {
+    toastSuccess.value = false
+    setTimeout(() => {
+      showToastDelete.value = false
+      closeModal()
+    }, 5000) 
+    console.error('Error deleting task:', error)
+  }
+  return {
+    showToastDelete,
+    closeModal,
+    confirmDelete
+  }
 }
 
 const path = () => {
@@ -269,6 +298,11 @@ const closeModal = () => {
         @confirmDeleteModal="deleteTask"
       >
       </ModalDelete>
+      <ToastDelete
+        v-if="showToastDelete"
+        :isDeleteSuccess="deleteSuccess"
+        @close="closeToast">
+      </ToastDelete>
     </main>
 
     <footer>
