@@ -5,6 +5,7 @@ import Copyright from "../components/css/Copyright.vue";
 import ModalDetail from "./ModalDetail.vue";
 import ModalAdd from "./ModalAdd.vue";
 import ToastAdd from "./ToastAdd.vue";
+import ModalEdit from "./ModalEdit.vue";
 import ModalDelete from "./ModalDelete.vue"
 import ToastDelete from "./ToastDelete.vue"
 import { onMounted, ref, onUnmounted } from "vue";
@@ -12,8 +13,6 @@ import { useRouter, useRoute } from "vue-router";
 import { useCounterStore } from "@/stores/counter.js"
 
 const store = useCounterStore()
-
-
 const fetchURL = ref(import.meta.env.VITE_API);
 const router = useRouter();
 const tasks = ref([]);
@@ -30,7 +29,6 @@ const selectDeleteTaskId = ref("");
 const selectDeleteTaskTitle = ref("");
 const selectDeleteTaskIndex = ref("");
 console.log(taskId);
-
 function formatDate(date) {
   const d = new Date(date);
   return d
@@ -38,13 +36,11 @@ function formatDate(date) {
     .split(",")
     .join(" ");
 }
-
 async function fetchData() {
   const response = await fetch(`${fetchURL.value}`);
   const data = await response.json();
   return data;
 }
-
 onMounted(async () => {
   const data = await fetchData();
   // tasks.value = data;
@@ -52,7 +48,6 @@ onMounted(async () => {
   store.tasks.value = data
   console.log(store.tasks.value);
 });
-
 const showDetail = ref(false);
 const openModalDetail = async (id) => {
   const data = await fetch(`${fetchURL.value}/${id}`);
@@ -64,7 +59,6 @@ const openModalDetail = async (id) => {
     }, 500);
     return;
   }
-
   console.log(data);
   console.log(res);
   title.value = res.title;
@@ -80,7 +74,6 @@ const openModalDetail = async (id) => {
 if (taskId) {
   openModalDetail(taskId);
 }
-
 const showAdd = ref(false);
 const openModalAdd = async (task) => {
   // title.value = "";
@@ -89,9 +82,27 @@ const openModalAdd = async (task) => {
   // status.value = "NO_STATUS";
   // createdOn.value = formatDate(new Date());
   // updatedOn.value = formatDate(new Date());
-
   // showAdd.value = true;
-  router.push({ name: "task-add" });
+  const data = await fetch(`${fetchURL.value}/${id}`);
+  const res = await data.json();
+  if (!data.ok) {
+    router.push("/");
+    setTimeout(() => {
+      alert("The requested task does not exist");
+    }, 500);
+    return;
+  }
+  console.log(data);
+  console.log(res);
+  title.value = res.title;
+  description.value = res.description;
+  assignees.value = res.assignees;
+  status.value = res.status;
+  createdOn.value = formatDate(res.createdOn);
+  updatedOn.value = formatDate(res.updatedOn);
+  showDetail.value = true;
+  router.push({ name: "task-edit", params: { id: id } });
+  console.log(title.value);
 };
 
 const showToastAdd = ref(false);
@@ -102,6 +113,11 @@ const handleTaskAdded = () => {
   setTimeout(() => {
     showToastAdd.value = false;
   }, 5000);
+};
+
+const showEdit = ref(false);
+const openModalEdit = async (id) => {
+  router.push({ name: "task-edit" });
 };
 
 const showToastDelete = ref(false)
@@ -157,16 +173,18 @@ const confirmDelete = async () => {
   }
 }
 
+const closeToast = () => {
+  showToastAdd.value = false;
+}
+
 const closeModal = () => {
   showDetail.value = false;
   showAdd.value = false;
   showDelete.value = false;
-  showToastAdd.value = false;
   showToastDelete.value = false;
   router.push({ path: "/task" });
 };
 </script>
-
 <template>
   
   <div class="body">
@@ -176,13 +194,6 @@ const closeModal = () => {
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
     </header>
     <main>
-      <div class="itbkk-manage-status">
-        <button type="button" class="btstatus flex" @click="$router.push('/statuses')">
-          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 512 512"><path fill="currentColor" d="M256 176a80 80 0 1 0 80 80a80.24 80.24 0 0 0-80-80m172.72 80a165.53 165.53 0 0 1-1.64 22.34l48.69 38.12a11.59 11.59 0 0 1 2.63 14.78l-46.06 79.52a11.64 11.64 0 0 1-14.14 4.93l-57.25-23a176.56 176.56 0 0 1-38.82 22.67l-8.56 60.78a11.93 11.93 0 0 1-11.51 9.86h-92.12a12 12 0 0 1-11.51-9.53l-8.56-60.78A169.3 169.3 0 0 1 151.05 393L93.8 416a11.64 11.64 0 0 1-14.14-4.92L33.6 331.57a11.59 11.59 0 0 1 2.63-14.78l48.69-38.12A174.58 174.58 0 0 1 83.28 256a165.53 165.53 0 0 1 1.64-22.34l-48.69-38.12a11.59 11.59 0 0 1-2.63-14.78l46.06-79.52a11.64 11.64 0 0 1 14.14-4.93l57.25 23a176.56 176.56 0 0 1 38.82-22.67l8.56-60.78A11.93 11.93 0 0 1 209.94 26h92.12a12 12 0 0 1 11.51 9.53l8.56 60.78A169.3 169.3 0 0 1 361 119l57.2-23a11.64 11.64 0 0 1 14.14 4.92l46.06 79.52a11.59 11.59 0 0 1-2.63 14.78l-48.69 38.12a174.58 174.58 0 0 1 1.64 22.66"/></svg>
-           Manage Status
-        </button>
-      </div>
-
       <div class="btn-a" v-for="task in store.tasks.value">
         <div class="itbkk-button-add button iconbutton" @click="openModalAdd(task)">
           <i class="plus">
@@ -194,7 +205,7 @@ const closeModal = () => {
             >
               <g fill="none">
                 <path
-                  d="M24 0v24H0V0zM12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035c-.01-.004-.019-.001-.024.005l-004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427c-.002-.01-.009-.017-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093c.012.004.023 0 .029-.008l.004-.014l-.034-.614c-.003-.012-.01-.02-.02-.022m-.715.002a.023.023 0 0 0-.027.006l-.006.014l-.034.614c0 .012.007.02.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"
+                  d="M24 0v24H0V0zM12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035c-.01-.004-.019-.001-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427c-.002-.01-.009-.017-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093c.012.004.023 0 .029-.008l.004-.014l-.034-.614c-.003-.012-.01-.02-.02-.022m-.715.002a.023.023 0 0 0-.027.006l-.006.014l-.034.614c0 .012.007.02.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"
                 ></path>
                 <path
                   fill="currentColor"
@@ -247,7 +258,7 @@ const closeModal = () => {
               <td class="itbkk-button-action">
                 <svg
                   class="itbkk-button-edit"
-                  @click="editTask()"
+                  @click="openModalEdit(task.id)"
                   xmlns="http://www.w3.org/2000/svg"
                   width="30"
                   height="30"
@@ -286,7 +297,7 @@ const closeModal = () => {
           </tbody>
         </table>
       </div>
-      <ModalDetail
+      <!-- <ModalDetail
         v-if="showDetail"
         :title="title"
         :description="description"
@@ -297,9 +308,9 @@ const closeModal = () => {
         :localTimeZone="localTimeZone"
         @close="closeModal"
       >
-      </ModalDetail>
+      </ModalDetail> -->
       <!-- <ModalAdd v-if="showAdd" @close="closeModal" @path="path" @taskAdded="handleTaskAdded"></ModalAdd> -->
-      <ToastAdd v-if="showToastAdd" @close="closeModal" />
+      <ToastAdd v-if="showToastAdd" @close="closeToast" />
       <ModalDelete
         v-if="showDelete"
         :taskId="selectDeleteTaskId"
@@ -316,21 +327,27 @@ const closeModal = () => {
         >
       </ToastDelete>
     </main>
-
     <footer>
       <Copyright />
     </footer>
     <Bg_effect />
   </div>
-  <RouterView @toastAdd="handleTaskAdded" />
+  <RouterView 
+  :title="title"
+        :description="description"
+        :assignees="assignees"
+        :status="status"
+        :createdOn="createdOn"
+        :updatedOn="updatedOn"
+        :localTimeZone="localTimeZone"
+        @close="closeModal" 
+        @toastAdd="handleTaskAdded" />
 </template>
-
 <style scoped>
 @import url("https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono");
 @import url("https://fonts.googleapis.com");
 @import url("https://fonts.gstatic.com");
 @import url("https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
-
 * {
   user-select: none;
   box-sizing: border-box;
@@ -338,53 +355,32 @@ const closeModal = () => {
   padding: 0;
   scroll-behavior: smooth;
 }
-.itbkk-manage-status {
-  justify-content: center;
-  text-align: center;
-  padding-left: 18rem
-}
-.btstatus {
-  font-style: italic;
-  background-color: #343365;
-  color: #fff7d9;
-  padding: 10px;
-  border-radius: 50px;
-}
-.btstatus:hover {
-  background-color: #6a4581;
-}
 .unassigned {
   font-style: italic;
   color: gray;
 }
-
 .addtask {
   margin-right: 45rem;
   text-align: center;
 }
-
 .plus {
   font-size: 40px;
   font-weight: 10px;
   color: #d1ffca;
 }
-
 .itbkk-button-action {
   padding: 15px 5px 10px;
   display: flex;
 }
-
 .itbkk-button-action svg {
   transition: transform 0.3s ease;
   cursor: pointer;
 }
-
 .itbkk-button-action svg:hover {
   transform: scale(1.08);
   transition: transform 0.3s ease;
   color: #ad386f;
 }
-
 .btn-a {
   position: fixed;
   bottom: 50px;
@@ -392,20 +388,17 @@ const closeModal = () => {
   cursor: pointer;
   z-index: 2;
 }
-
 .iconbutton {
   width: 50px;
   height: 50px;
   border-radius: 100%;
   box-shadow: 5px 5px 5px #00000046;
 }
-
 .itbkk-button-add {
   width: 80px;
   height: 80px;
   background: #ad386f;
 }
-
 .iconbutton i {
   display: flex;
   align-items: center;
@@ -413,48 +406,39 @@ const closeModal = () => {
   height: 100%;
   color: white;
 }
-
 .button:hover {
   background-color: #66163b;
   color: white;
 }
-
 .itbkk-assignees {
   font-style: normal;
   width: auto;
 }
-
 .itbkk-title p {
   transition: transform 0.3s ease;
   color: #ad386f;
 }
-
 .itbkk-title p:hover {
   cursor: pointer;
   transform: scale(1.01);
   color: rgb(250, 133, 188);
 }
-
 .itbkk-item p {
   width: 200px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
 .itbkk-title {
   max-width: 700px;
 }
-
 .unassigned {
   color: gray;
   font-style: italic;
 }
-
 header {
   margin-bottom: 20px;
 }
-
 /* .btna {
   background-color: #04aa6d76;
   border: none;
@@ -467,25 +451,20 @@ header {
   border-radius: 50px;
   border: 2px solid #04AA6D;
 }
-
 .btna:hover {
   background-color: #adcdc1;
   color: white;
 } */
-
 .addtask {
   margin-right: 45rem;
   text-align: center;
 }
-
 .kebab {
   color: #939393;
 }
-
 .idkb {
   display: inline;
 }
-
 h1 {
   font-family: "Ubuntu", sans-serif;
   font-weight: 500;
@@ -495,13 +474,11 @@ h1 {
   font-weight: 800;
   margin: 4rem 0 2rem;
 }
-
 .tb {
   padding: 2rem;
   width: 100%;
   overflow: auto;
 }
-
 table {
   border-collapse: collapse;
   width: 100%;
@@ -511,37 +488,30 @@ table {
   margin: 0 auto;
   border-radius: 25px;
 }
-
 th,
 td {
   padding: 15px;
   background-color: rgba(255, 254, 255, 0.329);
 }
-
 th {
   text-align: left;
   color: rgba(255, 255, 255, 0.748);
 }
-
 td {
   color: #47467b;
   font-family: "Ubuntu", sans-serif;
   font-weight: 600;
   font-style: normal;
 }
-
 thead th {
   background-color: #47467b;
 }
-
 tbody tr:hover {
   background-color: rgba(255, 255, 255, 0.63);
 }
-
 .bgi {
   display: none;
 }
-
 tbody {
   td {
     position: relative;
@@ -557,11 +527,9 @@ tbody {
     }
   }
 }
-
 footer {
   padding-bottom: 5rem;
 }
-
 @media screen and (max-width: 745px) {
   table,
   thead,
@@ -571,39 +539,32 @@ footer {
   tr {
     display: block;
   }
-
   thead tr {
     position: absolute;
     top: -9999px;
     left: -9999px;
   }
-
   .bgd {
     background-color: #47467b;
     color: rgba(255, 255, 255, 0.774);
   }
-
   .bgi {
     display: inline;
     margin-left: -1rem;
   }
-
   .button {
     width: 60px;
     height: 60px;
   }
-
   tr {
     border: 1px solid #ccc;
   }
-
   td {
     border: none;
     border-bottom: 1px solid #eee;
     position: relative;
     padding-left: 3rem;
   }
-
   td:before {
     position: absolute;
     top: 6px;
@@ -612,11 +573,9 @@ footer {
     padding-right: 10px;
     white-space: nowrap;
   }
-
   .btn-a {
     position: fixed;
   }
-
   .tb {
     z-index: 1;
     position: relative;
