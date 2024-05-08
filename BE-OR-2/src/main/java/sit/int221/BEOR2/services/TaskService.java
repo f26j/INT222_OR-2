@@ -1,6 +1,7 @@
 package sit.int221.BEOR2.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +17,7 @@ public class TaskService {
     private TaskRepository taskRepository;
 
     public List<Task> getTasks() {
-        return taskRepository.findAll();
+        return taskRepository.findAll(Sort.by("id"));
     }
 
     public Task getTaskById(@PathVariable Integer id) {
