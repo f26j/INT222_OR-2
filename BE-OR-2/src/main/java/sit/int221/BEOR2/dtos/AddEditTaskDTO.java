@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class AddTaskDTO {
+public class AddEditTaskDTO {
     private Integer id;
     private String title;
     private String description;

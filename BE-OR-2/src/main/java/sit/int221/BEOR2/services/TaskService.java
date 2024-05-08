@@ -28,12 +28,12 @@ public class TaskService {
         return taskRepository.save(task);
     }
 
-    public Task updateTask(@PathVariable Integer id, @RequestBody Task updatedTask) {
+    public Task editTask(@PathVariable Integer id, @RequestBody Task editedTask) {
         if (!taskRepository.existsById(id)) {
             throw new TaskNotFoundException("NOT FOUND", "/v1/tasks/" + id);
         } else if (taskRepository.existsById(id)) {
-            updatedTask.setId(id);
-            return taskRepository.save(updatedTask);
+            editedTask.setId(id);
+            return taskRepository.save(editedTask);
         }
         return null;
     }
