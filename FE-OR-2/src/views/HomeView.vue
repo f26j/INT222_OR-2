@@ -83,6 +83,22 @@ const openModalAdd = async (task) => {
   // createdOn.value = formatDate(new Date());
   // updatedOn.value = formatDate(new Date());
   // showAdd.value = true;
+
+  router.push({ name: "task-add" });
+};
+
+const showToastAdd = ref(false);
+console.log(showToastAdd.value);
+const handleTaskAdded = () => {
+  showToastAdd.value = true;
+  console.log(showToastAdd.value);
+  setTimeout(() => {
+    showToastAdd.value = false;
+  }, 5000);
+};
+
+const showEdit = ref(false);
+const openModalEdit = async (id) => {
   const data = await fetch(`${fetchURL.value}/${id}`);
   const res = await data.json();
   if (!data.ok) {
@@ -103,21 +119,6 @@ const openModalAdd = async (task) => {
   showDetail.value = true;
   router.push({ name: "task-edit", params: { id: id } });
   console.log(title.value);
-};
-
-const showToastAdd = ref(false);
-console.log(showToastAdd.value);
-const handleTaskAdded = () => {
-  showToastAdd.value = true;
-  console.log(showToastAdd.value);
-  setTimeout(() => {
-    showToastAdd.value = false;
-  }, 5000);
-};
-
-const showEdit = ref(false);
-const openModalEdit = async (id) => {
-  router.push({ name: "task-edit" });
 };
 
 const showToastDelete = ref(false)

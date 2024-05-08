@@ -1,6 +1,7 @@
 package sit.int221.BEOR2.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +17,7 @@ public class TaskService {
     private TaskRepository taskRepository;
 
     public List<Task> getTasks() {
-        return taskRepository.findAll();
+        return taskRepository.findAll(Sort.by("id"));
     }
 
     public Task getTaskById(@PathVariable Integer id) {
@@ -27,25 +28,21 @@ public class TaskService {
         return taskRepository.save(task);
     }
 
-    public Task updateTask(@PathVariable Integer id, @RequestBody Task updatedTask) {
-       try {
-           if (taskRepository.existsById(id)) {
-               updatedTask.setId(id);
-               return taskRepository.save(updatedTask);
-           }
-           return null;
-       }catch (Exception e) {
-           throw new TaskNotFoundException("NOT FOUND", "/v1/tasks/" + id);
-       }
+    public Task editTask(@PathVariable Integer id, @RequestBody Task editedTask) {
+        if (!taskRepository.existsById(id)) {
+            throw new TaskNotFoundException("NOT FOUND", "/v1/tasks/" + id);
+        } else if (taskRepository.existsById(id)) {
+            editedTask.setId(id);
+            return taskRepository.save(editedTask);
+        }
+        return null;
     }
 
     public void deleteTask(@PathVariable Integer id) {
-        try {
-            if (taskRepository.existsById(id)) {
-            taskRepository.deleteById(id);
-            }
-        } catch (Exception e) {
+        if (!taskRepository.existsById(id)) {
             throw new TaskNotFoundException("NOT FOUND", "/v1/tasks/" + id);
+        } else if (taskRepository.existsById(id)) {
+            taskRepository.deleteById(id);
         }
     }
 }
