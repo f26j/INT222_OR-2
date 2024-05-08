@@ -42,8 +42,8 @@ public class TaskController {
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK) // 200
-    public SimpleTaskDTO updateTask(@PathVariable Integer id, @RequestBody Task updatedTask) {
-        return modelMapper.map(taskService.updateTask(id, updatedTask), SimpleTaskDTO.class);
+    public TaskDTO updateTask(@PathVariable Integer id, @RequestBody Task updatedTask) {
+        return modelMapper.map(taskService.updateTask(id, updatedTask), TaskDTO.class);
     }
 
     @DeleteMapping("/{id}")
