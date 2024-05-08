@@ -5,6 +5,7 @@ import Copyright from "../components/css/Copyright.vue";
 import ModalDetail from "./ModalDetail.vue";
 import ModalAdd from "./ModalAdd.vue";
 import ToastAdd from "./ToastAdd.vue";
+import ModalEdit from "./ModalEdit.vue";
 import ModalDelete from "./ModalDelete.vue"
 import ToastDelete from "./ToastDelete.vue"
 import { onMounted, ref, onUnmounted } from "vue";
@@ -12,8 +13,6 @@ import { useRouter, useRoute } from "vue-router";
 import { useCounterStore } from "@/stores/counter.js"
 
 const store = useCounterStore()
-
-
 const fetchURL = ref(import.meta.env.VITE_API);
 const router = useRouter();
 const tasks = ref([]);
@@ -30,7 +29,6 @@ const selectDeleteTaskId = ref("");
 const selectDeleteTaskTitle = ref("");
 const selectDeleteTaskIndex = ref("");
 console.log(taskId);
-
 function formatDate(date) {
   const d = new Date(date);
   return d
@@ -38,13 +36,11 @@ function formatDate(date) {
     .split(",")
     .join(" ");
 }
-
 async function fetchData() {
   const response = await fetch(`${fetchURL.value}`);
   const data = await response.json();
   return data;
 }
-
 onMounted(async () => {
   const data = await fetchData();
   // tasks.value = data;
@@ -52,7 +48,6 @@ onMounted(async () => {
   store.tasks.value = data
   console.log(store.tasks.value);
 });
-
 const showDetail = ref(false);
 const openModalDetail = async (id) => {
   const data = await fetch(`${fetchURL.value}/${id}`);
@@ -64,7 +59,6 @@ const openModalDetail = async (id) => {
     }, 500);
     return;
   }
-
   console.log(data);
   console.log(res);
   title.value = res.title;
@@ -80,7 +74,6 @@ const openModalDetail = async (id) => {
 if (taskId) {
   openModalDetail(taskId);
 }
-
 const showAdd = ref(false);
 const openModalAdd = async (task) => {
   // title.value = "";
@@ -89,8 +82,8 @@ const openModalAdd = async (task) => {
   // status.value = "NO_STATUS";
   // createdOn.value = formatDate(new Date());
   // updatedOn.value = formatDate(new Date());
-
   // showAdd.value = true;
+
   router.push({ name: "task-add" });
 };
 
@@ -102,6 +95,30 @@ const handleTaskAdded = () => {
   setTimeout(() => {
     showToastAdd.value = false;
   }, 5000);
+};
+
+const showEdit = ref(false);
+const openModalEdit = async (id) => {
+  const data = await fetch(`${fetchURL.value}/${id}`);
+  const res = await data.json();
+  if (!data.ok) {
+    router.push("/");
+    setTimeout(() => {
+      alert("The requested task does not exist");
+    }, 500);
+    return;
+  }
+  console.log(data);
+  console.log(res);
+  title.value = res.title;
+  description.value = res.description;
+  assignees.value = res.assignees;
+  status.value = res.status;
+  createdOn.value = formatDate(res.createdOn);
+  updatedOn.value = formatDate(res.updatedOn);
+  showDetail.value = true;
+  router.push({ name: "task-edit", params: { id: id } });
+  console.log(title.value);
 };
 
 const showToastDelete = ref(false)
@@ -157,16 +174,18 @@ const confirmDelete = async () => {
   }
 }
 
+const closeToast = () => {
+  showToastAdd.value = false;
+}
+
 const closeModal = () => {
   showDetail.value = false;
   showAdd.value = false;
   showDelete.value = false;
-  showToastAdd.value = false;
   showToastDelete.value = false;
   router.push({ path: "/task" });
 };
 </script>
-
 <template>
 
   <div class="body">
@@ -240,7 +259,7 @@ const closeModal = () => {
               <td class="itbkk-button-action">
                 <svg
                   class="itbkk-button-edit"
-                  @click="editTask()"
+                  @click="openModalEdit(task.id)"
                   xmlns="http://www.w3.org/2000/svg"
                   width="30"
                   height="30"
@@ -279,7 +298,7 @@ const closeModal = () => {
           </tbody>
         </table>
       </div>
-      <ModalDetail
+      <!-- <ModalDetail
         v-if="showDetail"
         :title="title"
         :description="description"
@@ -290,9 +309,9 @@ const closeModal = () => {
         :localTimeZone="localTimeZone"
         @close="closeModal"
       >
-      </ModalDetail>
+      </ModalDetail> -->
       <!-- <ModalAdd v-if="showAdd" @close="closeModal" @path="path" @taskAdded="handleTaskAdded"></ModalAdd> -->
-      <ToastAdd v-if="showToastAdd" @close="closeModal" />
+      <ToastAdd v-if="showToastAdd" @close="closeToast" />
       <ModalDelete
         v-if="showDelete"
         :taskId="selectDeleteTaskId"
@@ -309,21 +328,27 @@ const closeModal = () => {
         >
       </ToastDelete>
     </main>
-
     <footer>
       <Copyright />
     </footer>
     <Bg_effect />
   </div>
-  <RouterView @toastAdd="handleTaskAdded" />
+  <RouterView 
+  :title="title"
+        :description="description"
+        :assignees="assignees"
+        :status="status"
+        :createdOn="createdOn"
+        :updatedOn="updatedOn"
+        :localTimeZone="localTimeZone"
+        @close="closeModal" 
+        @toastAdd="handleTaskAdded" />
 </template>
-
 <style scoped>
 @import url("https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono");
 @import url("https://fonts.googleapis.com");
 @import url("https://fonts.gstatic.com");
 @import url("https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
-
 * {
   user-select: none;
   box-sizing: border-box;
@@ -331,39 +356,32 @@ const closeModal = () => {
   padding: 0;
   scroll-behavior: smooth;
 }
-
 .unassigned {
   font-style: italic;
   color: gray;
 }
-
 .addtask {
   margin-right: 45rem;
   text-align: center;
 }
-
 .plus {
   font-size: 40px;
   font-weight: 10px;
   color: #d1ffca;
 }
-
 .itbkk-button-action {
   padding: 15px 5px 10px;
   display: flex;
 }
-
 .itbkk-button-action svg {
   transition: transform 0.3s ease;
   cursor: pointer;
 }
-
 .itbkk-button-action svg:hover {
   transform: scale(1.08);
   transition: transform 0.3s ease;
   color: #ad386f;
 }
-
 .btn-a {
   position: fixed;
   bottom: 50px;
@@ -371,20 +389,17 @@ const closeModal = () => {
   cursor: pointer;
   z-index: 2;
 }
-
 .iconbutton {
   width: 50px;
   height: 50px;
   border-radius: 100%;
   box-shadow: 5px 5px 5px #00000046;
 }
-
 .itbkk-button-add {
   width: 80px;
   height: 80px;
   background: #ad386f;
 }
-
 .iconbutton i {
   display: flex;
   align-items: center;
@@ -392,48 +407,39 @@ const closeModal = () => {
   height: 100%;
   color: white;
 }
-
 .button:hover {
   background-color: #66163b;
   color: white;
 }
-
 .itbkk-assignees {
   font-style: normal;
   width: auto;
 }
-
 .itbkk-title p {
   transition: transform 0.3s ease;
   color: #ad386f;
 }
-
 .itbkk-title p:hover {
   cursor: pointer;
   transform: scale(1.01);
   color: rgb(250, 133, 188);
 }
-
 .itbkk-item p {
   width: 200px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
 .itbkk-title {
   max-width: 700px;
 }
-
 .unassigned {
   color: gray;
   font-style: italic;
 }
-
 header {
   margin-bottom: 20px;
 }
-
 /* .btna {
   background-color: #04aa6d76;
   border: none;
@@ -446,25 +452,20 @@ header {
   border-radius: 50px;
   border: 2px solid #04AA6D;
 }
-
 .btna:hover {
   background-color: #adcdc1;
   color: white;
 } */
-
 .addtask {
   margin-right: 45rem;
   text-align: center;
 }
-
 .kebab {
   color: #939393;
 }
-
 .idkb {
   display: inline;
 }
-
 h1 {
   font-family: "Ubuntu", sans-serif;
   font-weight: 500;
@@ -474,13 +475,11 @@ h1 {
   font-weight: 800;
   margin: 4rem 0 2rem;
 }
-
 .tb {
   padding: 2rem;
   width: 100%;
   overflow: auto;
 }
-
 table {
   border-collapse: collapse;
   width: 100%;
@@ -490,37 +489,30 @@ table {
   margin: 0 auto;
   border-radius: 25px;
 }
-
 th,
 td {
   padding: 15px;
   background-color: rgba(255, 254, 255, 0.329);
 }
-
 th {
   text-align: left;
   color: rgba(255, 255, 255, 0.748);
 }
-
 td {
   color: #47467b;
   font-family: "Ubuntu", sans-serif;
   font-weight: 600;
   font-style: normal;
 }
-
 thead th {
   background-color: #47467b;
 }
-
 tbody tr:hover {
   background-color: rgba(255, 255, 255, 0.63);
 }
-
 .bgi {
   display: none;
 }
-
 tbody {
   td {
     position: relative;
@@ -536,11 +528,9 @@ tbody {
     }
   }
 }
-
 footer {
   padding-bottom: 5rem;
 }
-
 @media screen and (max-width: 745px) {
   table,
   thead,
@@ -550,39 +540,32 @@ footer {
   tr {
     display: block;
   }
-
   thead tr {
     position: absolute;
     top: -9999px;
     left: -9999px;
   }
-
   .bgd {
     background-color: #47467b;
     color: rgba(255, 255, 255, 0.774);
   }
-
   .bgi {
     display: inline;
     margin-left: -1rem;
   }
-
   .button {
     width: 60px;
     height: 60px;
   }
-
   tr {
     border: 1px solid #ccc;
   }
-
   td {
     border: none;
     border-bottom: 1px solid #eee;
     position: relative;
     padding-left: 3rem;
   }
-
   td:before {
     position: absolute;
     top: 6px;
@@ -591,11 +574,9 @@ footer {
     padding-right: 10px;
     white-space: nowrap;
   }
-
   .btn-a {
     position: fixed;
   }
-
   .tb {
     z-index: 1;
     position: relative;
