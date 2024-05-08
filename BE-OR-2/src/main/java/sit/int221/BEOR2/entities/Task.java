@@ -37,4 +37,12 @@ public class Task {
 
     @Column(name = "updatedOn", insertable = false, updatable = false, nullable = false)
     private ZonedDateTime updatedOn;
+
+    public void setStatus(String status) {
+        if (status == null) {
+            this.status = "NO_STATUS";
+        } else {
+            this.status = status;
+        }
+    }
 }
