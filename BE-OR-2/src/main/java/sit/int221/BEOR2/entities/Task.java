@@ -39,7 +39,7 @@ public class Task {
     private ZonedDateTime updatedOn;
 
     public void setStatus(String status) {
-        if (status == null) {
+        if (status == null || status.isEmpty()) {
             this.status = "NO_STATUS";
         } else {
             this.status = status;
