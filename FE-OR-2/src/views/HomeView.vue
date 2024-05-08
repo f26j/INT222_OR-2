@@ -74,7 +74,7 @@ const openModalDetail = async (id) => {
   createdOn.value = formatDate(res.createdOn);
   updatedOn.value = formatDate(res.updatedOn);
   showDetail.value = true;
-  // router.push({ name: "task-detail", params: { id: id } });
+  router.push({ name: "task-detail", params: { id: id } });
   console.log(title.value);
 };
 if (taskId) {
