@@ -2,7 +2,12 @@
 import { onMounted, ref, defineEmits, defineProps } from "vue";
 import { useRoute } from "vue-router";
 
-const emit = defineEmits(['close'])
+import { useRouter } from "vue-router";
+import ToastAdd from "./ToastAdd.vue";
+
+import { useCounterStore } from "@/stores/counter.js"
+
+const store = useCounterStore()
 
 const props = defineProps({
   title: String,
@@ -14,22 +19,64 @@ const props = defineProps({
   localTimeZone: String,
 });
 
+const fetchURL = ref(import.meta.env.VITE_API);
+const router = useRouter();
+const newTitle = ref(title);
+const newDescription = ref(description);
+const newAssignees = ref(assignees);
+const newStatus = ref(status);
+const tasks = ref([]);
+
+const emit = defineEmits(['close'])
+
 const route = useRoute();
 const id = route.params.id;
 
-console.log(id);
-console.log("Task ID:", id);
+const editTask = async () => {
+  const newTask = {
+    title: newTitle.value,
+    description: newDescription.value,
+    assignees: newAssignees.value,
+    status: newStatus.value,
+  };
+  if(!newTask.title){
+    return
+  }
+  try {
+    const response = await fetch(`${fetchURL.value}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newTask),
+    });
+    const data = await response.json()
+    if (!response.ok) {
+      throw new Error("Failed to add new task");
+    }else{
+      store.tasks.value.push(data)
+    }
+    emit('close')
+    router.push({ name: "task" }).catch(() => {});
+  } catch (error) {
+    console.error("Error adding new task:", error.message);
+  }
+  tasks.value.push(newTask);
+  newTitle.value = "";
+  newDescription.value = "";
+  newAssignees.value = "";
+  newStatus.value = "NO_STATUS";
+};
 </script>
 <template>
   <div class="details fixed inset-0 overflow-y-auto bg-black bg-opacity-50">
-    <div class="flex items-start justify-center mt-24 text-center">
       <div
         class="modals rounded-lg text-center shadow-xlp-6 w-min"
         role="dialog"
         aria-modal="true"
       >
         <div class="modal-content">
-          <form @submit.prevent="handleSubmit">
+          <form @submit.prevent="editTask">
             <div class="modal-header">
               <div class="itbkk-title text-left">
                 <h1>{{ title }}</h1>
@@ -139,7 +186,6 @@ console.log("Task ID:", id);
           </form>
         </div>
       </div>
-    </div>
   </div>
 </template>
 

@@ -27,7 +27,7 @@ const router = createRouter({
           component: ModalAdd,
         },
         {
-          path: "/:id/edit",
+          path: ":id/edit",
           name: "task-edit",
           component: ModalEdit,
         },
