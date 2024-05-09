@@ -4,6 +4,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import sit.int221.BEOR2.dtos.AddEditTaskDTO;
 import sit.int221.BEOR2.dtos.SimpleTaskDTO;
 import sit.int221.BEOR2.dtos.TaskDTO;
 import sit.int221.BEOR2.entities.Task;
@@ -35,14 +36,14 @@ public class TaskController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED) // 201
-    public SimpleTaskDTO addTask(@RequestBody Task task) {
-        return modelMapper.map(taskService.addTask(task), SimpleTaskDTO.class);
+    public AddEditTaskDTO addTask(@RequestBody Task task) {
+        return modelMapper.map(taskService.addTask(task), AddEditTaskDTO.class);
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK) // 200
-    public SimpleTaskDTO updateTask(@PathVariable Integer id, @RequestBody Task updatedTask) {
-        return modelMapper.map(taskService.updateTask(id, updatedTask), SimpleTaskDTO.class);
+    public AddEditTaskDTO editTask(@PathVariable Integer id, @RequestBody Task editedTask) {
+        return modelMapper.map(taskService.editTask(id, editedTask), AddEditTaskDTO.class);
     }
 
     @DeleteMapping("/{id}")
