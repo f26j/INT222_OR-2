@@ -1,13 +1,11 @@
 <script setup>
-import { onMounted, ref, defineEmits, defineProps } from "vue";
+import { ref, defineProps, defineEmits } from "vue";
 import { useRoute } from "vue-router";
 
-import { useRouter } from "vue-router";
-import ToastAdd from "./ToastAdd.vue";
-
 import { useCounterStore } from "@/stores/counter.js"
-
 const store = useCounterStore()
+
+const emit = defineEmits(["close", "openToast", "toastEdit"]);
 
 const props = defineProps({
   title: String,
@@ -19,57 +17,60 @@ const props = defineProps({
   localTimeZone: String,
 });
 
-const fetchURL = ref(import.meta.env.VITE_API);
-const router = useRouter();
-const newTitle = ref(title);
-const newDescription = ref(description);
-const newAssignees = ref(assignees);
-const newStatus = ref(status);
-const tasks = ref([]);
-
-const emit = defineEmits(['close'])
-
 const route = useRoute();
 const id = route.params.id;
 
+console.log(id);
+console.log("Task ID:", id);
+
+const fetchURL = ref(import.meta.env.VITE_API);
+const newTitle = ref(props.title);
+const newDescription = ref(props.description);
+const newAssignees = ref(props.assignees);
+const newStatus = ref(props.status);
+
+const closeModal = () => {
+  emit("close");
+};
+
 const editTask = async () => {
-  const newTask = {
+  const editedTask = {
+    id: id,
     title: newTitle.value,
     description: newDescription.value,
     assignees: newAssignees.value,
     status: newStatus.value,
+    updatedOn: new Date(),
   };
-  if(!newTask.title){
-    return
+  if (!editedTask.title) {
+    return;
   }
   try {
-    const response = await fetch(`${fetchURL.value}`, {
-      method: "POST",
+    const response = await fetch(`${fetchURL.value}/${id}`, {
+      method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(newTask),
+      body: JSON.stringify(editedTask),
     });
-    const data = await response.json()
     if (!response.ok) {
-      throw new Error("Failed to add new task");
-    }else{
-      store.tasks.value.push(data)
+      throw new Error("Failed to edit task");
     }
-    emit('close')
-    router.push({ name: "task" }).catch(() => {});
+    store.updateTask({...editedTask});
+    emit("close");
+    emit("openToast", {
+      message: "Task updated successfully",
+      type: "success",
+    });
   } catch (error) {
-    console.error("Error adding new task:", error.message);
+    console.error("Error editing task:", error.message);
+    emit("openToast", { message: "Failed to update task", type: "error" });
   }
-  tasks.value.push(newTask);
-  newTitle.value = "";
-  newDescription.value = "";
-  newAssignees.value = "";
-  newStatus.value = "NO_STATUS";
 };
 </script>
 <template>
   <div class="details fixed inset-0 overflow-y-auto bg-black bg-opacity-50">
+    <div class="flex items-start justify-center mt-24 text-center">
       <div
         class="modals rounded-lg text-center shadow-xlp-6 w-min"
         role="dialog"
@@ -78,34 +79,51 @@ const editTask = async () => {
         <div class="modal-content">
           <form @submit.prevent="editTask">
             <div class="modal-header">
-              <div class="itbkk-title text-left">
-                <h1>{{ title }}</h1>
+              <div class="itbkktitle text-left">
+                <h4>Edit Task</h4>
               </div>
             </div>
             <hr />
 
             <div class="modal-body">
-              <div class="itbkk-description text-left">
-                <div class="flex flex-wrap -mx-3 mb-2">
-                  <div class="desc w-full md:w-1/3 px-3 mb-6 md:mb-0">
+              <div class="text-left flex-col">
+                <div class="titlee flex flex-wrap -mx-3 mb-2">
+                  <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
                     <label
                       class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
                       for="grid-city"
                     >
-                      Description
+                      Title
                     </label>
                     <textarea
-                      class="itbkk-description descinput appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                      id="description"
+                      class="ttitle appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
+                      id="assign"
                       type="text"
-                      :class="{'italic !text-gray-400':!props.description}"
-                      
-                      >{{ props.description?.trim() || "No Description Provided" }}
-                    </textarea>
+                      placeholder="Enter title..."
+                      v-model="newTitle"
+                    ></textarea>
+                  </div>
+                </div>
+
+                <div class="itbkk-description text-left">
+                  <div class="flex flex-wrap -mx-3 mb-2">
+                    <div class="desc w-full md:w-1/3 px-3 mb-6 md:mb-0">
+                      <label
+                        class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                        for="grid-city"
+                        >Description
+                      </label>
+                      <textarea
+                        class="itbkkdesc appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                        id="description"
+                        type="text"
+                        placeholder="Enter description..."
+                        v-model="newDescription"
+                      ></textarea>
+                    </div>
                   </div>
                 </div>
               </div>
-
               <div class="detailright flex-col">
                 <div class="text-left">
                   <div class="assign flex flex-wrap -mx-3 mb-2">
@@ -117,13 +135,12 @@ const editTask = async () => {
                         Assignees
                       </label>
                       <textarea
-                        class="itbkk-assignees ass appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
+                        class="itbkkassignees appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
                         id="assign"
                         type="text"
-                        :class="{'italic !text-gray-400':!props.assignees}"
-                        disabled
-                        >{{ props.assignees.trim() || "Unassigned" }}
-                      </textarea>
+                        placeholder="Enter assignees..."
+                        v-model="newAssignees"
+                      ></textarea>
                     </div>
                   </div>
                 </div>
@@ -140,26 +157,14 @@ const editTask = async () => {
                       <select
                         class="statusbx block w-60 bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                         id="grid-state"
-                        v-model="props.status"
+                        v-model="newStatus"
                       >
-                        <option :value="'NO_STATUS'">No Status</option>
-                        <option :value="'TO_DO'">To Do</option>
-                        <option :value="'DOING'">Doing</option>
-                        <option :value="'DONE'">Done</option>
+                        <option value="NO_STATUS">No Status</option>
+                        <option value="TO_DO">To Do</option>
+                        <option value="DOING">Doing</option>
+                        <option value="DONE">Done</option>
                       </select>
                     </div>
-                  </div>
-                </div>
-
-                <div class="time">
-                  <div class="itbkk-timezone text-left">
-                    <p>Timezone : {{ localTimeZone }}</p>
-                  </div>
-                  <div class="itbkk-created-on text-left">
-                    <p>CreatedOn : {{ createdOn }}</p>
-                  </div>
-                  <div class="itbkk-updated-on text-left">
-                    <p>UpdatedOn : {{ updatedOn }}</p>
                   </div>
                 </div>
               </div>
@@ -169,23 +174,25 @@ const editTask = async () => {
               <div class="itbkk-button">
                 <hr />
                 <button
-                  @click="$emit('close')"
+                  @click="closeModal"
                   class="close border"
                 >
-                  Close
+                  Cancel
                 </button>
                 <button
-                  @click="$emit('close')"
+                @click="$emit('toastEdit')"
                   class="ok border"
                   type="submit"
+                  :disabled="newTitle.length === 0"
                 >
-                  OK
+                  Save
                 </button>
               </div>
             </div>
           </form>
         </div>
       </div>
+    </div>
   </div>
 </template>
 
@@ -261,12 +268,12 @@ textarea::placeholder {
 }
 
 .modal-header::-webkit-scrollbar {
-    height: 12px;
-  }
+  height: 12px;
+}
 
-  h1 {
-    padding-bottom: 5px;
-  }
+h1 {
+  padding-bottom: 5px;
+}
 
 .desc {
   margin: 15px;

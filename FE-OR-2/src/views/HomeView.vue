@@ -6,6 +6,7 @@ import ModalDetail from "./ModalDetail.vue";
 import ModalAdd from "./ModalAdd.vue";
 import ToastAdd from "./ToastAdd.vue";
 import ModalEdit from "./ModalEdit.vue";
+import ToastEdit from "./ToastEdit.vue";
 import ModalDelete from "./ModalDelete.vue"
 import ToastDelete from "./ToastDelete.vue"
 import { onMounted, ref, onUnmounted } from "vue";
@@ -120,6 +121,21 @@ const openModalEdit = async (id) => {
   router.push({ name: "task-edit", params: { id: id } });
   console.log(title.value);
 };
+if (window.location.pathname === `/task/${taskId}`) {
+  openModalDetail(taskId);
+} else if (window.location.pathname === `/task/${taskId}/edit`) {
+  openModalEdit(taskId);
+}
+
+const showToastEdit = ref(false);
+console.log(showToastAdd.value);
+const handleTaskEdited = () => {
+  showToastEdit.value = true;
+  console.log(showToastEdit.value);
+  setTimeout(() => {
+    showToastEdit.value = false;
+  }, 5000);
+};
 
 const showToastDelete = ref(false)
 const deleteSuccess = ref(false)
@@ -176,15 +192,21 @@ const confirmDelete = async () => {
 
 const closeToast = () => {
   showToastAdd.value = false;
+  showToastEdit.value = false;
 }
 
 const closeModal = () => {
   showDetail.value = false;
   showAdd.value = false;
+  showEdit.value = false;
   showDelete.value = false;
   showToastDelete.value = false;
   router.push({ path: "/task" });
 };
+
+const openStatus = () => {
+  router.push({name: "statusView"});
+}
 </script>
 <template>
   
@@ -195,6 +217,12 @@ const closeModal = () => {
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
     </header>
     <main>
+      <div class="itbkk-manage-status">
+        <button type="button" class="btstatus flex" @click="openStatus">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 512 512"><path fill="currentColor" d="M256 176a80 80 0 1 0 80 80a80.24 80.24 0 0 0-80-80m172.72 80a165.53 165.53 0 0 1-1.64 22.34l48.69 38.12a11.59 11.59 0 0 1 2.63 14.78l-46.06 79.52a11.64 11.64 0 0 1-14.14 4.93l-57.25-23a176.56 176.56 0 0 1-38.82 22.67l-8.56 60.78a11.93 11.93 0 0 1-11.51 9.86h-92.12a12 12 0 0 1-11.51-9.53l-8.56-60.78A169.3 169.3 0 0 1 151.05 393L93.8 416a11.64 11.64 0 0 1-14.14-4.92L33.6 331.57a11.59 11.59 0 0 1 2.63-14.78l48.69-38.12A174.58 174.58 0 0 1 83.28 256a165.53 165.53 0 0 1 1.64-22.34l-48.69-38.12a11.59 11.59 0 0 1-2.63-14.78l46.06-79.52a11.64 11.64 0 0 1 14.14-4.93l57.25 23a176.56 176.56 0 0 1 38.82-22.67l8.56-60.78A11.93 11.93 0 0 1 209.94 26h92.12a12 12 0 0 1 11.51 9.53l8.56 60.78A169.3 169.3 0 0 1 361 119l57.2-23a11.64 11.64 0 0 1 14.14 4.92l46.06 79.52a11.59 11.59 0 0 1-2.63 14.78l-48.69 38.12a174.58 174.58 0 0 1 1.64 22.66"/></svg>
+          <span class="mntext">Manage Status</span>
+        </button>
+      </div>
       <div class="btn-a" v-for="task in store.tasks.value">
         <div class="itbkk-button-add button iconbutton" @click="openModalAdd(task)">
           <i class="plus">
@@ -312,6 +340,7 @@ const closeModal = () => {
       </ModalDetail> -->
       <!-- <ModalAdd v-if="showAdd" @close="closeModal" @path="path" @taskAdded="handleTaskAdded"></ModalAdd> -->
       <ToastAdd v-if="showToastAdd" @close="closeToast" />
+      <ToastEdit v-if="showToastEdit" @close="closeToast"></ToastEdit>
       <ModalDelete
         v-if="showDelete"
         :taskId="selectDeleteTaskId"
@@ -342,7 +371,8 @@ const closeModal = () => {
         :updatedOn="updatedOn"
         :localTimeZone="localTimeZone"
         @close="closeModal" 
-        @toastAdd="handleTaskAdded" />
+        @toastAdd="handleTaskAdded"
+        @toastEdit="handleTaskEdited" />
 </template>
 <style scoped>
 @import url("https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono");
@@ -356,6 +386,34 @@ const closeModal = () => {
   padding: 0;
   scroll-behavior: smooth;
 }
+
+.mntext{
+  padding-top: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.itbkk-manage-status {
+  justify-content: center;
+  text-align: center;
+  padding-left: 18rem;
+  margin-left: 10rem;
+}
+
+.btstatus {
+  font-style: italic;
+  background-color: #343365;
+  color: #fff7d9;
+  background-color: #6f418f;
+  color: #f5e2ff;
+  padding: 10px;
+  border-radius: 50px;
+}
+.btstatus:hover {
+  background-color: #6a4581;
+  background-color: #8e5bb1;
+}
+
 .unassigned {
   font-style: italic;
   color: gray;
