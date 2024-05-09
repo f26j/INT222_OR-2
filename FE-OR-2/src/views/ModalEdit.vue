@@ -55,8 +55,9 @@ const editTask = async () => {
     });
     if (!response.ok) {
       throw new Error("Failed to edit task");
+    }else if(response.ok){
+      store.updateTask({...editedTask});
     }
-    store.updateTask({...editedTask});
     emit("close");
     emit("openToast", {
       message: "Task updated successfully",
