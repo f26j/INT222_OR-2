@@ -44,7 +44,7 @@ async function fetchData() {
 onMounted(async () => {
   const data = await fetchData();
   // tasks.value = data;
-
+  
   store.tasks.value = data
   console.log(store.tasks.value);
 });
@@ -68,7 +68,7 @@ const openModalDetail = async (id) => {
   createdOn.value = formatDate(res.createdOn);
   updatedOn.value = formatDate(res.updatedOn);
   showDetail.value = true;
-  // router.push({ name: "task-detail", params: { id: id } });
+  router.push({ name: "task-detail", params: { id: id } });
   console.log(title.value);
 };
 if (taskId) {
@@ -164,7 +164,7 @@ const confirmDelete = async () => {
     setTimeout(() => {
       showToastDelete.value = false
       closeModal()
-    }, 5000)
+    }, 5000) 
     console.error('Error deleting task:', error)
   }
   return {
@@ -187,7 +187,7 @@ const closeModal = () => {
 };
 </script>
 <template>
-
+  
   <div class="body">
     <header>
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
