@@ -396,8 +396,7 @@ const openStatus = () => {
 .itbkk-manage-status {
   justify-content: center;
   text-align: center;
-  padding-left: 18rem;
-  margin-left: 10rem;
+  padding-left: 10rem;
 }
 
 .btstatus {

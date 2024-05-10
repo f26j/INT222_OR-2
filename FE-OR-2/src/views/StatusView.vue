@@ -3,11 +3,31 @@ import Bg_effect from "../components/css/Background.vue";
 import HomeView from "../views/HomeView.vue";
 import Copyright from "../components/css/Copyright.vue";
 import { useRouter, useRoute } from "vue-router";
+import { onMounted, ref, onUnmounted } from "vue";
+import { useCounterStore } from "@/stores/counter.js"
+
+const store = useCounterStore()
 
 const router = useRouter();
+const fetchURL = ref(import.meta.env.VITE_API);
+async function fetchData() {
+  const response = await fetch(`${fetchURL.value}`);
+  const data = await response.json();
+  return data;
+}
+onMounted(async () => {
+  const data = await fetchData();
+  store.tasks.value = data
+  console.log(store.tasks.value);
+});
 const openHome = () => {
   router.push({path: "/task"});
 }
+const showAdd = ref(false);
+const openModalAdd = async (task) => {
+
+  router.push({ name: "status-add" });
+};
 </script>
 
 <template>
@@ -17,25 +37,26 @@ const openHome = () => {
     <header>
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
       <h1 class="text-center">IT-Bangmod Kradan Kanban</h1>
-      <h3>Task Status</h3>
+
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
     </header>
 
     <main>
-      <div class="btstt flex">
+      <div class="btn-stt flex">
         <button type="button" class="itbkk-button-home flex" @click="openHome">
             <svg class="homeicon" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20">
               <path fill="currentColor" d="m16 8.5l1.53 1.53l-1.06 1.06L10 4.62l-6.47 6.47l-1.06-1.06L10 2.5l4 4v-2h2zm-6-2.46l6 5.99V18H4v-5.97zM12 17v-5H8v5z"></path>
             </svg>
             <span class="hometext">HOME</span>
         </button>
-
+        <span style="padding-left: 1rem;"></span>
         <button type="button" class="itbkk-button-add flex" @click="">
           <svg class="addicon" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 14 14">
             <path fill="currentColor" fillRule="evenodd" d="M8 1a1 1 0 0 0-2 0v5H1a1 1 0 0 0 0 2h5v5a1 1 0 1 0 2 0V8h5a1 1 0 1 0 0-2H8z" clipRule="evenodd"></path>
           </svg>
-          <span class="addtext">ADD</span>
+          <span class="addtext" @click="openModalAdd(task)">ADD</span>
         </button>
+        <h3>Task Status</h3>
       </div>
 
       <div class="tb">
@@ -46,21 +67,20 @@ const openHome = () => {
               <th>Name</th>
               <th>Description</th>
               <th>Action</th>
-              <th></th>
             </tr>
           </thead>
           <tbody>
-            <tr class="itbkk-item">
+            <tr v-for="(task, index) in store.tasks.value" class="itbkk-item" >
             <td class="bgd">
               <span class="bgi">id : </span>
               <div class="idkb flex-">
-              </div>
+                {{ index + 1 }}</div>
             </td>
             <td class="itbkk-status-name">
-              <span>Name</span>
+              <span>{{ task.status}}</span>
             </td>
             <td class="itbkk-status-description">
-                <span>Description</span>
+                <span>Nong Ploy Cute</span>
             </td>
               <td class="itbkk-button-action flex">
                 <svg
@@ -108,6 +128,7 @@ const openHome = () => {
     </footer>
     <Bg_effect />
   </div>
+  <RouterView />
 </template>
 
 <style scoped>
@@ -134,6 +155,9 @@ h3 {
   margin-bottom: 10px;
 }
 
+.btn-stt {
+  position: relative;
+}
 
 .itbkk-button-action {
   padding: 15px 5px 10px;
@@ -227,7 +251,7 @@ h1 {
   font-size: 40px;
   color: #683c86;
   font-weight: 800;
-  margin: 4rem 0 0rem;
+  margin: 4rem 0 2rem;
 }
 
 .tb {
