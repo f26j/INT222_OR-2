@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import ModalDetail from '../views/ModalDetail.vue'
 import ModalAdd from '../views/ModalAdd.vue'
 import ModalEdit from '../views/ModalEdit.vue'
+import StatusView from '@/views/StatusView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -32,6 +33,11 @@ const router = createRouter({
           component: ModalEdit,
         },
       ],
+    },
+    {
+      path: "/statuses",
+      name: "statusView",
+      component: StatusView,
     },
   ]
 })

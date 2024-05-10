@@ -2,7 +2,7 @@
 import { onMounted, ref, defineEmits, defineProps } from "vue";
 import { useRoute } from "vue-router";
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(["close"]);
 
 const props = defineProps({
   title: String,
@@ -51,10 +51,11 @@ console.log("Task ID:", id);
                       class="itbkk-description descinput appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                       id="description"
                       type="text"
-                      :class="{'italic !text-gray-400':!props.description}"
+                      :class="{ 'italic !text-gray-400': !props.description }"
                       disabled
-                      >{{ props.description?.trim() || "No Description Provided" }}
-                    </textarea>
+                      >{{
+                        props.description?.trim() || "No Description Provided"
+                      }}</textarea>
                   </div>
                 </div>
               </div>
@@ -73,10 +74,9 @@ console.log("Task ID:", id);
                         class="itbkk-assignees ass appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
                         id="assign"
                         type="text"
-                        :class="{'italic !text-gray-400':!props.assignees}"
+                        :class="{ 'italic !text-gray-400': !props.assignees }"
                         disabled
-                        >{{ props.assignees?.trim() || "Unassigned" }}
-                      </textarea>
+                        >{{ props.assignees?.trim() || "Unassigned" }}</textarea>
                     </div>
                   </div>
                 </div>
@@ -94,6 +94,7 @@ console.log("Task ID:", id);
                         class="statusbx block w-60 bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                         id="grid-state"
                         v-model="props.status"
+                        disabled
                       >
                         <option :value="'NO_STATUS'">No Status</option>
                         <option :value="'TO_DO'">To Do</option>
@@ -121,19 +122,12 @@ console.log("Task ID:", id);
             <div class="modal-footer">
               <div class="itbkk-button">
                 <hr />
-                <button
-                  @click="$emit('close')"
-                  class="close border"
-                >
+                <button @click="$emit('close')" class="close border">
                   Close
                 </button>
-                <button
-                  @click="$emit('close')"
-                  class="ok border"
-                  type="submit"
-                >
+                <!-- <button @click="$emit('close')" class="ok border" type="submit">
                   OK
-                </button>
+                </button> -->
               </div>
             </div>
           </form>
@@ -215,12 +209,12 @@ textarea::placeholder {
 }
 
 .modal-header::-webkit-scrollbar {
-    height: 12px;
-  }
+  height: 12px;
+}
 
-  h1 {
-    padding-bottom: 5px;
-  }
+h1 {
+  padding-bottom: 5px;
+}
 
 .desc {
   margin: 15px;
