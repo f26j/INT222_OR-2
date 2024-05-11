@@ -43,6 +43,10 @@ public class StatusService {
     }
 
     public void transferStatus(@PathVariable Integer id, @PathVariable Integer newId) {
+        if (id.equals(newId)) {
+            return;
+        }
+
         if (statusRepository.existsById(id)) {
             Status status = statusRepository.findById(id).orElseThrow(() -> new TaskNotFoundException("NOT FOUND", "/v1/tasks/" + id));
             status.setId(newId);
