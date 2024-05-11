@@ -7,13 +7,13 @@ import ModalAdd from "./ModalAdd.vue";
 import ToastAdd from "./ToastAdd.vue";
 import ModalEdit from "./ModalEdit.vue";
 import ToastEdit from "./ToastEdit.vue";
-import ModalDelete from "./ModalDelete.vue"
-import ToastDelete from "./ToastDelete.vue"
+import ModalDelete from "./ModalDelete.vue";
+import ToastDelete from "./ToastDelete.vue";
 import { onMounted, ref, onUnmounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { useCounterStore } from "@/stores/counter.js"
+import { useCounterStore } from "@/stores/counter.js";
 
-const store = useCounterStore()
+const store = useCounterStore();
 const fetchURL = ref(import.meta.env.VITE_API);
 const router = useRouter();
 const tasks = ref([]);
@@ -44,11 +44,10 @@ async function fetchData() {
 }
 onMounted(async () => {
   const data = await fetchData();
-  // tasks.value = data;
-  
-  store.tasks.value = data
+  store.tasks.value = data;
   console.log(store.tasks.value);
 });
+
 const showDetail = ref(false);
 const openModalDetail = async (id) => {
   const data = await fetch(`${fetchURL.value}/${id}`);
@@ -75,16 +74,9 @@ const openModalDetail = async (id) => {
 if (taskId) {
   openModalDetail(taskId);
 }
+
 const showAdd = ref(false);
 const openModalAdd = async (task) => {
-  // title.value = "";
-  // description.value = "";
-  // assignees.value = "";
-  // status.value = "NO_STATUS";
-  // createdOn.value = formatDate(new Date());
-  // updatedOn.value = formatDate(new Date());
-  // showAdd.value = true;
-
   router.push({ name: "task-add" });
 };
 
@@ -137,10 +129,10 @@ const handleTaskEdited = () => {
   }, 5000);
 };
 
-const showToastDelete = ref(false)
-const deleteSuccess = ref(false)
-const showDelete = ref(false)
-const toastSuccess = ref(false)
+const showToastDelete = ref(false);
+const deleteSuccess = ref(false);
+const showDelete = ref(false);
+const toastSuccess = ref(false);
 const openModalDelete = (taskId, title, index) => {
   showDelete.value = true;
   selectDeleteTaskId.value = taskId;
@@ -153,47 +145,49 @@ async function deleteTask(taskId) {
       method: "DELETE",
     });
     if (response.ok) {
-      store.tasks.value = store.tasks.value.filter((task) => task.id !== taskId)
-      // tasks.value =tasks.value.filter((task) => task.id !== taskId)
-      deleteSuccess.value = true
+      store.tasks.value = store.tasks.value.filter(
+        (task) => task.id !== taskId
+      );
+      deleteSuccess.value = true;
     } else {
-      deleteSuccess.value = false
-      console.error("Failed to delete task")
+      deleteSuccess.value = false;
+      console.error("Failed to delete task");
     }
   } catch (error) {
-    deleteSuccess.value = false
-    console.error("Error deleting task:", error)
+    deleteSuccess.value = false;
+    console.error("Error deleting task:", error);
   }
-  confirmDelete()
-  showDelete.value = false
+  confirmDelete();
+  showDelete.value = false;
 }
+
 const confirmDelete = async () => {
   try {
-    showToastDelete.value = true
-    toastSuccess.value = true
+    showToastDelete.value = true;
+    toastSuccess.value = true;
     setTimeout(() => {
-      showToastDelete.value = false
-      closeModal()
-    }, 5000)
+      showToastDelete.value = false;
+      closeModal();
+    }, 5000);
   } catch (error) {
-    toastSuccess.value = false
+    toastSuccess.value = false;
     setTimeout(() => {
-      showToastDelete.value = false
-      closeModal()
-    }, 5000) 
-    console.error('Error deleting task:', error)
+      showToastDelete.value = false;
+      closeModal();
+    }, 5000);
+    console.error("Error deleting task:", error);
   }
   return {
     showToastDelete,
     closeModal,
-    confirmDelete
-  }
-}
+    confirmDelete,
+  };
+};
 
 const closeToast = () => {
   showToastAdd.value = false;
   showToastEdit.value = false;
-}
+};
 
 const closeModal = () => {
   showDetail.value = false;
@@ -205,11 +199,10 @@ const closeModal = () => {
 };
 
 const openStatus = () => {
-  router.push({name: "statusView"});
-}
+  router.push({ name: "statusView" });
+};
 </script>
 <template>
-  
   <div class="body">
     <header>
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
@@ -217,128 +210,132 @@ const openStatus = () => {
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
     </header>
     <main>
-      <div class="itbkk-manage-status">
-        <button type="button" class="btstatus flex" @click="openStatus">
-          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 512 512"><path fill="currentColor" d="M256 176a80 80 0 1 0 80 80a80.24 80.24 0 0 0-80-80m172.72 80a165.53 165.53 0 0 1-1.64 22.34l48.69 38.12a11.59 11.59 0 0 1 2.63 14.78l-46.06 79.52a11.64 11.64 0 0 1-14.14 4.93l-57.25-23a176.56 176.56 0 0 1-38.82 22.67l-8.56 60.78a11.93 11.93 0 0 1-11.51 9.86h-92.12a12 12 0 0 1-11.51-9.53l-8.56-60.78A169.3 169.3 0 0 1 151.05 393L93.8 416a11.64 11.64 0 0 1-14.14-4.92L33.6 331.57a11.59 11.59 0 0 1 2.63-14.78l48.69-38.12A174.58 174.58 0 0 1 83.28 256a165.53 165.53 0 0 1 1.64-22.34l-48.69-38.12a11.59 11.59 0 0 1-2.63-14.78l46.06-79.52a11.64 11.64 0 0 1 14.14-4.93l57.25 23a176.56 176.56 0 0 1 38.82-22.67l8.56-60.78A11.93 11.93 0 0 1 209.94 26h92.12a12 12 0 0 1 11.51 9.53l8.56 60.78A169.3 169.3 0 0 1 361 119l57.2-23a11.64 11.64 0 0 1 14.14 4.92l46.06 79.52a11.59 11.59 0 0 1-2.63 14.78l-48.69 38.12a174.58 174.58 0 0 1 1.64 22.66"/></svg>
-          <span class="mntext">Manage Status</span>
-        </button>
-      </div>
-      <div class="btn-a" v-for="task in store.tasks.value">
-        <div class="itbkk-button-add button iconbutton" @click="openModalAdd(task)">
-          <i class="plus">
+      <div class="body">
+        <div class="itbkk-manage-status">
+          <button type="button" class="btn-status flex" @click="openStatus">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="1em"
-              height="1em"
-              viewBox="0 0 24 24"
+              width="32"
+              height="32"
+              viewBox="0 0 512 512"
             >
-              <g fill="none">
-                <path
-                  d="M24 0v24H0V0zM12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035c-.01-.004-.019-.001-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427c-.002-.01-.009-.017-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093c.012.004.023 0 .029-.008l.004-.014l-.034-.614c-.003-.012-.01-.02-.02-.022m-.715.002a.023.023 0 0 0-.027.006l-.006.014l-.034.614c0 .012.007.02.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"
-                ></path>
-                <path
-                  fill="currentColor"
-                  d="M10.5 20a1.5 1.5 0 0 0 3 0v-6.5H20a1.5 1.5 0 0 0 0-3h-6.5V4a1.5 1.5 0 0 0-3 0v6.5H4a1.5 1.5 0 0 0 0 3h6.5z"
-                ></path>
-              </g>
+              <path
+                fill="currentColor"
+                d="M256 176a80 80 0 1 0 80 80a80.24 80.24 0 0 0-80-80m172.72 80a165.53 165.53 0 0 1-1.64 22.34l48.69 38.12a11.59 11.59 0 0 1 2.63 14.78l-46.06 79.52a11.64 11.64 0 0 1-14.14 4.93l-57.25-23a176.56 176.56 0 0 1-38.82 22.67l-8.56 60.78a11.93 11.93 0 0 1-11.51 9.86h-92.12a12 12 0 0 1-11.51-9.53l-8.56-60.78A169.3 169.3 0 0 1 151.05 393L93.8 416a11.64 11.64 0 0 1-14.14-4.92L33.6 331.57a11.59 11.59 0 0 1 2.63-14.78l48.69-38.12A174.58 174.58 0 0 1 83.28 256a165.53 165.53 0 0 1 1.64-22.34l-48.69-38.12a11.59 11.59 0 0 1-2.63-14.78l46.06-79.52a11.64 11.64 0 0 1 14.14-4.93l57.25 23a176.56 176.56 0 0 1 38.82-22.67l8.56-60.78A11.93 11.93 0 0 1 209.94 26h92.12a12 12 0 0 1 11.51 9.53l8.56 60.78A169.3 169.3 0 0 1 361 119l57.2-23a11.64 11.64 0 0 1 14.14 4.92l46.06 79.52a11.59 11.59 0 0 1-2.63 14.78l-48.69 38.12a174.58 174.58 0 0 1 1.64 22.66"
+              />
             </svg>
-          </i>
+            <p>Manage Status</p>
+          </button>
+        </div>
+
+        <div class="btn-add" v-for="task in store.tasks.value">
+          <div
+            class="itbkk-button-add button iconbutton"
+            @click="openModalAdd(task)"
+          >
+            <i class="plus">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="1em"
+                height="1em"
+                viewBox="0 0 24 24"
+              >
+                <g fill="none">
+                  <path
+                    d="M24 0v24H0V0zM12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035c-.01-.004-.019-.001-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427c-.002-.01-.009-.017-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093c.012.004.023 0 .029-.008l.004-.014l-.034-.614c-.003-.012-.01-.02-.02-.022m-.715.002a.023.023 0 0 0-.027.006l-.006.014l-.034.614c0 .012.007.02.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"
+                  ></path>
+                  <path
+                    fill="currentColor"
+                    d="M10.5 20a1.5 1.5 0 0 0 3 0v-6.5H20a1.5 1.5 0 0 0 0-3h-6.5V4a1.5 1.5 0 0 0-3 0v6.5H4a1.5 1.5 0 0 0 0 3h6.5z"
+                  ></path>
+                </g>
+              </svg>
+            </i>
+          </div>
+        </div>
+        <div class="tb">
+          <table>
+            <thead>
+              <tr>
+                <th></th>
+                <th>Title</th>
+                <th>Assignees</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="(task, index) in store.tasks.value"
+                :key="task.id"
+                class="itbkk-item"
+                :data-task-id="task.id"
+              >
+                <td class="bgd">
+                  <span class="bgi">id : </span>
+                  <div class="idkb flex-">
+                    {{ index + 1 }}
+                  </div>
+                </td>
+                <td class="itbkk-title">
+                  <p @click="openModalDetail(task.id)" value="id">
+                    {{ task.title }}
+                  </p>
+                </td>
+                <td class="itbkk-assignees">
+                  <span
+                    v-if="!task.assignees?.trim()"
+                    class="itbkk-assignees unassigned"
+                  >
+                    Unassigned
+                  </span>
+                  <span v-else>{{ task.assignees }}</span>
+                </td>
+                <td class="itbkk-status"><Badges :status="task.status" /></td>
+                <td class="itbkk-button-action">
+                  <svg
+                    class="itbkk-button-edit"
+                    @click="openModalEdit(task.id)"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="30"
+                    height="30"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      fill="currentColor"
+                      fill-rule="evenodd"
+                      d="M17.907 4.93c.104-.105.294-.186.539-.18a.848.848 0 0 1 .572.216c.13.13.222.34.231.575c.01.234-.065.413-.167.515l-7.49 7.5l-1.273.116l.1-1.245zm2.173-1.024c-.437-.438-1.037-.643-1.6-.656c-.564-.013-1.182.167-1.635.62l-7.682 7.692a.75.75 0 0 0-.217.47l-.194 2.407a.75.75 0 0 0 .816.807l2.43-.22a.75.75 0 0 0 .463-.218l7.682-7.692c.456-.456.627-1.073.605-1.635a2.373 2.373 0 0 0-.668-1.575M5.812 4.75a2.568 2.568 0 0 0-2.563 2.562v10.875a2.568 2.568 0 0 0 2.563 2.563h10.875a2.568 2.568 0 0 0 2.563-2.562V12.75a.75.75 0 0 0-1.5 0v5.438c0 .582-.48 1.062-1.063 1.062H5.812c-.583 0-1.063-.48-1.063-1.062V7.312c0-.582.48-1.062 1.063-1.062h5.437a.75.75 0 0 0 0-1.5z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                  <svg
+                    class="itbkk-button-delete"
+                    @click="openModalDelete(task.id, task.title, index + 1)"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="30"
+                    height="30"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      fill="currentColor"
+                      d="M20 8.7H4a.75.75 0 1 1 0-1.5h16a.75.75 0 0 1 0 1.5"
+                    />
+                    <path
+                      fill="currentColor"
+                      d="M16.44 20.75H7.56A2.4 2.4 0 0 1 5 18.49V8a.75.75 0 0 1 1.5 0v10.49c0 .41.47.76 1 .76h8.88c.56 0 1-.35 1-.76V8A.75.75 0 1 1 19 8v10.49a2.4 2.4 0 0 1-2.56 2.26m.12-13a.74.74 0 0 1-.75-.75V5.51c0-.41-.48-.76-1-.76H9.22c-.55 0-1 .35-1 .76V7a.75.75 0 1 1-1.5 0V5.51a2.41 2.41 0 0 1 2.5-2.26h5.56a2.41 2.41 0 0 1 2.53 2.26V7a.75.75 0 0 1-.75.76Z"
+                    />
+                    <path
+                      fill="currentColor"
+                      d="M10.22 17a.76.76 0 0 1-.75-.75v-4.53a.75.75 0 0 1 1.5 0v4.52a.75.75 0 0 1-.75.76m3.56 0a.75.75 0 0 1-.75-.75v-4.53a.75.75 0 0 1 1.5 0v4.52a.76.76 0 0 1-.75.76"
+                    />
+                  </svg>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
-      <div class="tb">
-        <table>
-          <thead>
-            <tr>
-              <th></th>
-              <th>Title</th>
-              <th>Assignees</th>
-              <th>Status</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="(task, index) in store.tasks.value"
-              :key="task.id"
-              class="itbkk-item"
-              :data-task-id="task.id"
-            >
-            <td class="bgd">
-                <span class="bgi">id : </span>
-                <div class="idkb flex-">
-                  {{ index + 1 }}
-                </div>
-              </td>
-              <td class="itbkk-title">
-                <p @click="openModalDetail(task.id)" value="id">
-                  {{ task.title }}
-                </p>
-              </td>
-              <td class="itbkk-assignees">
-                <span
-                  v-if="!task.assignees?.trim()"
-                  class="itbkk-assignees unassigned"
-                >
-                  Unassigned
-                </span>
-                <span v-else>{{ task.assignees }}</span>
-              </td>
-              <td class="itbkk-status"><Badges :status="task.status" /></td>
-              <td class="itbkk-button-action">
-                <svg
-                  class="itbkk-button-edit"
-                  @click="openModalEdit(task.id)"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="30"
-                  height="30"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    fill="currentColor"
-                    fill-rule="evenodd"
-                    d="M17.907 4.93c.104-.105.294-.186.539-.18a.848.848 0 0 1 .572.216c.13.13.222.34.231.575c.01.234-.065.413-.167.515l-7.49 7.5l-1.273.116l.1-1.245zm2.173-1.024c-.437-.438-1.037-.643-1.6-.656c-.564-.013-1.182.167-1.635.62l-7.682 7.692a.75.75 0 0 0-.217.47l-.194 2.407a.75.75 0 0 0 .816.807l2.43-.22a.75.75 0 0 0 .463-.218l7.682-7.692c.456-.456.627-1.073.605-1.635a2.373 2.373 0 0 0-.668-1.575M5.812 4.75a2.568 2.568 0 0 0-2.563 2.562v10.875a2.568 2.568 0 0 0 2.563 2.563h10.875a2.568 2.568 0 0 0 2.563-2.562V12.75a.75.75 0 0 0-1.5 0v5.438c0 .582-.48 1.062-1.063 1.062H5.812c-.583 0-1.063-.48-1.063-1.062V7.312c0-.582.48-1.062 1.063-1.062h5.437a.75.75 0 0 0 0-1.5z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-                <svg
-                  class="itbkk-button-delete"
-                  @click="openModalDelete(task.id, task.title, (index+1))"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="30"
-                  height="30"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    fill="currentColor"
-                    d="M20 8.7H4a.75.75 0 1 1 0-1.5h16a.75.75 0 0 1 0 1.5"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M16.44 20.75H7.56A2.4 2.4 0 0 1 5 18.49V8a.75.75 0 0 1 1.5 0v10.49c0 .41.47.76 1 .76h8.88c.56 0 1-.35 1-.76V8A.75.75 0 1 1 19 8v10.49a2.4 2.4 0 0 1-2.56 2.26m.12-13a.74.74 0 0 1-.75-.75V5.51c0-.41-.48-.76-1-.76H9.22c-.55 0-1 .35-1 .76V7a.75.75 0 1 1-1.5 0V5.51a2.41 2.41 0 0 1 2.5-2.26h5.56a2.41 2.41 0 0 1 2.53 2.26V7a.75.75 0 0 1-.75.76Z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M10.22 17a.76.76 0 0 1-.75-.75v-4.53a.75.75 0 0 1 1.5 0v4.52a.75.75 0 0 1-.75.76m3.56 0a.75.75 0 0 1-.75-.75v-4.53a.75.75 0 0 1 1.5 0v4.52a.76.76 0 0 1-.75.76"
-                  />
-                </svg>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <!-- <ModalDetail
-        v-if="showDetail"
-        :title="title"
-        :description="description"
-        :assignees="assignees"
-        :status="status"
-        :createdOn="createdOn"
-        :updatedOn="updatedOn"
-        :localTimeZone="localTimeZone"
-        @close="closeModal"
-      >
-      </ModalDetail> -->
-      <!-- <ModalAdd v-if="showAdd" @close="closeModal" @path="path" @taskAdded="handleTaskAdded"></ModalAdd> -->
+      <!-- Toast -->
       <ToastAdd v-if="showToastAdd" @close="closeToast" />
       <ToastEdit v-if="showToastEdit" @close="closeToast"></ToastEdit>
       <ModalDelete
@@ -354,7 +351,7 @@ const openStatus = () => {
         v-if="showToastDelete"
         :isDeleteSuccess="deleteSuccess"
         @close="closeModal"
-        >
+      >
       </ToastDelete>
     </main>
     <footer>
@@ -362,17 +359,18 @@ const openStatus = () => {
     </footer>
     <Bg_effect />
   </div>
-  <RouterView 
-  :title="title"
-        :description="description"
-        :assignees="assignees"
-        :status="status"
-        :createdOn="createdOn"
-        :updatedOn="updatedOn"
-        :localTimeZone="localTimeZone"
-        @close="closeModal" 
-        @toastAdd="handleTaskAdded"
-        @toastEdit="handleTaskEdited" />
+  <RouterView
+    :title="title"
+    :description="description"
+    :assignees="assignees"
+    :status="status"
+    :createdOn="createdOn"
+    :updatedOn="updatedOn"
+    :localTimeZone="localTimeZone"
+    @close="closeModal"
+    @toastAdd="handleTaskAdded"
+    @toastEdit="handleTaskEdited"
+  />
 </template>
 <style scoped>
 @import url("https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono");
@@ -387,19 +385,25 @@ const openStatus = () => {
   scroll-behavior: smooth;
 }
 
-.mntext{
-  padding-top: 5px;
-  padding-left: 5px;
-  padding-right: 5px;
+.body {
+  main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
 }
-
 .itbkk-manage-status {
   justify-content: center;
   text-align: center;
-  padding-left: 10rem;
+  margin-left: 10rem;
+  margin-right: 10rem;
+  border: solid red 1px;
+  width: 100%;
+  max-width: 70rem;
 }
 
-.btstatus {
+.btn-status {
   font-style: italic;
   background-color: #343365;
   color: #fff7d9;
@@ -408,7 +412,14 @@ const openStatus = () => {
   padding: 10px;
   border-radius: 50px;
 }
-.btstatus:hover {
+
+.btn-status p {
+  padding-top: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.btn-status:hover {
   background-color: #6a4581;
   background-color: #8e5bb1;
 }
@@ -417,10 +428,12 @@ const openStatus = () => {
   font-style: italic;
   color: gray;
 }
+
 .addtask {
   margin-right: 45rem;
   text-align: center;
 }
+
 .plus {
   font-size: 40px;
   font-weight: 10px;
@@ -439,7 +452,7 @@ const openStatus = () => {
   transition: transform 0.3s ease;
   color: #ad386f;
 }
-.btn-a {
+.btn-add {
   position: fixed;
   bottom: 50px;
   right: 50px;
@@ -497,22 +510,7 @@ const openStatus = () => {
 header {
   margin-bottom: 20px;
 }
-/* .btna {
-  background-color: #04aa6d76;
-  border: none;
-  color: white;
-  padding: 15px 32px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  border-radius: 50px;
-  border: 2px solid #04AA6D;
-}
-.btna:hover {
-  background-color: #adcdc1;
-  color: white;
-} */
+
 .addtask {
   margin-right: 45rem;
   text-align: center;
@@ -631,7 +629,7 @@ footer {
     padding-right: 10px;
     white-space: nowrap;
   }
-  .btn-a {
+  .btn-add {
     position: fixed;
   }
   .tb {
