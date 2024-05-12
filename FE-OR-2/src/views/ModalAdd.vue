@@ -4,7 +4,6 @@ import { useRouter } from "vue-router";
 import ToastAdd from "./ToastAdd.vue";
 
 import { useCounterStore } from "@/stores/counter.js"
-
 const store = useCounterStore()
 
 const fetchURL = ref(import.meta.env.VITE_API);
@@ -13,7 +12,6 @@ const newTitle = ref("");
 const newDescription = ref("");
 const newAssignees = ref("");
 const newStatus = ref("NO_STATUS");
-const tasks = ref([]);
 
 const emit = defineEmits(['close','openToast','toastAdd'])
 
@@ -52,7 +50,6 @@ const addTask = async () => {
   } catch (error) {
     console.error("Error adding new task:", error.message);
   }
-  tasks.value.push(newTask);
   newTitle.value = "";
   newDescription.value = "";
   newAssignees.value = "";
