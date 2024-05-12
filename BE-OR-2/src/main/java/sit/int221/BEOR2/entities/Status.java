@@ -11,7 +11,7 @@ import sit.int221.BEOR2.utilities.CharConverter;
 @Table(name = "status")
 public class Status {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Integer id;
 
