@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 import sit.int221.BEOR2.utilities.CharConverter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @Entity
@@ -22,4 +24,7 @@ public class Status {
     @Column(name = "statusDescription", length = 200)
     @Convert(converter = CharConverter.class)
     private String description;
+
+    @OneToMany(mappedBy = "statuses")
+    private List<Task> tasks;
 }
