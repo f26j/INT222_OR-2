@@ -13,6 +13,9 @@ import java.util.List;
 
 @Service
 public class TaskService {
+    private final String statusString = "NOT FOUND";
+    private final String pathInstance = "/v2/tasks";
+
     @Autowired
     private TaskRepository taskRepository;
 
@@ -30,7 +33,7 @@ public class TaskService {
 
     public Task editTask(@PathVariable Integer id, @RequestBody Task editedTask) {
         if (!taskRepository.existsById(id)) {
-            throw new TaskNotFoundException("NOT FOUND", "/v1/tasks/" + id);
+            throw new TaskNotFoundException(statusString, pathInstance + id);
         } else if (taskRepository.existsById(id)) {
             editedTask.setId(id);
             return taskRepository.save(editedTask);
@@ -40,7 +43,7 @@ public class TaskService {
 
     public void deleteTask(@PathVariable Integer id) {
         if (!taskRepository.existsById(id)) {
-            throw new TaskNotFoundException("NOT FOUND", "/v1/tasks/" + id);
+            throw new TaskNotFoundException(statusString, pathInstance + id);
         } else if (taskRepository.existsById(id)) {
             taskRepository.deleteById(id);
         }
