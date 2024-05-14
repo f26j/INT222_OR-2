@@ -28,7 +28,7 @@ public class TaskService {
     }
 
     public Task addTask(@RequestBody Task task) {
-        return taskRepository.save(task);
+        return taskRepository.saveAndFlush(task);
     }
 
     public Task editTask(@PathVariable Integer id, @RequestBody Task editedTask) {

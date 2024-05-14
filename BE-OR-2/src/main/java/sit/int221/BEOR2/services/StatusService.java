@@ -25,7 +25,7 @@ public class StatusService {
     }
 
     public Status addStatus(@RequestBody Status status) {
-        return statusRepository.save(status);
+        return statusRepository.saveAndFlush(status);
     }
 
     public Status editStatus(@PathVariable Integer id, @RequestBody Status editedStatus) {
