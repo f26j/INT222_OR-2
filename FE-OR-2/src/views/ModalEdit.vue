@@ -37,14 +37,7 @@ const openModalEdit = async () => {
   originalAssignee.value = modalEdit.value.assignees
   originalDescription.value = modalEdit.value.description
   originalStatus.value = modalEdit.value.status
-  
-  if (!data.ok) {
-    router.push("/")
-    setTimeout(() => {
-      alert("The requested task does not exist")
-    }, 500)
-    return
-  }
+
 }
 
 onMounted(async () => {
@@ -211,7 +204,7 @@ const closeModal = () => {
               <button
                 class="ok border"
                 type="submit"
-                :disabled="newTitle === originalTitle && newAssignees === originalAssignee && newDescription === originalDescription && newStatus === originalStatus"
+                :disabled="newTitle?.length === 0 || newTitle === originalTitle && newAssignees === originalAssignee && newDescription === originalDescription && newStatus === originalStatus"
               >
                 Save
               </button>
