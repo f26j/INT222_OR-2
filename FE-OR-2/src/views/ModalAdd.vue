@@ -1,10 +1,10 @@
 <script setup>
-import { ref, onMounted, onUnmounted, defineProps, defineEmits } from "vue";
+import { ref, defineEmits } from "vue";
 import { useRouter } from "vue-router";
-import ToastAdd from "./ToastAdd.vue";
-
+import { useToastStore } from "@/stores/toast.js"
 import { useCounterStore } from "@/stores/counter.js"
 const store = useCounterStore()
+const toastStore = useToastStore()
 
 const fetchURL = ref(import.meta.env.VITE_API);
 const router = useRouter();
@@ -21,10 +21,10 @@ const closeModal = () => {
 
 const addTask = async () => {
   const newTask = {
-    title: newTitle.value,
-    description: newDescription.value,
-    assignees: newAssignees.value,
-    status: newStatus.value,
+    title: newTitle.value.trim(),
+    description: newDescription.value.trim(),
+    assignees: newAssignees.value.trim(),
+    status: newStatus.value.trim(),
     createdOn: new Date(),
     updatedOn: new Date(),
   };
@@ -45,7 +45,7 @@ const addTask = async () => {
     }else{
       store.tasks.value.push(data)
     }
-    emit('close')
+    toastStore.handleTaskAdded()
     router.push({ name: "task" }).catch(() => {});
   } catch (error) {
     console.error("Error adding new task:", error.message);

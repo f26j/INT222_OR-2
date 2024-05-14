@@ -13,8 +13,12 @@ import sit.int221.BEOR2.services.TaskService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/v1/tasks")
-@CrossOrigin // Front-end
+@RequestMapping("/v2/tasks")
+@CrossOrigin(origins = {
+        "http://localhost:5173",
+        "http://ip23or2.sit.kmutt.ac.th",
+        "http://intproj23.sit.kmutt.ac.th"
+}) // Front-end
 public class TaskController {
     @Autowired
     private TaskService taskService;
