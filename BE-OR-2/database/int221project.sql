@@ -11,7 +11,7 @@ DROP TABLE IF EXISTS status;
 -- Table
 CREATE TABLE IF NOT EXISTS status
 (
-    id                INT PRIMARY  KEY AUTO_INCREMENT,
+	id                INT PRIMARY  KEY AUTO_INCREMENT,
     statusName        VARCHAR(50)  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL UNIQUE,
     statusDescription VARCHAR(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL
 );
@@ -24,7 +24,8 @@ CREATE TABLE IF NOT EXISTS task
     taskAssignees   VARCHAR(30)  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
     taskStatus      VARCHAR(50)  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'NO_STATUS',
     createdOn       DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updatedOn       DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updatedOn       DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (taskStatus)     REFERENCES status(statusName)
 );
 
 -- Insert
