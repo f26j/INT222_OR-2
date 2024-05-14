@@ -1,37 +1,47 @@
 <script setup>
-import { ref, defineProps, defineEmits } from "vue";
-import { useRoute } from "vue-router";
+import { onMounted, ref } from "vue"
+import { useRoute, useRouter } from "vue-router"
 
 import { useCounterStore } from "@/stores/counter.js"
 const store = useCounterStore()
 
-const emit = defineEmits(["close", "openToast", "toastEdit"]);
+const route = useRoute()
+const router = useRouter()
+const id = route.params.id
+const modalEdit = ref([""])
+const fetchURL = import.meta.env.VITE_API
 
-const props = defineProps({
-  title: String,
-  description: String,
-  assignees: String,
-  status: String,
-  createdOn: String,
-  updatedOn: String,
-  localTimeZone: String,
-});
+const newTitle = ref("")
+const newDescription = ref("")
+const newAssignees = ref("")
+const newStatus = ref("")
 
-const route = useRoute();
-const id = route.params.id;
+const openModalEdit = async () => {
+  const data = await fetch(`${fetchURL}/${id}`)
+  const res = await data.json()
+  console.log(res)
+  modalEdit.value = res
+  newTitle.value = modalEdit.value.title
+  newDescription.value = modalEdit.value.description
+  newAssignees.value = modalEdit.value.assignees
+  newStatus.value = modalEdit.value.status
+  // console.log(modalEdit.newTitle.value)
+  
+  if (!data.ok) {
+    router.push("/")
+    setTimeout(() => {
+      alert("The requested task does not exist")
+    }, 500)
+    return
+  }
+}
+
+onMounted(async () => {
+  openModalEdit()
+})
 
 console.log(id);
 console.log("Task ID:", id);
-
-const fetchURL = ref(import.meta.env.VITE_API);
-const newTitle = ref(props.title);
-const newDescription = ref(props.description);
-const newAssignees = ref(props.assignees);
-const newStatus = ref(props.status);
-
-const closeModal = () => {
-  emit("close");
-};
 
 const editTask = async () => {
   const editedTask = {
@@ -40,158 +50,168 @@ const editTask = async () => {
     description: newDescription.value,
     assignees: newAssignees.value,
     status: newStatus.value,
-    updatedOn: new Date(),
-  };
+  }
   if (!editedTask.title) {
-    return;
+    return
   }
   try {
-    const response = await fetch(`${fetchURL.value}/${id}`, {
+    const response = await fetch(`${fetchURL}/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(editedTask),
-    });
+    })
     if (!response.ok) {
-      throw new Error("Failed to edit task");
-    }else if(response.ok){
-      store.updateTask({...editedTask});
+      throw new Error("Failed to edit task")
+    } else if (response.ok) {
+      store.updateTask({ ...editedTask })
     }
-    emit("close");
-    emit("openToast", {
-      message: "Task updated successfully",
-      type: "success",
-    });
+    closeModal()
+    // emit("close")
+    // emit("openToast", {
+    //   message: "Task updated successfully",
+    //   type: "success",
+    // })
   } catch (error) {
-    console.error("Error editing task:", error.message);
-    emit("openToast", { message: "Failed to update task", type: "error" });
+    console.error("Error editing task:", error.message)
+    // emit("openToast", { message: "Failed to update task", type: "error" })
   }
-};
+}
+
+const closeModal = () => {
+  router.push({ path: "/task" })
+}
 </script>
 <template>
   <div class="details fixed inset-0 overflow-y-auto bg-black bg-opacity-50">
-    <div class="flex items-start justify-center mt-24 text-center">
-      <div
-        class="modals rounded-lg text-center shadow-xlp-6 w-min"
-        role="dialog"
-        aria-modal="true"
-      >
-        <div class="modal-content">
-          <form @submit.prevent="editTask">
-            <div class="modal-header">
-              <div class="itbkktitle text-left">
-                <h4>Edit Task</h4>
+    <div
+      class="modals rounded-lg text-center shadow-xlp-6 w-min"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div class="modal-content">
+        <form @submit.prevent="editTask">
+          <div class="modal-header">
+            <div class="itbkktitle text-left">
+              <h4>Edit Task</h4>
+            </div>
+          </div>
+          <hr />
+
+          <div class="modal-body">
+            <div class="text-left flex-col">
+              <div class="titlee flex flex-wrap -mx-3 mb-2">
+                <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
+                  <label
+                    class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                    for="grid-city"
+                  >
+                    Title
+                  </label>
+                  <textarea
+                    class="ttitle appearance-none block w-full h-32 bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
+                    id="assign"
+                    type="text"
+                    placeholder="Enter title..."
+                    v-model="newTitle"
+                    maxlength="100"
+                  ></textarea>
+                </div>
+              </div>
+
+              <div class="itbkk-description text-left">
+                <div class="flex flex-wrap -mx-3 mb-2">
+                  <div class="desc w-full md:w-1/3 px-3 mb-6 md:mb-0">
+                    <label
+                      class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                      for="grid-city"
+                      >Description
+                    </label>
+                    <textarea
+                      class="itbkkdesc appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                      id="description"
+                      type="text"
+                      placeholder="Enter description..."
+                      v-model="newDescription"
+                      maxlength="500"
+                    ></textarea>
+                  </div>
+                </div>
               </div>
             </div>
-            <hr />
-
-            <div class="modal-body">
-              <div class="text-left flex-col">
-                <div class="titlee flex flex-wrap -mx-3 mb-2">
+            <div class="detailright flex-col">
+              <div class="text-left">
+                <div class="assign flex flex-wrap -mx-3 mb-2">
                   <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
                     <label
                       class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
                       for="grid-city"
                     >
-                      Title
+                      Assignees
                     </label>
                     <textarea
-                      class="ttitle appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
+                      class="itbkkassignees appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
                       id="assign"
                       type="text"
-                      placeholder="Enter title..."
-                      v-model="newTitle"
+                      placeholder="Enter assignees..."
+                      v-model="newAssignees"
+                      maxlength="30"
                     ></textarea>
                   </div>
                 </div>
-
-                <div class="itbkk-description text-left">
-                  <div class="flex flex-wrap -mx-3 mb-2">
-                    <div class="desc w-full md:w-1/3 px-3 mb-6 md:mb-0">
-                      <label
-                        class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                        for="grid-city"
-                        >Description
-                      </label>
-                      <textarea
-                        class="itbkkdesc appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                        id="description"
-                        type="text"
-                        placeholder="Enter description..."
-                        v-model="newDescription"
-                      ></textarea>
-                    </div>
-                  </div>
-                </div>
               </div>
-              <div class="detailright flex-col">
-                <div class="text-left">
-                  <div class="assign flex flex-wrap -mx-3 mb-2">
-                    <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
-                      <label
-                        class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                        for="grid-city"
-                      >
-                        Assignees
-                      </label>
-                      <textarea
-                        class="itbkkassignees appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
-                        id="assign"
-                        type="text"
-                        placeholder="Enter assignees..."
-                        v-model="newAssignees"
-                      ></textarea>
-                    </div>
-                  </div>
-                </div>
 
-                <div class="itbkk-status text-left">
-                  <div class="w-full md:w-1/3 mb-6 md:mb-0">
-                    <label
-                      class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                      for="grid-state"
+              <div class="itbkk-status text-left">
+                <div class="w-full md:w-1/3 mb-6 md:mb-0">
+                  <label
+                    class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                    for="grid-state"
+                  >
+                    Status
+                  </label>
+                  <div class="relative itbkk-status">
+                    <select
+                      class="statusbx block w-60 bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                      id="grid-state"
+                      v-model="newStatus"
                     >
-                      Status
-                    </label>
-                    <div class="relative itbkk-status">
-                      <select
-                        class="statusbx block w-60 bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                        id="grid-state"
-                        v-model="newStatus"
-                      >
-                        <option value="NO_STATUS">No Status</option>
-                        <option value="TO_DO">To Do</option>
-                        <option value="DOING">Doing</option>
-                        <option value="DONE">Done</option>
-                      </select>
-                    </div>
+                      <option value="NO_STATUS">No Status</option>
+                      <option value="TO_DO">To Do</option>
+                      <option value="DOING">Doing</option>
+                      <option value="DONE">Done</option>
+                    </select>
                   </div>
                 </div>
               </div>
-            </div>
-
-            <div class="modal-footer">
-              <div class="itbkk-button">
-                <hr />
-                <button
-                  @click="closeModal"
-                  class="close border"
-                >
-                  Cancel
-                </button>
-                <button
-                @click="$emit('toastEdit')"
-                  class="ok border"
-                  type="submit"
-                  :disabled="newTitle.length === 0"
-                >
-                  Save
-                </button>
+              <div class="time">
+                <div class="itbkk-timezone text-left">
+                  <p>Timezone : {{ localTimeZone }}</p>
+                </div>
+                <div class="itbkk-created-on text-left">
+                  <p>CreatedOn : {{ modalEdit.createdOn }}</p>
+                </div>
+                <div class="itbkk-updated-on text-left">
+                  <p>UpdatedOn : {{ modalEdit.updatedOn }}</p>
+                </div>
               </div>
             </div>
-          </form>
-        </div>
+          </div>
+
+          <div class="modal-footer">
+            <div class="itbkk-button">
+              <hr />
+              <button @click="closeModal" class="close border">Cancel</button>
+              <button
+                class="ok border"
+                type="submit"
+                :disabled="modalEdit.newTitle === modalEdit.newTitle"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -302,9 +322,9 @@ h1 {
   padding: 10px;
 }
 
-.detailright {
+/* .detailright {
   padding: 15px;
-}
+} */
 
 ::-webkit-scrollbar {
   width: 12px;

@@ -6,20 +6,38 @@ USE int221project;
 
 -- Drop
 DROP TABLE IF EXISTS task;
+DROP TABLE IF EXISTS status;
 
 -- Table
+CREATE TABLE IF NOT EXISTS status
+(
+	id                INT PRIMARY  KEY AUTO_INCREMENT,
+    statusName        VARCHAR(50)  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL UNIQUE,
+    statusDescription VARCHAR(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL
+);
+
 CREATE TABLE IF NOT EXISTS task
 (
-    id              INT PRIMARY KEY AUTO_INCREMENT,
+    id              INT PRIMARY  KEY AUTO_INCREMENT,
     taskTitle       VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
     taskDescription VARCHAR(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
-    taskAssignees   VARCHAR(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci  NULL,
-    taskStatus      ENUM ('NO_STATUS', 'TO_DO', 'DOING', 'DONE')                  NOT NULL DEFAULT 'NO_STATUS',
+    taskAssignees   VARCHAR(30)  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+    taskStatus      VARCHAR(50)  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'NO_STATUS',
     createdOn       DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updatedOn       DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updatedOn       DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (taskStatus)     REFERENCES status(statusName)
 );
 
 -- Insert
+INSERT INTO status (statusName, statusDescription)
+VALUES ('NO_STATUS', 'The default status');
+INSERT INTO status (statusName, statusDescription)
+VALUES ('TO_DO', '');
+INSERT INTO status (statusName, statusDescription)
+VALUES ('DOING', 'Being worked on');
+INSERT INTO status (statusName, statusDescription)
+VALUES ('DONE', 'Finished');
+
 INSERT INTO task (taskTitle, taskDescription, taskAssignees, taskStatus, createdOn, updatedOn)
 VALUES ('TaskTitle1TaskTitle2TaskTitle3TaskTitle4TaskTitle5TaskTitle6TaskTitle7TaskTitle8TaskTitle9TaskTitle0',
         'Descripti1Descripti2Descripti3Descripti4Descripti5Descripti6Descripti7Descripti8Descripti9Descripti1Descripti1Descripti2Descripti3Descripti4Descripti5Descripti6Descripti7Descripti8Descripti9Descripti2Descripti1Descripti2Descripti3Descripti4Descripti5Descripti6Descripti7Descripti8Descripti9Descripti3Descripti1Descripti2Descripti3Descripti4Descripti5Descripti6Descripti7Descripti8Descripti9Descripti4Descripti1Descripti2Descripti3Descripti4Descripti5Descripti6Descripti7Descripti8Descripti9Descripti5',

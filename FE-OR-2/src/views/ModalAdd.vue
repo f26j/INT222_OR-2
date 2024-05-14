@@ -1,7 +1,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted, defineProps, defineEmits } from "vue";
 import { useRouter } from "vue-router";
-import ToastAdd from "./ToastAdd.vue";
 
 import { useCounterStore } from "@/stores/counter.js"
 const store = useCounterStore()
@@ -21,10 +20,10 @@ const closeModal = () => {
 
 const addTask = async () => {
   const newTask = {
-    title: newTitle.value,
-    description: newDescription.value,
-    assignees: newAssignees.value,
-    status: newStatus.value,
+    title: newTitle.value.trim(),
+    description: newDescription.value.trim(),
+    assignees: newAssignees.value.trim(),
+    status: newStatus.value.trim(),
     createdOn: new Date(),
     updatedOn: new Date(),
   };
