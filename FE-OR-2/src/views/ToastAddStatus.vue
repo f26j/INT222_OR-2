@@ -1,61 +1,53 @@
 <script setup>
-import { useToastStore } from "@/stores/toast.js"
-const toastStore = useToastStore()
-// import { defineProps, defineEmits} from "vue"
-
-// const emit = defineEmits(['close'])
-
-// const props = defineProps({
-//   showToastAddStatus: false,
-//   isAddSuccess: false,
-// })
+import { useToastStore } from "@/stores/toast.js";
+const toastStore = useToastStore();
 </script>
 
 <template>
-    <div
-      class="addStatusToast active toast toast-top toast-end"
-      :class="{ 'bg-white': !isAddSuccess, 'bg-green-50': isAddSuccess }"
-    >
-      <div class="addStatusToast-content">
-        <div class="icon">
-          <svg
-            v-if="isAddSuccess"
-            xmlns="http://www.w3.org/2000/svg"
-            width="32"
-            height="32"
-            viewBox="0 0 16 16"
-          >
-            <path
-              fill="currentColor"
-              d="M11 1.75V3h2.25a.75.75 0 0 1 0 1.5H2.75a.75.75 0 0 1 0-1.5H5V1.75C5 .784 5.784 0 6.75 0h2.5C10.216 0 11 .784 11 1.75M4.496 6.675l.66 6.6a.25.25 0 0 0 .249.225h5.19a.25.25 0 0 0 .249-.225l.66-6.6a.75.75 0 0 1 1.492.149l-.66 6.6A1.748 1.748 0 0 1 10.595 15h-5.19a1.75 1.75 0 0 1-1.741-1.575l-.66-6.6a.75.75 0 1 1 1.492-.15M6.5 1.75V3h3V1.75a.25.25 0 0 0-.25-.25h-2.5a.25.25 0 0 0-.25.25"
-            />
-          </svg>
-          <svg
-            v-else
-            xmlns="http://www.w3.org/2000/svg"
-            width="32"
-            height="32"
-            viewBox="0 0 16 16"
-          >
-            <path
-              fill="#ef4444"
-              d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0M9 11a1 1 0 1 1-2 0a1 1 0 0 1 2 0"
-            />
-          </svg>
-        </div>
-        <div class="message">
-          <span class="text-1">{{ isAddSuccess ? "Success" : "Error" }}</span>
-          <span class="itbkk-message text-2">{{
-            isAddSuccess
-              ? "The status has been added"
-              : "An error has occurred, the status could not be added."
-          }}</span>
-        </div>
-        <i @click="toastStore.closeToast" class="close"></i>
+  <div
+    class="addStatusToast active toast toast-top toast-end"
+    :class="{ 'bg-red-50': !toastStore.addSuccess, 'bg-green-50': toastStore.addSuccess }"
+  >
+    <div class="addStatusToast-content">
+      <div class="icon">
+        <svg
+          v-if="toastStore.addSuccess"
+          xmlns="http://www.w3.org/2000/svg"
+          width="2em"
+          height="2em"
+          viewBox="0 0 16 16"
+        >
+          <path
+            fill="currentColor"
+            d="M8 16A8 8 0 1 1 8 0a8 8 0 0 1 0 16m3.78-9.72a.75.75 0 0 0-.018-1.042a.75.75 0 0 0-1.042-.018L6.75 9.19L5.28 7.72a.75.75 0 0 0-1.042.018a.75.75 0 0 0-.018 1.042l2 2a.75.75 0 0 0 1.06 0Z"
+          ></path>
+        </svg>
+        <svg
+          v-else
+          xmlns="http://www.w3.org/2000/svg"
+          width="32"
+          height="32"
+          viewBox="0 0 16 16"
+        >
+          <path
+            fill="#ef4444"
+            d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0M9 11a1 1 0 1 1-2 0a1 1 0 0 1 2 0"
+          />
+        </svg>
       </div>
-      <div v-if="isAddSuccess" class="progress active"></div>
-      <div v-else class="progress inactive"></div>
+      <div class="message">
+        <span class="text-1">{{ toastStore.addSuccess ? "Success" : "Error" }}</span>
+        <span class="itbkk-message text-2">{{
+          toastStore.addSuccess
+            ? "The status has been added"
+            : "An error has occurred, the status could not be added."
+        }}</span>
+      </div>
+      <i @click="toastStore.closeToast" class="close"></i>
     </div>
+    <div v-if="toastStore.addSuccess" class="progress active"></div>
+    <div v-else class="progress inactive"></div>
+  </div>
 </template>
 
 <style>
@@ -114,7 +106,6 @@ const toastStore = useToastStore()
   font-weight: 600;
   color: #333;
 }
-
 
 .addStatusToast .progress {
   position: absolute;

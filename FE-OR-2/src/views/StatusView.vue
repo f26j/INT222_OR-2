@@ -1,14 +1,15 @@
 <script setup>
+// import zone
+import { onMounted, ref } from "vue"
+import { useRouter } from "vue-router"
+import { storeToRefs } from 'pinia'
+import { useStatusStore } from "@/stores/counter.js"
+import { useToastStore } from "@/stores/toast.js"
 import Bg_effect from "../components/css/Background.vue"
 import Copyright from "../components/css/Copyright.vue"
 import ToastAddStatus from "./ToastAddStatus.vue"
 
-import { useRouter } from "vue-router"
-import { onMounted, ref } from "vue"
-import { useStatusStore } from "@/stores/counter.js"
-import { useToastStore } from "@/stores/toast.js"
-import { storeToRefs } from 'pinia'
-
+// const zone
 const store = useStatusStore()
 const toastStore = useToastStore()
 const { showToastAddStatus, closeToast } = storeToRefs(toastStore)
@@ -28,17 +29,12 @@ onMounted(async () => {
 const openHome = () => {
   router.push({ path: "/task" })
 }
-
 const openModalAdd = async () => {
   router.push({ name: "status-add" })
 }
 const openModalEdit = async () => {
   router.push({ name: "status-edit" })
 }
-
-const addSuccess = ref(false)
-
-
 </script>
 
 <template>
@@ -170,7 +166,6 @@ const addSuccess = ref(false)
       </div>
       <ToastAddStatus
       v-if="showToastAddStatus"
-      :isAddSuccess="addSuccess"
       @close="closeToast"
       >
       </ToastAddStatus>
