@@ -27,7 +27,7 @@ const toastStore = useToastStore()
   top: 25px;
   right: 30px;
   border-radius: 12px;
-  background: #e7ffe7;
+  background: #DEFCDE;
   padding: 20px 35px 20px 25px;
   box-shadow: 0 6px 20px -5px rgba(0, 0, 0, 0.1);
   overflow: hidden;
