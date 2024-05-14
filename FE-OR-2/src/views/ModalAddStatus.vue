@@ -1,22 +1,26 @@
 <script setup>
+// import zone
 import { ref } from "vue"
 import { useRouter } from "vue-router"
 import { useStatusStore } from "@/stores/counter.js"
 import { useToastStore } from "@/stores/toast.js"
+
+// const zone
 const store = useStatusStore()
 const toastStore = useToastStore()
-
 const fetchURL = ref(import.meta.env.VITE_API_STATUS)
 const router = useRouter()
 const newName = ref("")
 const newDescription = ref("")
 const statuses = ref([])
+const addSuccess = ref(false)
+
+
+// function zone
 
 const closeModal = () => {
-  router.push({ path: "/status/manage" })
+  router.push({ name: "statusView" })
 }
-
-const addSuccess = ref(false)
 
 const addStatus = async () => {
   const newStatus = {
@@ -36,18 +40,16 @@ const addStatus = async () => {
     })
     const data = await response.json()
     if (!response.ok) {
-      showToastAddStatus.value = false
-      addSuccess.value = false
       throw new Error("Failed to add new status")
     } else {
       store.statuses.value.push(data)
-      addSuccess.value = true
+      toastStore.handleStatusAdded()
     }
-    toastStore.handleStatusAdded()
-    router.push({ name: "statusView" }).catch(() => {})
+    closeModal()
   } catch (error) {
-    addSuccess.value = false
+    toastStore.handleStatusAddedF()
     console.error("Error adding new status:", error.message)
+    closeModal()
   }
   statuses.value.push(newStatus)
   newName.value = ""
