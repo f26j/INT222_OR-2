@@ -37,7 +37,7 @@ const openModalEdit = async () => {
   originalAssignee.value = modalEdit.value.assignees
   originalDescription.value = modalEdit.value.description
   originalStatus.value = modalEdit.value.status
-  
+
   if (!data.ok) {
     router.push("/")
     setTimeout(() => {
@@ -53,19 +53,6 @@ onMounted(async () => {
 
 console.log(id);
 console.log("Task ID:", id);
-
-console.log(id);
-console.log("Task ID:", id);
-
-const fetchURL = ref(import.meta.env.VITE_API);
-const newTitle = ref(props.title);
-const newDescription = ref(props.description);
-const newAssignees = ref(props.assignees);
-const newStatus = ref(props.status);
-
-const closeModal = () => {
-  emit("close");
-};
 
 const editTask = async () => {
   const editedTask = {
