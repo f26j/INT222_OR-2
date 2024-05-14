@@ -6,7 +6,7 @@ const toastStore = useToastStore();
 <template>
   <div
     class="addStatusToast active toast toast-top toast-end"
-    :class="{ 'bg-red-50': !toastStore.addSuccess, 'bg-green-50': toastStore.addSuccess }"
+    :style="{ backgroundColor: toastStore.addSuccess ? '#DEFCDE' : '#FFF0F0' }"
   >
     <div class="addStatusToast-content">
       <div class="icon">
@@ -79,7 +79,7 @@ const toastStore = useToastStore();
   justify-content: center;
   height: 35px;
   min-width: 35px;
-  background-color: #91d694;
+  background-color: #d691c4;
   color: #fff;
   font-size: 20px;
   border-radius: 50%;

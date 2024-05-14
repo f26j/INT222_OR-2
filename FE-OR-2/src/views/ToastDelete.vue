@@ -18,7 +18,7 @@ const closeToast = () => {
 <template>
     <div
       class="deleteToast active toast toast-top toast-end"
-      :class="{ 'bg-white': !isDeleteSuccess, 'bg-green-50': isDeleteSuccess }"
+      :style="{ backgroundColor: isDeleteSuccess ? '#DEFCDE' : '#FFF0F0' }"
     >
       <div class="deleteToast-content">
         <div class="icon">
