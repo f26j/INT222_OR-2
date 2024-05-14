@@ -33,7 +33,7 @@ public class TaskService {
             throw new TaskNotFoundException("NOT FOUND", "/v1/tasks/" + id);
         } else if (taskRepository.existsById(id)) {
             editedTask.setId(id);
-            return taskRepository.save(editedTask);
+            return taskRepository.saveAndFlush(editedTask);
         }
         return null;
     }
