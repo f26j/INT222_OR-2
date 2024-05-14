@@ -24,7 +24,4 @@ public class Status {
     @Column(name = "statusDescription", length = 200)
     @Convert(converter = CharConverter.class)
     private String description;
-
-    @OneToMany(mappedBy = "statuses")
-    private List<Task> tasks;
 }

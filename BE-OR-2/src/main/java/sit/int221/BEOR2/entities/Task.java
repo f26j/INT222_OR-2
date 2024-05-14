@@ -38,10 +38,6 @@ public class Task {
     @Column(name = "updatedOn", insertable = false, updatable = false, nullable = false)
     private ZonedDateTime updatedOn;
 
-    @ManyToOne
-    @JoinColumn(name = "statusId")
-    private Status statuses;
-
     public void setStatus(String status) {
         if (status == null || status.isEmpty()) {
             this.status = "NO_STATUS";
