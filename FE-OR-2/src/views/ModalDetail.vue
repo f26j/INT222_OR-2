@@ -1,137 +1,165 @@
 <script setup>
-import { onMounted, ref, defineEmits, defineProps } from "vue";
-import { useRoute } from "vue-router";
+import { onMounted, ref, defineEmits, defineProps } from "vue"
+import { useRoute, useRouter } from "vue-router"
 
-const emit = defineEmits(["close"]);
+const emit = defineEmits(["close"])
+const fetchURL = import.meta.env.VITE_API
 
-const props = defineProps({
-  title: String,
-  description: String,
-  assignees: String,
-  status: String,
-  createdOn: String,
-  updatedOn: String,
-  localTimeZone: String,
-});
+// const props = defineProps({
+//   title: String,
+//   description: String,
+//   assignees: String,
+//   status: String,
+//   createdOn: String,
+//   updatedOn: String,
+//   localTimeZone: String,
+// })
 
-const route = useRoute();
-const id = route.params.id;
+const route = useRoute()
+const router = useRouter()
+const id = route.params.id
+const localTimeZone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone)
+const modalDetail = ref([""])
 
-console.log(id);
-console.log("Task ID:", id);
+const openModalDetail = async () => {
+  const data = await fetch(`${fetchURL}/${id}`)
+  const res = await data.json()
+  console.log(res)
+  modalDetail.value = res
+  if (!data.ok) {
+    router.push("/")
+    setTimeout(() => {
+      alert("The requested task does not exist")
+    }, 500)
+    return
+  }
+}
+
+onMounted(async () => {
+  openModalDetail()
+})
+
+const closeModal = () => {
+  router.push({ path: "/task" });
+};
+
+console.log(id)
+console.log("Task ID:", id)
 </script>
 <template>
   <div class="details fixed inset-0 overflow-y-auto bg-black bg-opacity-50">
-    <div class="flex items-start justify-center mt-24 text-center">
-      <div
-        class="modals rounded-lg text-center shadow-xlp-6 w-min"
-        role="dialog"
-        aria-modal="true"
-      >
-        <div class="modal-content">
-          <form @submit.prevent="handleSubmit">
-            <div class="modal-header">
-              <div class="itbkk-title text-left">
-                <h1>{{ title }}</h1>
+    <div
+      class="modals rounded-lg text-center shadow-xlp-6 w-min"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div class="modal-content">
+        <form @submit.prevent="handleSubmit">
+          <div class="modal-header">
+            <div class="itbkk-title text-left">
+              <h1>{{ modalDetail.title }}</h1>
+            </div>
+          </div>
+          <hr />
+
+          <div class="modal-body">
+            <div class="itbkk-description text-left">
+              <div class="flex flex-wrap -mx-3 mb-2">
+                <div class="desc w-full md:w-1/3 px-3 mb-6 md:mb-0">
+                  <label
+                    class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                    for="grid-city"
+                  >
+                    Description
+                  </label>
+                  <textarea
+                    class="itbkk-description descinput appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                    id="description"
+                    type="text"
+                    :class="{ 'italic !text-gray-400': !modalDetail.description }"
+                    disabled
+                    >{{
+                      modalDetail.description?.trim() || "No Description Provided"
+                    }}</textarea
+                  >
+                </div>
               </div>
             </div>
-            <hr />
 
-            <div class="modal-body">
-              <div class="itbkk-description text-left">
-                <div class="flex flex-wrap -mx-3 mb-2">
-                  <div class="desc w-full md:w-1/3 px-3 mb-6 md:mb-0">
+            <div class="detailright flex-col">
+              <div class="text-left">
+                <div class="assign flex flex-wrap -mx-3 mb-2">
+                  <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
                     <label
                       class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
                       for="grid-city"
                     >
-                      Description
+                      Assignees
                     </label>
                     <textarea
-                      class="itbkk-description descinput appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                      id="description"
+                      class="itbkk-assignees ass appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
+                      id="assign"
                       type="text"
-                      :class="{ 'italic !text-gray-400': !props.description }"
+                      :class="{ 'italic !text-gray-400': !modalDetail.assignees }"
                       disabled
-                      >{{
-                        props.description?.trim() || "No Description Provided"
-                      }}</textarea>
+                      >{{ 
+                        modalDetail.assignees?.trim() || "Unassigned" 
+                      }}</textarea
+                    >
                   </div>
                 </div>
               </div>
 
-              <div class="detailright flex-col">
-                <div class="text-left">
-                  <div class="assign flex flex-wrap -mx-3 mb-2">
-                    <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
-                      <label
-                        class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                        for="grid-city"
-                      >
-                        Assignees
-                      </label>
-                      <textarea
-                        class="itbkk-assignees ass appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
-                        id="assign"
-                        type="text"
-                        :class="{ 'italic !text-gray-400': !props.assignees }"
-                        disabled
-                        >{{ props.assignees?.trim() || "Unassigned" }}</textarea>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="itbkk-status text-left">
-                  <div class="w-full md:w-1/3 mb-6 md:mb-0">
-                    <label
-                      class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                      for="grid-state"
+              <div class="itbkk-status text-left">
+                <div class="w-full md:w-1/3 mb-6 md:mb-0">
+                  <label
+                    class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                    for="grid-state"
+                  >
+                    Status
+                  </label>
+                  <div class="relative itbkk-status">
+                    <select
+                      class="statusbx block w-60 bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                      id="grid-state"
+                      v-model="modalDetail.status"
+                      disabled
                     >
-                      Status
-                    </label>
-                    <div class="relative itbkk-status">
-                      <select
-                        class="statusbx block w-60 bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                        id="grid-state"
-                        v-model="props.status"
-                        disabled
-                      >
-                        <option :value="'NO_STATUS'">No Status</option>
-                        <option :value="'TO_DO'">To Do</option>
-                        <option :value="'DOING'">Doing</option>
-                        <option :value="'DONE'">Done</option>
-                      </select>
-                    </div>
+                      <option :value="'NO_STATUS'">No Status</option>
+                      <option :value="'TO_DO'">To Do</option>
+                      <option :value="'DOING'">Doing</option>
+                      <option :value="'DONE'">Done</option>
+                    </select>
                   </div>
                 </div>
+              </div>
 
-                <div class="time">
-                  <div class="itbkk-timezone text-left">
-                    <p>Timezone : {{ localTimeZone }}</p>
-                  </div>
-                  <div class="itbkk-created-on text-left">
-                    <p>CreatedOn : {{ createdOn }}</p>
-                  </div>
-                  <div class="itbkk-updated-on text-left">
-                    <p>UpdatedOn : {{ updatedOn }}</p>
-                  </div>
+              <div class="time">
+                <div class="itbkk-timezone text-left">
+                  <p>Timezone : {{ localTimeZone }}</p>
+                </div>
+                <div class="itbkk-created-on text-left">
+                  <p>CreatedOn : {{ modalDetail.createdOn }}</p>
+                </div>
+                <div class="itbkk-updated-on text-left">
+                  <p>UpdatedOn : {{ modalDetail.updatedOn }}</p>
                 </div>
               </div>
             </div>
+          </div>
 
-            <div class="modal-footer">
-              <div class="itbkk-button">
-                <hr />
-                <button @click="$emit('close')" class="close border">
-                  Close
-                </button>
-                <!-- <button @click="$emit('close')" class="ok border" type="submit">
+          <div class="modal-footer">
+            <div class="itbkk-button">
+              <hr />
+              <button @click="closeModal" class="close border">
+                Close
+              </button>
+              <!-- <button @click="$emit('close')" class="ok border" type="submit">
                   OK
                 </button> -->
-              </div>
             </div>
-          </form>
-        </div>
+          </div>
+        </form>
       </div>
     </div>
   </div>

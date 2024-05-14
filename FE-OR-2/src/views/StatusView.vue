@@ -1,38 +1,97 @@
 <script setup>
-import Bg_effect from "../components/css/Background.vue";
-import HomeView from "../views/HomeView.vue";
-import Copyright from "../components/css/Copyright.vue";
-import { useRouter, useRoute } from "vue-router";
+import Bg_effect from "../components/css/Background.vue"
+import Copyright from "../components/css/Copyright.vue"
+import ToastAddStatus from "./ToastAddStatus.vue"
 
-const router = useRouter();
-const openHome = () => {
-  router.push({path: "/task"});
+import { useRouter } from "vue-router"
+import { onMounted, ref } from "vue"
+import { useStatusStore } from "@/stores/counter.js"
+import { useToastStore } from "@/stores/toast.js"
+import { storeToRefs } from 'pinia'
+
+const store = useStatusStore()
+const toastStore = useToastStore()
+const { showToastAddStatus, closeToast } = storeToRefs(toastStore)
+const router = useRouter()
+const fetchURL = import.meta.env.VITE_API_STATUS
+
+async function fetchData() {
+  const response = await fetch(fetchURL)
+  const data = await response.json()
+  return data
 }
+onMounted(async () => {
+  const data = await fetchData()
+  store.statuses.value = data
+  console.log(store.statuses.value)
+})
+const openHome = () => {
+  router.push({ path: "/task" })
+}
+
+const openModalAdd = async () => {
+  router.push({ name: "status-add" })
+}
+const openModalEdit = async () => {
+  router.push({ name: "status-edit" })
+}
+
+const addSuccess = ref(false)
+
+
 </script>
 
 <template>
-  
   <div class="body">
-
     <header>
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
-      <h1 class="text-center">IT-Bangmod Kradan Kanban</h1>
-      <h3>Task Status</h3>
+      <h1 class="text-center">
+        IT-Bangmod Kradan Kanban
+        <h3>Task Status</h3>
+      </h1>
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
     </header>
 
-    <main>
-      <div class="btstt flex">
-        <button type="button" class="itbkk-button-home flex" @click="openHome">
-            <svg class="homeicon" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20">
-              <path fill="currentColor" d="m16 8.5l1.53 1.53l-1.06 1.06L10 4.62l-6.47 6.47l-1.06-1.06L10 2.5l4 4v-2h2zm-6-2.46l6 5.99V18H4v-5.97zM12 17v-5H8v5z"></path>
-            </svg>
-            <span class="hometext">HOME</span>
+    <main class="flex flex-col items-center">
+      <div class="statusBtn">
+        <button
+          type="button"
+          class="itbkk-button-home btn-stt"
+          @click="openHome"
+        >
+          <svg
+            class="homeicon"
+            xmlns="http://www.w3.org/2000/svg"
+            width="1em"
+            height="1em"
+            viewBox="0 0 20 20"
+          >
+            <path
+              fill="currentColor"
+              d="m16 8.5l1.53 1.53l-1.06 1.06L10 4.62l-6.47 6.47l-1.06-1.06L10 2.5l4 4v-2h2zm-6-2.46l6 5.99V18H4v-5.97zM12 17v-5H8v5z"
+            ></path>
+          </svg>
+          <span class="hometext">HOME</span>
         </button>
-
-        <button type="button" class="itbkk-button-add flex" @click="">
-          <svg class="addicon" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 14 14">
-            <path fill="currentColor" fillRule="evenodd" d="M8 1a1 1 0 0 0-2 0v5H1a1 1 0 0 0 0 2h5v5a1 1 0 1 0 2 0V8h5a1 1 0 1 0 0-2H8z" clipRule="evenodd"></path>
+        <span style="padding-left: 1rem"></span>
+        <button
+          type="button"
+          class="itbkk-button-add btn-stt"
+          @click="openModalAdd"
+        >
+          <svg
+            class="addicon"
+            xmlns="http://www.w3.org/2000/svg"
+            width="1em"
+            height="1em"
+            viewBox="0 0 14 14"
+          >
+            <path
+              fill="currentColor"
+              fillRule="evenodd"
+              d="M8 1a1 1 0 0 0-2 0v5H1a1 1 0 0 0 0 2h5v5a1 1 0 1 0 2 0V8h5a1 1 0 1 0 0-2H8z"
+              clipRule="evenodd"
+            ></path>
           </svg>
           <span class="addtext">ADD</span>
         </button>
@@ -45,23 +104,29 @@ const openHome = () => {
               <th></th>
               <th>Name</th>
               <th>Description</th>
-              <th>Action</th>
-              <th></th>
+              <th class="flex justify-center">Action</th>
             </tr>
           </thead>
           <tbody>
-            <tr class="itbkk-item">
-            <td class="bgd">
-              <span class="bgi">id : </span>
-              <div class="idkb flex-">
-              </div>
-            </td>
-            <td class="itbkk-status-name">
-              <span>Name</span>
-            </td>
-            <td class="itbkk-status-description">
-                <span>Description</span>
-            </td>
+            <tr
+              v-for="(status, index) in store.statuses.value"
+              class="itbkk-item"
+            >
+              <td class="bgd">
+                <span class="bgi">id : </span>
+                <div class="idkb flex">
+                  {{ index + 1 }}
+                </div>
+              </td>
+              <td class="itbkk-status-name">
+                <p>{{ status.name }}</p>
+              </td>
+              <td class="itbkk-status-description">
+                <p v-if="!status.description?.trim()" class="noDesc">
+                  No description is provided.
+                </p>
+                <p v-else>{{ status.description }}</p>
+              </td>
               <td class="itbkk-button-action flex">
                 <svg
                   class="itbkk-button-edit"
@@ -69,6 +134,7 @@ const openHome = () => {
                   width="30"
                   height="30"
                   viewBox="0 0 24 24"
+                  @click="openModalEdit"
                 >
                   <path
                     fill="currentColor"
@@ -102,12 +168,19 @@ const openHome = () => {
           </tbody>
         </table>
       </div>
+      <ToastAddStatus
+      v-if="showToastAddStatus"
+      :isAddSuccess="addSuccess"
+      @close="closeToast"
+      >
+      </ToastAddStatus>
     </main>
     <footer>
       <Copyright />
     </footer>
     <Bg_effect />
   </div>
+  <router-view></router-view>
 </template>
 
 <style scoped>
@@ -131,56 +204,39 @@ h3 {
   font-size: 30px;
   color: #737292;
   text-align: center;
-  margin-bottom: 10px;
-}
-
-
-.itbkk-button-action {
-  padding: 15px 5px 10px;
-  display: flex;
-}
-
-.itbkk-button-action svg {
-  transition: transform 0.3s ease;
-  cursor: pointer;
-}
-
-.itbkk-button-action svg:hover {
-  transform: scale(1.08);
-  transition: transform 0.3s ease;
-  color: #ad386f;
-}
-
-
-.itbkk-button-home {
   justify-content: center;
-  text-align: center;
-  cursor: pointer;
-  margin-left: 10rem;
+}
+
+.statusBtn {
+  display: flex;
+  height: 40px;
+  width: 100%;
+  max-width: 900px;
+  padding-left: 2rem;
+}
+
+.btn-stt {
+  display: flex;
+  justify-content: center;
   font-style: italic;
-  background-color: #343365;
-  color: #fff7d9;
   padding: 5px;
   border-radius: 50px;
   width: 120px;
   height: 50px;
+  transition: transform 0.3s ease;
+}
+
+.itbkk-button-home {
+  background-color: #343365;
 }
 
 .itbkk-button-add {
-  justify-content: center;
-  text-align: center;
-  cursor: pointer;
   margin-left: 2rem;
-  font-style: italic;
   background-color: #683c86;
-  color: #fff7d9;
-  padding: 5px;
-  border-radius: 50px;
-  width: 120px;
-  height: 50px;
 }
 
-.hometext, .addtext {
+.hometext,
+.addtext {
   color: #ffe6fc;
   font-family: "Ubuntu", sans-serif;
   font-weight: 500;
@@ -190,7 +246,8 @@ h3 {
   padding-right: 10px;
 }
 
-.homeicon , .addicon {
+.homeicon,
+.addicon {
   color: #ffedfd;
   width: 40px;
   height: 40px;
@@ -207,7 +264,38 @@ h3 {
   background-color: #9b65be;
 }
 
-.unassigned {
+.itbkk-button-action {
+  padding: 15px 5px 10px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.itbkk-button-action svg {
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+
+.itbkk-button-action svg:hover {
+  transform: scale(1.08);
+  transition: transform 0.3s ease;
+  color: #ad386f;
+}
+
+.itbkk-status-name p,
+.itbkk-status-description p {
+  width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  /* word-break: break-all; */
+}
+
+.itbkk-status-name p {
+  color: #343365;
+}
+
+.noDesc {
   font-style: italic;
   color: gray;
 }
@@ -227,7 +315,7 @@ h1 {
   font-size: 40px;
   color: #683c86;
   font-weight: 800;
-  margin: 4rem 0 0rem;
+  margin: 4rem 0 2rem;
 }
 
 .tb {
@@ -262,7 +350,11 @@ td {
   font-family: "Ubuntu", sans-serif;
   font-weight: 600;
   font-style: normal;
-  
+}
+
+td.bgd {
+  padding-left: 30px;
+  /* width: 80px; */
 }
 
 thead th {
@@ -291,6 +383,10 @@ tbody {
       z-index: -1;
     }
   }
+}
+
+footer {
+  padding-bottom: 5rem;
 }
 
 @media screen and (max-width: 745px) {
@@ -351,6 +447,17 @@ tbody {
   .tb {
     z-index: 1;
     position: relative;
+  }
+
+  .itbkk-button-action {
+    justify-content: left;
+    padding-left: 3rem;
+    gap: 0;
+  }
+
+  .itbkk-status-name p,
+  .itbkk-status-description p {
+    width: 100%;
   }
 }
 </style>

@@ -1,160 +1,132 @@
 <script setup>
-import Bg_effect from "../components/css/Background.vue";
-import Badges from "../components/css/Badge.vue";
-import Copyright from "../components/css/Copyright.vue";
-import ModalDetail from "./ModalDetail.vue";
-import ModalAdd from "./ModalAdd.vue";
-import ToastAdd from "./ToastAdd.vue";
-import ModalEdit from "./ModalEdit.vue";
-import ToastEdit from "./ToastEdit.vue";
+import Bg_effect from "../components/css/Background.vue"
+import Badges from "../components/css/Badge.vue"
+import Copyright from "../components/css/Copyright.vue"
+import ToastAdd from "./ToastAdd.vue"
+import ToastEdit from "./ToastEdit.vue"
 import ModalDelete from "./ModalDelete.vue"
 import ToastDelete from "./ToastDelete.vue"
-import { onMounted, ref, onUnmounted } from "vue";
-import { useRouter, useRoute } from "vue-router";
+
+import { storeToRefs } from 'pinia'
+import { onMounted, ref} from "vue"
+import { useRouter, useRoute } from "vue-router"
 import { useCounterStore } from "@/stores/counter.js"
+import { useToastStore } from "@/stores/toast.js"
 
 const store = useCounterStore()
-const fetchURL = ref(import.meta.env.VITE_API);
-const router = useRouter();
-const tasks = ref([]);
-const route = useRoute();
-const title = ref("");
-const description = ref("");
-const assignees = ref("");
-const status = ref("");
-const createdOn = ref("");
-const updatedOn = ref("");
-const taskId = route.params.id;
-const localTimeZone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone);
-const selectDeleteTaskId = ref("");
-const selectDeleteTaskTitle = ref("");
-const selectDeleteTaskIndex = ref("");
-console.log(taskId);
+const toastStore = useToastStore()
+const { showToastAdd ,showToastEdit, closeToast } = storeToRefs(toastStore)
+console.log(showToastEdit)
+const fetchURL = ref(import.meta.env.VITE_API)
+const router = useRouter()
+const route = useRoute()
+const title = ref("")
+const description = ref("")
+const assignees = ref("")
+const status = ref("")
+const createdOn = ref("")
+const updatedOn = ref("")
+const taskId = route.params.id
+const localTimeZone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone)
+const selectDeleteTaskId = ref("")
+const selectDeleteTaskTitle = ref("")
+const selectDeleteTaskIndex = ref("")
+console.log(taskId)
 function formatDate(date) {
-  const d = new Date(date);
+  const d = new Date(date)
   return d
     .toLocaleString("en-GB", { timeZone: localTimeZone.value })
     .split(",")
-    .join(" ");
+    .join(" ")
 }
 async function fetchData() {
-  const response = await fetch(`${fetchURL.value}`);
-  const data = await response.json();
-  return data;
+  const response = await fetch(`${fetchURL.value}`)
+  const data = await response.json()
+  return data
 }
 onMounted(async () => {
-  const data = await fetchData();
-  // tasks.value = data;
-  
+  const data = await fetchData()
   store.tasks.value = data
-  console.log(store.tasks.value);
-});
-const showDetail = ref(false);
+  console.log(store.tasks.value)
+})
+const showDetail = ref(false)
 const openModalDetail = async (id) => {
-  const data = await fetch(`${fetchURL.value}/${id}`);
-  const res = await data.json();
+  const data = await fetch(`${fetchURL.value}/${id}`)
+  const res = await data.json()
   if (!data.ok) {
-    router.push("/");
+    router.push("/")
     setTimeout(() => {
-      alert("The requested task does not exist");
-    }, 500);
-    return;
+      alert("The requested task does not exist")
+    }, 500)
+    return
   }
-  console.log(data);
-  console.log(res);
-  title.value = res.title;
-  description.value = res.description;
-  assignees.value = res.assignees;
-  status.value = res.status;
-  createdOn.value = formatDate(res.createdOn);
-  updatedOn.value = formatDate(res.updatedOn);
-  showDetail.value = true;
-  router.push({ name: "task-detail", params: { id: id } });
-  console.log(title.value);
-};
-if (taskId) {
-  openModalDetail(taskId);
+  console.log(data)
+  console.log(res)
+  title.value = res.title
+  description.value = res.description
+  assignees.value = res.assignees
+  status.value = res.status
+  createdOn.value = formatDate(res.createdOn)
+  updatedOn.value = formatDate(res.updatedOn)
+  showDetail.value = true
+  router.push({ name: "task-detail", params: { id: id } })
+  console.log(title.value)
 }
-const showAdd = ref(false);
+
+const showAdd = ref(false)
 const openModalAdd = async (task) => {
-  // title.value = "";
-  // description.value = "";
-  // assignees.value = "";
-  // status.value = "NO_STATUS";
-  // createdOn.value = formatDate(new Date());
-  // updatedOn.value = formatDate(new Date());
-  // showAdd.value = true;
 
-  router.push({ name: "task-add" });
-};
-
-const showToastAdd = ref(false);
-console.log(showToastAdd.value);
-const handleTaskAdded = () => {
-  showToastAdd.value = true;
-  console.log(showToastAdd.value);
-  setTimeout(() => {
-    showToastAdd.value = false;
-  }, 5000);
-};
-
-const showEdit = ref(false);
-const openModalEdit = async (id) => {
-  const data = await fetch(`${fetchURL.value}/${id}`);
-  const res = await data.json();
-  if (!data.ok) {
-    router.push("/");
-    setTimeout(() => {
-      alert("The requested task does not exist");
-    }, 500);
-    return;
-  }
-  console.log(data);
-  console.log(res);
-  title.value = res.title;
-  description.value = res.description;
-  assignees.value = res.assignees;
-  status.value = res.status;
-  createdOn.value = formatDate(res.createdOn);
-  updatedOn.value = formatDate(res.updatedOn);
-  showDetail.value = true;
-  router.push({ name: "task-edit", params: { id: id } });
-  console.log(title.value);
-};
-if (window.location.pathname === `/task/${taskId}`) {
-  openModalDetail(taskId);
-} else if (window.location.pathname === `/task/${taskId}/edit`) {
-  openModalEdit(taskId);
+  router.push({ name: "task-add" })
 }
 
-const showToastEdit = ref(false);
-console.log(showToastAdd.value);
-const handleTaskEdited = () => {
-  showToastEdit.value = true;
-  console.log(showToastEdit.value);
-  setTimeout(() => {
-    showToastEdit.value = false;
-  }, 5000);
-};
+
+const showEdit = ref(false)
+const openModalEdit = async (id, edit) => {
+  const data = await fetch(`${fetchURL.value}/${id}`)
+  const res = await data.json()
+  if (!data.ok) {
+    router.push("/")
+    setTimeout(() => {
+      alert("The requested task does not exist")
+    }, 500)
+    return
+  }
+  console.log(data)
+  console.log(res)
+  title.value = res.title
+  description.value = res.description
+  assignees.value = res.assignees
+  status.value = res.status
+  createdOn.value = formatDate(res.createdOn)
+  updatedOn.value = formatDate(res.updatedOn)
+  showDetail.value = true
+  router.push({ name: "task-edit", params: { id: id } })
+  console.log(title.value)
+}
+
+if (window.location.pathname === `/task/${taskId}`) {
+  openModalDetail(taskId)
+} else if (window.location.pathname === `/task/${taskId}/edit`) {
+  openModalEdit(taskId)
+}
 
 const showToastDelete = ref(false)
 const deleteSuccess = ref(false)
 const showDelete = ref(false)
 const toastSuccess = ref(false)
 const openModalDelete = (taskId, title, index) => {
-  showDelete.value = true;
-  selectDeleteTaskId.value = taskId;
-  selectDeleteTaskTitle.value = title;
-  selectDeleteTaskIndex.value = index;
-};
+  showDelete.value = true
+  selectDeleteTaskId.value = taskId
+  selectDeleteTaskTitle.value = title
+  selectDeleteTaskIndex.value = index
+}
 async function deleteTask(taskId) {
   try {
     const response = await fetch(`${fetchURL.value}/${taskId}`, {
       method: "DELETE",
-    });
+    })
     if (response.ok) {
       store.tasks.value = store.tasks.value.filter((task) => task.id !== taskId)
-      // tasks.value =tasks.value.filter((task) => task.id !== taskId)
       deleteSuccess.value = true
     } else {
       deleteSuccess.value = false
@@ -180,19 +152,17 @@ const confirmDelete = async () => {
     setTimeout(() => {
       showToastDelete.value = false
       closeModal()
-    }, 5000) 
-    console.error('Error deleting task:', error)
+    }, 5000)
+    console.error("Error deleting task:", error)
   }
   return {
     showToastDelete,
     closeModal,
-    confirmDelete
+    confirmDelete,
   }
 }
-
-const closeToast = () => {
-  showToastAdd.value = false;
-  showToastEdit.value = false;
+const closeToastDelete = () => {
+  showToastDelete.value = false
 }
 
 const closeModal = () => {
@@ -200,31 +170,43 @@ const closeModal = () => {
   showAdd.value = false;
   showEdit.value = false;
   showDelete.value = false;
-  showToastDelete.value = false;
   router.push({ path: "/task" });
 };
 
 const openStatus = () => {
-  router.push({name: "statusView"});
+  router.push({name: "statusView"})
 }
 </script>
 <template>
-  
   <div class="body">
     <header>
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
       <h1 class="text-center">IT-Bangmod Kradan Kanban</h1>
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
     </header>
-    <main>
+    <main class="flex flex-col items-center">
       <div class="itbkk-manage-status">
         <button type="button" class="btstatus flex" @click="openStatus">
-          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 512 512"><path fill="currentColor" d="M256 176a80 80 0 1 0 80 80a80.24 80.24 0 0 0-80-80m172.72 80a165.53 165.53 0 0 1-1.64 22.34l48.69 38.12a11.59 11.59 0 0 1 2.63 14.78l-46.06 79.52a11.64 11.64 0 0 1-14.14 4.93l-57.25-23a176.56 176.56 0 0 1-38.82 22.67l-8.56 60.78a11.93 11.93 0 0 1-11.51 9.86h-92.12a12 12 0 0 1-11.51-9.53l-8.56-60.78A169.3 169.3 0 0 1 151.05 393L93.8 416a11.64 11.64 0 0 1-14.14-4.92L33.6 331.57a11.59 11.59 0 0 1 2.63-14.78l48.69-38.12A174.58 174.58 0 0 1 83.28 256a165.53 165.53 0 0 1 1.64-22.34l-48.69-38.12a11.59 11.59 0 0 1-2.63-14.78l46.06-79.52a11.64 11.64 0 0 1 14.14-4.93l57.25 23a176.56 176.56 0 0 1 38.82-22.67l8.56-60.78A11.93 11.93 0 0 1 209.94 26h92.12a12 12 0 0 1 11.51 9.53l8.56 60.78A169.3 169.3 0 0 1 361 119l57.2-23a11.64 11.64 0 0 1 14.14 4.92l46.06 79.52a11.59 11.59 0 0 1-2.63 14.78l-48.69 38.12a174.58 174.58 0 0 1 1.64 22.66"/></svg>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="32"
+            height="32"
+            viewBox="0 0 512 512"
+          >
+            <path
+              fill="currentColor"
+              d="M256 176a80 80 0 1 0 80 80a80.24 80.24 0 0 0-80-80m172.72 80a165.53 165.53 0 0 1-1.64 22.34l48.69 38.12a11.59 11.59 0 0 1 2.63 14.78l-46.06 79.52a11.64 11.64 0 0 1-14.14 4.93l-57.25-23a176.56 176.56 0 0 1-38.82 22.67l-8.56 60.78a11.93 11.93 0 0 1-11.51 9.86h-92.12a12 12 0 0 1-11.51-9.53l-8.56-60.78A169.3 169.3 0 0 1 151.05 393L93.8 416a11.64 11.64 0 0 1-14.14-4.92L33.6 331.57a11.59 11.59 0 0 1 2.63-14.78l48.69-38.12A174.58 174.58 0 0 1 83.28 256a165.53 165.53 0 0 1 1.64-22.34l-48.69-38.12a11.59 11.59 0 0 1-2.63-14.78l46.06-79.52a11.64 11.64 0 0 1 14.14-4.93l57.25 23a176.56 176.56 0 0 1 38.82-22.67l8.56-60.78A11.93 11.93 0 0 1 209.94 26h92.12a12 12 0 0 1 11.51 9.53l8.56 60.78A169.3 169.3 0 0 1 361 119l57.2-23a11.64 11.64 0 0 1 14.14 4.92l46.06 79.52a11.59 11.59 0 0 1-2.63 14.78l-48.69 38.12a174.58 174.58 0 0 1 1.64 22.66"
+            />
+          </svg>
           <span class="mntext">Manage Status</span>
         </button>
       </div>
+
       <div class="btn-a" v-for="task in store.tasks.value">
-        <div class="itbkk-button-add button iconbutton" @click="openModalAdd(task)">
+        <div
+          class="itbkk-button-add button iconbutton"
+          @click="openModalAdd(task)"
+        >
           <i class="plus">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -263,7 +245,7 @@ const openStatus = () => {
               class="itbkk-item"
               :data-task-id="task.id"
             >
-            <td class="bgd">
+              <td class="bgd">
                 <span class="bgi">id : </span>
                 <div class="idkb flex-">
                   {{ index + 1 }}
@@ -302,7 +284,7 @@ const openStatus = () => {
                 </svg>
                 <svg
                   class="itbkk-button-delete"
-                  @click="openModalDelete(task.id, task.title, (index+1))"
+                  @click="openModalDelete(task.id, task.title, index + 1)"
                   xmlns="http://www.w3.org/2000/svg"
                   width="30"
                   height="30"
@@ -326,21 +308,6 @@ const openStatus = () => {
           </tbody>
         </table>
       </div>
-      <!-- <ModalDetail
-        v-if="showDetail"
-        :title="title"
-        :description="description"
-        :assignees="assignees"
-        :status="status"
-        :createdOn="createdOn"
-        :updatedOn="updatedOn"
-        :localTimeZone="localTimeZone"
-        @close="closeModal"
-      >
-      </ModalDetail> -->
-      <!-- <ModalAdd v-if="showAdd" @close="closeModal" @path="path" @taskAdded="handleTaskAdded"></ModalAdd> -->
-      <ToastAdd v-if="showToastAdd" @close="closeToast" />
-      <ToastEdit v-if="showToastEdit" @close="closeToast"></ToastEdit>
       <ModalDelete
         v-if="showDelete"
         :taskId="selectDeleteTaskId"
@@ -350,11 +317,13 @@ const openStatus = () => {
         @confirmDeleteModal="deleteTask"
       >
       </ModalDelete>
+      <ToastAdd v-if="showToastAdd" @close="closeToast" />
+      <ToastEdit v-if="showToastEdit" @close="closeToast"></ToastEdit>
       <ToastDelete
         v-if="showToastDelete"
         :isDeleteSuccess="deleteSuccess"
-        @close="closeModal"
-        >
+        @close="closeToastDelete"
+      >
       </ToastDelete>
     </main>
     <footer>
@@ -362,17 +331,7 @@ const openStatus = () => {
     </footer>
     <Bg_effect />
   </div>
-  <RouterView 
-  :title="title"
-        :description="description"
-        :assignees="assignees"
-        :status="status"
-        :createdOn="createdOn"
-        :updatedOn="updatedOn"
-        :localTimeZone="localTimeZone"
-        @close="closeModal" 
-        @toastAdd="handleTaskAdded"
-        @toastEdit="handleTaskEdited" />
+  <router-view></router-view>
 </template>
 <style scoped>
 @import url("https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono");
@@ -387,19 +346,21 @@ const openStatus = () => {
   scroll-behavior: smooth;
 }
 
-.mntext{
+.mntext {
   padding-top: 5px;
   padding-left: 5px;
   padding-right: 5px;
 }
-
 .itbkk-manage-status {
-  justify-content: center;
-  text-align: center;
-  padding-left: 18rem;
-  margin-left: 10rem;
+  /* justify-content: center; */
+  /* text-align: center; */
+  /* margin-left: 10rem; */
+  /* padding-left: 10rem; */
+  display: flex;
+  width: 100%;
+  max-width: 900px;
+  padding-left: 2rem;
 }
-
 .btstatus {
   font-style: italic;
   background-color: #343365;
@@ -408,12 +369,12 @@ const openStatus = () => {
   color: #f5e2ff;
   padding: 10px;
   border-radius: 50px;
+  transition: transform 0.3s ease;
 }
 .btstatus:hover {
   background-color: #6a4581;
   background-color: #8e5bb1;
 }
-
 .unassigned {
   font-style: italic;
   color: gray;
@@ -451,7 +412,7 @@ const openStatus = () => {
   width: 50px;
   height: 50px;
   border-radius: 100%;
-  box-shadow: 5px 5px 5px #00000046;
+  box-shadow: 5px 5px 5px #49494946;
 }
 .itbkk-button-add {
   width: 80px;
@@ -487,9 +448,6 @@ const openStatus = () => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-.itbkk-title {
-  max-width: 700px;
 }
 .unassigned {
   color: gray;
@@ -562,6 +520,9 @@ td {
   font-weight: 600;
   font-style: normal;
 }
+td.bgd {
+  padding-left: 30px;
+}
 thead th {
   background-color: #47467b;
 }
@@ -589,7 +550,7 @@ tbody {
 footer {
   padding-bottom: 5rem;
 }
-@media screen and (max-width: 745px) {
+@media screen and (max-width: 820px) {
   table,
   thead,
   tbody,
@@ -638,6 +599,11 @@ footer {
   .tb {
     z-index: 1;
     position: relative;
+  }
+
+  .itbkk-button-action {
+    justify-content: left;
+    padding-left: 3rem;
   }
 }
 </style>
