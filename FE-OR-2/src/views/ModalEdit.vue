@@ -51,8 +51,8 @@ const editTask = async () => {
   const editedTask = {
     id: id,
     title: newTitle.value.trim(),
-    description: newDescription.value.trim(),
-    assignees: newAssignees.value.trim(),
+    description: newDescription.value.trim() === "" ? null : newDescription.value.trim(),
+    assignees: newAssignees.value.trim() === "" ? null : newAssignees.value.trim(),
     status: newStatus.value.trim(),
   }
   if (!editedTask.title) {

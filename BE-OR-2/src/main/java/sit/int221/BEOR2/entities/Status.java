@@ -5,8 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 import sit.int221.BEOR2.utilities.CharConverter;
 
-import java.util.List;
-
 @Getter
 @Setter
 @Entity
