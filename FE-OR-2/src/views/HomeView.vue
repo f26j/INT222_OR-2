@@ -2,22 +2,23 @@
 import Bg_effect from "../components/css/Background.vue"
 import Badges from "../components/css/Badge.vue"
 import Copyright from "../components/css/Copyright.vue"
-import ModalDetail from "./ModalDetail.vue"
-import ModalAdd from "./ModalAdd.vue"
 import ToastAdd from "./ToastAdd.vue"
-import ModalEdit from "./ModalEdit.vue"
 import ToastEdit from "./ToastEdit.vue"
 import ModalDelete from "./ModalDelete.vue"
 import ToastDelete from "./ToastDelete.vue"
 
-import { onMounted, ref, onUnmounted } from "vue"
+import { storeToRefs } from 'pinia'
+import { onMounted, ref} from "vue"
 import { useRouter, useRoute } from "vue-router"
 import { useCounterStore } from "@/stores/counter.js"
+import { useToastStore } from "@/stores/toast.js"
 
 const store = useCounterStore()
+const toastStore = useToastStore()
+const { showToastAdd ,showToastEdit, closeToast } = storeToRefs(toastStore)
+console.log(showToastEdit)
 const fetchURL = ref(import.meta.env.VITE_API)
 const router = useRouter()
-const tasks = ref([])
 const route = useRoute()
 const title = ref("")
 const description = ref("")
@@ -45,8 +46,6 @@ async function fetchData() {
 }
 onMounted(async () => {
   const data = await fetchData()
-  // tasks.value = data
-
   store.tasks.value = data
   console.log(store.tasks.value)
 })
@@ -73,31 +72,13 @@ const openModalDetail = async (id) => {
   router.push({ name: "task-detail", params: { id: id } })
   console.log(title.value)
 }
-// if (taskId) {
-//   openModalDetail(taskId)
-// }
+
 const showAdd = ref(false)
 const openModalAdd = async (task) => {
-  // title.value = ""
-  // description.value = ""
-  // assignees.value = ""
-  // status.value = "NO_STATUS"
-  // createdOn.value = formatDate(new Date())
-  // updatedOn.value = formatDate(new Date())
-  // showAdd.value = true
 
   router.push({ name: "task-add" })
 }
 
-const showToastAdd = ref(false)
-console.log(showToastAdd.value)
-const handleTaskAdded = () => {
-  showToastAdd.value = true
-  console.log(showToastAdd.value)
-  setTimeout(() => {
-    showToastAdd.value = false
-  }, 5000)
-}
 
 const showEdit = ref(false)
 const openModalEdit = async (id, edit) => {
@@ -129,16 +110,6 @@ if (window.location.pathname === `/task/${taskId}`) {
   openModalEdit(taskId)
 }
 
-const showToastEdit = ref(false)
-console.log(showToastAdd.value)
-const handleTaskEdited = () => {
-  showToastEdit.value = true
-  console.log(showToastEdit.value)
-  setTimeout(() => {
-    showToastEdit.value = false
-  }, 5000)
-}
-
 const showToastDelete = ref(false)
 const deleteSuccess = ref(false)
 const showDelete = ref(false)
@@ -156,7 +127,6 @@ async function deleteTask(taskId) {
     })
     if (response.ok) {
       store.tasks.value = store.tasks.value.filter((task) => task.id !== taskId)
-      // tasks.value =tasks.value.filter((task) => task.id !== taskId)
       deleteSuccess.value = true
     } else {
       deleteSuccess.value = false
@@ -191,11 +161,8 @@ const confirmDelete = async () => {
     confirmDelete,
   }
 }
-
-const closeToast = () => {
-  showToastAdd.value = false
-  showToastEdit.value = false
-  showToastDelete.value = false;
+const closeToastDelete = () => {
+  showToastDelete.value = false
 }
 
 const closeModal = () => {
@@ -341,21 +308,6 @@ const openStatus = () => {
           </tbody>
         </table>
       </div>
-      <!-- <ModalDetail
-        v-if="showDetail"
-        :title="title"
-        :description="description"
-        :assignees="assignees"
-        :status="status"
-        :createdOn="createdOn"
-        :updatedOn="updatedOn"
-        :localTimeZone="localTimeZone"
-        @close="closeModal"
-      >
-      </ModalDetail> -->
-      <!-- <ModalAdd v-if="showAdd" @close="closeModal" @path="path" @taskAdded="handleTaskAdded"></ModalAdd> -->
-      <ToastAdd v-if="showToastAdd" @close="closeToast" />
-      <ToastEdit v-if="showToastEdit" @close="closeToast"></ToastEdit>
       <ModalDelete
         v-if="showDelete"
         :taskId="selectDeleteTaskId"
@@ -365,10 +317,12 @@ const openStatus = () => {
         @confirmDeleteModal="deleteTask"
       >
       </ModalDelete>
+      <ToastAdd v-if="showToastAdd" @close="closeToast" />
+      <ToastEdit v-if="showToastEdit" @close="closeToast"></ToastEdit>
       <ToastDelete
         v-if="showToastDelete"
         :isDeleteSuccess="deleteSuccess"
-        @close="closeToast"
+        @close="closeToastDelete"
       >
       </ToastDelete>
     </main>
@@ -377,19 +331,6 @@ const openStatus = () => {
     </footer>
     <Bg_effect />
   </div>
-  <!-- <RouterView /> -->
-  <!-- <RouterView
-    :title="title"
-    :description="description"
-    :assignees="assignees"
-    :status="status"
-    :createdOn="createdOn"
-    :updatedOn="updatedOn"
-    :localTimeZone="localTimeZone"
-    @close="closeModal"
-    @toastAdd="handleTaskAdded"
-    @toastEdit="handleTaskEdited"
-  /> -->
   <router-view></router-view>
 </template>
 <style scoped>

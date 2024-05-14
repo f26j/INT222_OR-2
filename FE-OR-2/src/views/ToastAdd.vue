@@ -1,6 +1,6 @@
 <script setup>
-import { defineEmits } from "vue";
-const emit = defineEmits(['close'])
+import { useToastStore } from "@/stores/toast.js"
+const toastStore = useToastStore()
 </script>
 <template>
   <div class="toast active">
@@ -12,7 +12,7 @@ const emit = defineEmits(['close'])
         <span class="text text-1">Success</span>
         <span class="text text-2">The task has been successfully added</span></div>
     </div>
-    <i @click="$emit('close')" class="close"></i>
+    <i @click="toastStore.closeToast" class="close"></i>
     <div class="progress active"></div>
   </div>
 

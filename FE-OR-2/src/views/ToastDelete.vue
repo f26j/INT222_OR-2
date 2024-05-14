@@ -1,14 +1,10 @@
 <script setup>
 import { defineProps, defineEmits} from "vue"
-import { useRouter, useRoute } from "vue-router"
-
 const emit = defineEmits(['close'])
-
 const props = defineProps({
   showToastDelete: false,
   isDeleteSuccess: false,
 })
-
 const closeToast = () => {
   showToastDelete.value = false
   router.push({ name: "task" })

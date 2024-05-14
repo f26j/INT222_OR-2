@@ -1,19 +1,16 @@
 <script setup>
-import { ref, defineEmits } from "vue"
+import { ref } from "vue"
 import { useRouter } from "vue-router"
 import { useStatusStore } from "@/stores/counter.js"
-import StatusView from "./StatusView.vue"
-import ToastAddStatus from "./ToastAddStatus.vue"
-
+import { useToastStore } from "@/stores/toast.js"
 const store = useStatusStore()
+const toastStore = useToastStore()
 
 const fetchURL = ref(import.meta.env.VITE_API_STATUS)
 const router = useRouter()
 const newName = ref("")
 const newDescription = ref("")
 const statuses = ref([])
-
-const emit = defineEmits(["close", "openToast", "toastAddStatus"])
 
 const closeModal = () => {
   router.push({ path: "/status/manage" })
@@ -23,8 +20,8 @@ const addSuccess = ref(false)
 
 const addStatus = async () => {
   const newStatus = {
-    name: newName.value,
-    description: newDescription.value,
+    name: newName.value.trim(),
+    description: newDescription.value.trim(),
   }
   if (!newStatus.name) {
     return
@@ -46,7 +43,7 @@ const addStatus = async () => {
       store.statuses.value.push(data)
       addSuccess.value = true
     }
-    emit("close")
+    toastStore.handleStatusAdded()
     router.push({ name: "statusView" }).catch(() => {})
   } catch (error) {
     addSuccess.value = false
@@ -56,22 +53,6 @@ const addStatus = async () => {
   newName.value = ""
   newDescription.value = ""
 }
-
-// const textarea = document.getElementById('assign');
-// const charCount = document.getElementById('charCount');
-
-//   charCount.textContent = textarea.maxLength;
-
-//   textarea.addEventListener('input', function() {
-//     const remainingChars = textarea.maxLength - textarea.value.length;
-
-//     charCount.textContent = remainingChars;
-
-//     if (remainingChars < 0) {
-//       textarea.value = textarea.value.slice(0, textarea.maxLength);
-//       charCount.textContent = 0;
-//     }
-//   })
 </script>
 <template>
   <div
@@ -100,7 +81,6 @@ const addStatus = async () => {
                     for="grid-city"
                   >
                     Name
-                    <!-- <span id="charCount">50</span> -->
                   </label>
                   <textarea
                     class="ttitle-stt appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"

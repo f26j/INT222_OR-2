@@ -1,20 +1,27 @@
 <script setup>
 import { onMounted, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
-
 import { useCounterStore } from "@/stores/counter.js"
-const store = useCounterStore()
+import { useToastStore } from "@/stores/toast.js"
 
+const store = useCounterStore()
+const toastStore = useToastStore()
 const route = useRoute()
 const router = useRouter()
 const id = route.params.id
 const modalEdit = ref([""])
 const fetchURL = import.meta.env.VITE_API
 
+const localTimeZone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone)
 const newTitle = ref("")
 const newDescription = ref("")
 const newAssignees = ref("")
 const newStatus = ref("")
+
+const originalTitle = ref("")
+const originalAssignee = ref("")
+const originalDescription = ref("")
+const originalStatus = ref("")
 
 const openModalEdit = async () => {
   const data = await fetch(`${fetchURL}/${id}`)
@@ -25,7 +32,11 @@ const openModalEdit = async () => {
   newDescription.value = modalEdit.value.description
   newAssignees.value = modalEdit.value.assignees
   newStatus.value = modalEdit.value.status
-  // console.log(modalEdit.newTitle.value)
+
+  originalTitle.value = modalEdit.value.title
+  originalAssignee.value = modalEdit.value.assignees
+  originalDescription.value = modalEdit.value.description
+  originalStatus.value = modalEdit.value.status
   
   if (!data.ok) {
     router.push("/")
@@ -46,10 +57,10 @@ console.log("Task ID:", id);
 const editTask = async () => {
   const editedTask = {
     id: id,
-    title: newTitle.value,
-    description: newDescription.value,
-    assignees: newAssignees.value,
-    status: newStatus.value,
+    title: newTitle.value.trim(),
+    description: newDescription.value.trim(),
+    assignees: newAssignees.value.trim(),
+    status: newStatus.value.trim(),
   }
   if (!editedTask.title) {
     return
@@ -68,14 +79,9 @@ const editTask = async () => {
       store.updateTask({ ...editedTask })
     }
     closeModal()
-    // emit("close")
-    // emit("openToast", {
-    //   message: "Task updated successfully",
-    //   type: "success",
-    // })
+    toastStore.handleTaskEdited()
   } catch (error) {
     console.error("Error editing task:", error.message)
-    // emit("openToast", { message: "Failed to update task", type: "error" })
   }
 }
 
@@ -205,7 +211,7 @@ const closeModal = () => {
               <button
                 class="ok border"
                 type="submit"
-                :disabled="modalEdit.newTitle === modalEdit.newTitle"
+                :disabled="newTitle === originalTitle && newAssignees === originalAssignee && newDescription === originalDescription && newStatus === originalStatus"
               >
                 Save
               </button>
@@ -321,10 +327,6 @@ h1 {
   display: flex;
   padding: 10px;
 }
-
-/* .detailright {
-  padding: 15px;
-} */
 
 ::-webkit-scrollbar {
   width: 12px;

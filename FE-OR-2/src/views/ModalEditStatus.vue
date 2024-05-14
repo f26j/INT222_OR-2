@@ -1,0 +1,295 @@
+<script setup>
+import { ref } from "vue"
+import { useRouter } from "vue-router"
+import { useStatusStore } from "@/stores/counter.js"
+const store = useStatusStore()
+
+const fetchURL = ref(import.meta.env.VITE_API_STATUS)
+const router = useRouter()
+const newName = ref("")
+const newDescription = ref("")
+const statuses = ref([])
+
+const closeModal = () => {
+  router.push({ path: "/status/manage" })
+}
+
+const addSuccess = ref(false)
+
+const addStatus = async () => {
+  const newStatus = {
+    name: newName.value.trim(),
+    description: newDescription.value.trim(),
+  }
+  if (!newStatus.name) {
+    return
+  }
+  try {
+    const response = await fetch(`${fetchURL.value}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newStatus),
+    })
+    const data = await response.json()
+    if (!response.ok) {
+      showToastAddStatus.value = false
+      addSuccess.value = false
+      throw new Error("Failed to add new status")
+    } else {
+      store.statuses.value.push(data)
+      addSuccess.value = true
+    }
+    emit("close")
+    router.push({ name: "statusView" }).catch(() => {})
+  } catch (error) {
+    addSuccess.value = false
+    console.error("Error adding new status:", error.message)
+  }
+  statuses.value.push(newStatus)
+  newName.value = ""
+  newDescription.value = ""
+}
+</script>
+<template>
+  <div
+    class="details fixed inset-0 overflow-y-auto bg-black bg-opacity-50 z-[999]"
+  >
+    <div
+      class="modalsAddStt rounded-lg text-center shadow-xlp-6 w-min"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div class="itbkk-modal-status">
+        <form @submit.prevent="addStatus">
+          <div class="modal-header">
+            <div class="itbkktitle text-left">
+              <h4>Edit Status</h4>
+            </div>
+          </div>
+          <hr />
+
+          <div class="modal-body">
+            <div class="text-left flex-col">
+              <div class="titlee flex flex-wrap -mx-3 mb-2">
+                <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
+                  <label
+                    class="itbkk-status-name block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                    for="grid-city"
+                  >
+                    Name
+                  </label>
+                  <textarea
+                    class="ttitle-stt appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
+                    id="name"
+                    type="text"
+                    placeholder="Enter name... (Required)"
+                    v-model="newName"
+                    maxlength="50"
+                  ></textarea>
+                </div>
+              </div>
+
+              <div class="itbkk-status-description text-left">
+                <div class="flex flex-wrap -mx-3 mb-2">
+                  <div class="desc w-full md:w-1/3 px-3 mb-6 md:mb-0">
+                    <label
+                      class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                      for="grid-city"
+                      >Description
+                    </label>
+                    <textarea
+                      class="itbkkdesc-stt appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                      id="description"
+                      type="text"
+                      placeholder="Enter description..."
+                      v-model="newDescription"
+                      maxlength="200"
+                    ></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <div class="itbkk-button">
+              <hr />
+              <button
+                @click="closeModal"
+                class="itbkk-button-cancel close border"
+              >
+                Cancel
+              </button>
+              <button
+                @click="$emit('toastAddStatus')"
+                class="itbkk-button-confirm ok border"
+                type="submit"
+                :disabled="newName.length === 0"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style>
+@import url("https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono");
+@import url("https://fonts.googleapis.com");
+@import url("https://fonts.gstatic.com");
+@import url("https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
+
+.modalsAddStt {
+  background-color: #c8badb;
+  color: #3a2864;
+  width: 800px;
+}
+
+.details {
+  color: #47467b;
+  font-family: "Ubuntu", sans-serif;
+  font-weight: 500;
+  font-style: normal;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 3;
+}
+
+.titlee {
+  padding: 10px;
+}
+
+.ttitle-stt {
+  width: 760px;
+  height: 50px;
+}
+
+.itbkkdesc-stt {
+  width: 750px;
+  height: 200px;
+}
+
+.ok {
+  width: 4rem;
+  background-color: rgb(179, 236, 168);
+  color: rgb(15, 82, 21);
+  margin: 10px;
+  float: right;
+  border-radius: 50px;
+  transition: transform 0.3s ease;
+}
+
+.close {
+  width: 4rem;
+  background-color: #cfcfcf;
+  color: #4b4b4b;
+  margin: 10px;
+  margin-right: 20px;
+  float: right;
+  border-radius: 50px;
+  transition: transform 0.3s ease;
+}
+
+.ok:hover {
+  background-color: rgb(28, 126, 36);
+  color: rgb(179, 236, 168);
+}
+
+.ok:disabled {
+  background-color: rgba(128, 128, 128, 0.8);
+  color: #4b4b4b89;
+}
+.ok:disabled:hover {
+  transform: scale(1);
+}
+
+.close:hover {
+  background-color: #b7b5b5;
+  color: #4b4b4b;
+}
+
+.modal-header {
+  color: #47467b;
+  font-family: "Ubuntu", sans-serif;
+  font-weight: 500;
+  font-style: normal;
+  font-size: 30px;
+  margin: 15px;
+  overflow-x: auto;
+}
+
+.modal-header::-webkit-scrollbar {
+  height: 12px;
+}
+
+h1 {
+  padding-bottom: 5px;
+}
+
+h4 {
+  color: #692153;
+}
+
+.modal-body {
+  display: flex;
+  padding: 10px;
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background: #a8a8a8;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9b9b9b;
+}
+
+@media screen and (max-width: 800px) {
+  .modalsAddStt {
+    width: 400px;
+    height: 540px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    padding-bottom: 3rem;
+  }
+
+  .modalsAddStt::-webkit-scrollbar {
+    width: 0px;
+  }
+
+  h1 {
+    padding-bottom: 5px;
+  }
+
+  .modal-body {
+    display: block;
+  }
+
+  .ttitle-stt {
+    width: 22rem;
+    height: 4rem;
+    overflow: hidden;
+  }
+
+  .itbkkdesc-stt {
+    width: 22rem;
+    height: 12rem;
+    overflow: hidden;
+  }
+}
+</style>

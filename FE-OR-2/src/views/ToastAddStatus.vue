@@ -1,15 +1,14 @@
 <script setup>
-import { defineProps, defineEmits} from "vue"
+import { useToastStore } from "@/stores/toast.js"
+const toastStore = useToastStore()
+// import { defineProps, defineEmits} from "vue"
 
-const emit = defineEmits(['close'])
+// const emit = defineEmits(['close'])
 
-const props = defineProps({
-  showToastAddStatus: false,
-  isAddSuccess: false,
-})
-
-
-
+// const props = defineProps({
+//   showToastAddStatus: false,
+//   isAddSuccess: false,
+// })
 </script>
 
 <template>
@@ -52,7 +51,7 @@ const props = defineProps({
               : "An error has occurred, the status could not be added."
           }}</span>
         </div>
-        <i @click="$emit('close')" class="close"></i>
+        <i @click="toastStore.closeToast" class="close"></i>
       </div>
       <div v-if="isAddSuccess" class="progress active"></div>
       <div v-else class="progress inactive"></div>

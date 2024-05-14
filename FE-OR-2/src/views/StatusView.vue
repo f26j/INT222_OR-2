@@ -1,22 +1,22 @@
 <script setup>
 import Bg_effect from "../components/css/Background.vue"
-import HomeView from "../views/HomeView.vue"
 import Copyright from "../components/css/Copyright.vue"
 import ToastAddStatus from "./ToastAddStatus.vue"
 
-import { useRouter, useRoute } from "vue-router"
-import { onMounted, ref, onUnmounted } from "vue"
+import { useRouter } from "vue-router"
+import { onMounted, ref } from "vue"
 import { useStatusStore } from "@/stores/counter.js"
+import { useToastStore } from "@/stores/toast.js"
+import { storeToRefs } from 'pinia'
 
 const store = useStatusStore()
-
+const toastStore = useToastStore()
+const { showToastAddStatus, closeToast } = storeToRefs(toastStore)
 const router = useRouter()
-const fetchURL = ref(import.meta.env.VITE_API_STATUS)
-const name = ref("")
-const description = ref("")
+const fetchURL = import.meta.env.VITE_API_STATUS
 
 async function fetchData() {
-  const response = await fetch(fetchURL.value)
+  const response = await fetch(fetchURL)
   const data = await response.json()
   return data
 }
@@ -28,50 +28,17 @@ onMounted(async () => {
 const openHome = () => {
   router.push({ path: "/task" })
 }
-// const showAdd = ref(false)
+
 const openModalAdd = async () => {
   router.push({ name: "status-add" })
 }
+const openModalEdit = async () => {
+  router.push({ name: "status-edit" })
+}
 
-const showToastAddStatus = ref(false)
 const addSuccess = ref(false)
-const toastAddStatus = () => {
-  showToastAddStatus.value = true
-  setTimeout(() => {
-    showToastAddStatus.value = false
-  }, 5000)
-}
 
-const closeToast = () => {
-  showToastAddStatus.value = false
-}
 
-const closeModal = () => {
-  router.push({ name: "statusView" })
-}
-
-// const confirmDelete = async () => {
-//   try {
-//     showToastDelete.value = true
-//     toastSuccess.value = true
-//     setTimeout(() => {
-//       showToastDelete.value = false
-//       closeModal()
-//     }, 5000)
-//   } catch (error) {
-//     toastSuccess.value = false
-//     setTimeout(() => {
-//       showToastDelete.value = false
-//       closeModal()
-//     }, 5000)
-//     console.error("Error deleting task:", error)
-//   }
-//   return {
-//     showToastDelete,
-//     closeModal,
-//     confirmDelete,
-//   }
-// }
 </script>
 
 <template>
@@ -167,6 +134,7 @@ const closeModal = () => {
                   width="30"
                   height="30"
                   viewBox="0 0 24 24"
+                  @click="openModalEdit"
                 >
                   <path
                     fill="currentColor"
@@ -212,12 +180,6 @@ const closeModal = () => {
     </footer>
     <Bg_effect />
   </div>
-  <!-- <RouterView /> -->
-  <!-- <RouterView
-    :name="name"
-    :description="description"
-    @close="closeModal"
-  /> -->
   <router-view></router-view>
 </template>
 
