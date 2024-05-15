@@ -10,7 +10,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StatusDTO {
-    private Integer id;
+    private Integer statusID;
     private String name;
     private String description;
 }

@@ -29,20 +29,13 @@ public class Task {
     @Convert(converter = CharConverter.class)
     private String assignees;
 
-    @Column(name = "taskStatus", nullable = false)
-    private String status;
+    @ManyToOne
+    @JoinColumn(name = "taskStatus", nullable = false)
+    private Status status;
 
     @Column(name = "createdOn", insertable = false, updatable = false, nullable = false)
     private ZonedDateTime createdOn;
 
     @Column(name = "updatedOn", insertable = false, updatable = false, nullable = false)
     private ZonedDateTime updatedOn;
-
-    public void setStatus(String status) {
-        if (status == null || status.isEmpty()) {
-            this.status = "NO_STATUS";
-        } else {
-            this.status = status;
-        }
-    }
 }

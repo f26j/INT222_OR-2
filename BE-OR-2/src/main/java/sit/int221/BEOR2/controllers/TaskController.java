@@ -15,9 +15,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/v2/tasks")
 @CrossOrigin(origins = {
-        "http://localhost:5173",
-        "http://ip23or2.sit.kmutt.ac.th",
-        "http://intproj23.sit.kmutt.ac.th"
+    "http://localhost:5173",
+    "http://ip23or2.sit.kmutt.ac.th",
+    "http://intproj23.sit.kmutt.ac.th"
 }) // Front-end
 public class TaskController {
     @Autowired
@@ -30,6 +30,7 @@ public class TaskController {
     public List<SimpleTaskDTO> getTasks() {
         List<Task> tasks = taskService.getTasks();
         return tasks.stream().map(task -> new SimpleTaskDTO(task.getId(), task.getTitle(), task.getAssignees(), task.getStatus())).toList();
+//        return tasks;
     }
 
     @GetMapping("/{id}")

@@ -21,7 +21,7 @@ public class StatusService {
     private StatusRepository statusRepository;
 
     public List<Status> getStatuses() {
-        return statusRepository.findAll(Sort.by("id"));
+        return statusRepository.findAll(Sort.by("StatusID"));
     }
 
     public Status addStatus(@RequestBody Status status) {
@@ -32,7 +32,7 @@ public class StatusService {
         if (!statusRepository.existsById(id)) {
             throw new ResourceNotFoundException("The requested task does not exist");
         } else if (statusRepository.existsById(id)) {
-            editedStatus.setId(id);
+            editedStatus.setStatusID(id);
             return statusRepository.save(editedStatus);
         }
         return null;
@@ -52,7 +52,7 @@ public class StatusService {
 
         if (statusRepository.existsById(id)) {
             Status status = statusRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(statusString, pathInstance + id));
-            status.setId(newId);
+            status.setStatusID(newId);
             statusRepository.save(status);
         }
     }
