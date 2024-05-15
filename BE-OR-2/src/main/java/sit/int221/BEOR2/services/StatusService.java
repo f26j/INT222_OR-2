@@ -54,10 +54,10 @@ public class StatusService {
     @Transactional
     public void transferStatus(@PathVariable Integer id, @PathVariable Integer newId) {
         Status deleteId = statusRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(statusString, pathInstance + id));
-        Status transferId = statusRepository.findById(newId).orElseThrow(() -> new TaskNotFoundException(statusString, pathInstance + id));
+        Status transferId = statusRepository.findById(newId).orElse(null);
         List<Task> tasksToUpdate = taskRepository.findByStatus(deleteId);
         tasksToUpdate.forEach(task -> task.setStatus(transferId));
-        taskRepository.saveAll(tasksToUpdate);
+        taskRepository.saveAllAndFlush(tasksToUpdate);
         statusRepository.delete(deleteId);
     }
 }
