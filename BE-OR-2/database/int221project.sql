@@ -30,13 +30,13 @@ CREATE TABLE IF NOT EXISTS task
 
 -- Insert
 INSERT INTO status (statusName, statusDescription)
-VALUES ('NO_STATUS', 'The default status');
+VALUES ('No Status', 'The default status');
 INSERT INTO status (statusName, statusDescription)
-VALUES ('TO_DO', '');
+VALUES ('To Do', '');
 INSERT INTO status (statusName, statusDescription)
-VALUES ('DOING', 'Being worked on');
+VALUES ('Doing', 'Being worked on');
 INSERT INTO status (statusName, statusDescription)
-VALUES ('DONE', 'Finished');
+VALUES ('Done', 'Finished');
 
 INSERT INTO task (taskTitle, taskDescription, taskAssignees, taskStatus, createdOn, updatedOn)
 VALUES ('TaskTitle1TaskTitle2TaskTitle3TaskTitle4TaskTitle5TaskTitle6TaskTitle7TaskTitle8TaskTitle9TaskTitle0',

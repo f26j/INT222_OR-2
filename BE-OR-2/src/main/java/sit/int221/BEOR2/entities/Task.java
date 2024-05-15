@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import sit.int221.BEOR2.utilities.CharConverter;
+import org.springframework.util.StringUtils;
 
 import java.time.ZonedDateTime;
 
@@ -20,15 +20,12 @@ public class Task {
     private Integer id;
 
     @Column(name = "taskTitle", nullable = false, length = 100)
-    @Convert(converter = CharConverter.class)
     private String title;
 
     @Column(name = "taskDescription", length = 500)
-    @Convert(converter = CharConverter.class)
     private String description;
 
     @Column(name = "taskAssignees", length = 30)
-    @Convert(converter = CharConverter.class)
     private String assignees;
 
     @ManyToOne
@@ -40,4 +37,16 @@ public class Task {
 
     @Column(name = "updatedOn", insertable = false, updatable = false, nullable = false)
     private ZonedDateTime updatedOn;
+
+    public void setTitle(String title) {
+        this.title = StringUtils.trimAllWhitespace(title);
+    }
+
+    public void setDescription(String description) {
+        this.description = StringUtils.trimAllWhitespace(description);
+    }
+
+    public void setAssignees(String assignees) {
+        this.assignees = StringUtils.trimAllWhitespace(assignees);
+    }
 }
