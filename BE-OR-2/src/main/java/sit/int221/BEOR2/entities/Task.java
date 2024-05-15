@@ -3,6 +3,7 @@ package sit.int221.BEOR2.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import sit.int221.BEOR2.utilities.CharConverter;
 
 import java.time.ZonedDateTime;
@@ -10,6 +11,7 @@ import java.time.ZonedDateTime;
 @Getter
 @Setter
 @Entity
+@ToString
 @Table(name = "task")
 public class Task {
     @Id

@@ -4,11 +4,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import sit.int221.BEOR2.entities.Status;
+import sit.int221.BEOR2.entities.Task;
 import sit.int221.BEOR2.exceptions.TaskNotFoundException;
 import sit.int221.BEOR2.repositories.StatusRepository;
+import sit.int221.BEOR2.repositories.TaskRepository;
 
 import java.util.List;
 
@@ -19,6 +22,8 @@ public class StatusService {
 
     @Autowired
     private StatusRepository statusRepository;
+    @Autowired
+    private TaskRepository taskRepository;
 
     public List<Status> getStatuses() {
         return statusRepository.findAll(Sort.by("id"));
@@ -46,15 +51,13 @@ public class StatusService {
         }
     }
 
+    @Transactional
     public void transferStatus(@PathVariable Integer id, @PathVariable Integer newId) {
-        if (id.equals(newId)) {
-            return;
-        }
-
-        if (statusRepository.existsById(id)) {
-            Status status = statusRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(statusString, pathInstance + id));
-            status.setId(newId);
-            statusRepository.saveAndFlush(status);
-        }
+        Status deleteId = statusRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(statusString, pathInstance + id));
+        Status transferId = statusRepository.findById(newId).orElseThrow(() -> new TaskNotFoundException(statusString, pathInstance + id));
+        List<Task> tasksToUpdate = taskRepository.findByStatus(deleteId);
+        tasksToUpdate.forEach(task -> task.setStatus(transferId));
+        taskRepository.saveAll(tasksToUpdate);
+        statusRepository.delete(deleteId);
     }
 }

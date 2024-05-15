@@ -3,11 +3,13 @@ package sit.int221.BEOR2.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import sit.int221.BEOR2.utilities.CharConverter;
 
 @Getter
 @Setter
 @Entity
+@ToString
 @Table(name = "status")
 public class Status {
     @Id
