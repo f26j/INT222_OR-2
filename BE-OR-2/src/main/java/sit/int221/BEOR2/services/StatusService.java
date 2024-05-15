@@ -21,7 +21,7 @@ public class StatusService {
     private StatusRepository statusRepository;
 
     public List<Status> getStatuses() {
-        return statusRepository.findAll(Sort.by("StatusID"));
+        return statusRepository.findAll(Sort.by("id"));
     }
 
     public Status addStatus(@RequestBody Status status) {
@@ -32,15 +32,16 @@ public class StatusService {
         if (!statusRepository.existsById(id)) {
             throw new ResourceNotFoundException("The requested task does not exist");
         } else if (statusRepository.existsById(id)) {
-            editedStatus.setStatusID(id);
-            return statusRepository.save(editedStatus);
+            editedStatus.setId(id);
+            return statusRepository.saveAndFlush(editedStatus);
         }
         return null;
     }
 
     public void deleteStatus(@PathVariable Integer id) {
-        Status status = statusRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(statusString, pathInstance + id));
-        if (!"NO_STATUS".equals(status.getName())) {
+        if (!statusRepository.existsById(id)) {
+            throw new TaskNotFoundException(statusString, pathInstance + id);
+        } else if (statusRepository.existsById(id)) {
             statusRepository.deleteById(id);
         }
     }
@@ -52,8 +53,8 @@ public class StatusService {
 
         if (statusRepository.existsById(id)) {
             Status status = statusRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(statusString, pathInstance + id));
-            status.setStatusID(newId);
-            statusRepository.save(status);
+            status.setId(newId);
+            statusRepository.saveAndFlush(status);
         }
     }
 }

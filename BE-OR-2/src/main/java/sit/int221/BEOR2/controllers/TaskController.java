@@ -30,7 +30,6 @@ public class TaskController {
     public List<SimpleTaskDTO> getTasks() {
         List<Task> tasks = taskService.getTasks();
         return tasks.stream().map(task -> new SimpleTaskDTO(task.getId(), task.getTitle(), task.getAssignees(), task.getStatus())).toList();
-//        return tasks;
     }
 
     @GetMapping("/{id}")

@@ -27,7 +27,7 @@ public class StatusController {
     @ResponseStatus(HttpStatus.OK) // 200
     public List<StatusDTO> getStatuses() {
         List<Status> statuses = statusService.getStatuses();
-        return statuses.stream().map(status -> new StatusDTO(status.getStatusID(), status.getName(), status.getDescription())).toList();
+        return statuses.stream().map(status -> new StatusDTO(status.getId(), status.getName(), status.getDescription())).toList();
     }
 
     @PostMapping

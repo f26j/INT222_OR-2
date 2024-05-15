@@ -8,6 +8,7 @@ USE int221project;
 DROP TABLE IF EXISTS task;
 DROP TABLE IF EXISTS status;
 
+-- Table
 CREATE TABLE IF NOT EXISTS status
 (
     id                INT PRIMARY KEY AUTO_INCREMENT,
@@ -26,7 +27,6 @@ CREATE TABLE IF NOT EXISTS task
     updatedOn       DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_task_status FOREIGN KEY (taskStatus) REFERENCES status (id)
 );
-
 
 -- Insert
 INSERT INTO status (statusName, statusDescription)

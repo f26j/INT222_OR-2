@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import sit.int221.BEOR2.entities.Status;
 
 import java.time.ZonedDateTime;
 
@@ -16,7 +17,7 @@ public class TaskDTO {
     private String title;
     private String description;
     private String assignees;
-    private String status;
+    private Status status;
     private ZonedDateTime createdOn;
     private ZonedDateTime updatedOn;
 }

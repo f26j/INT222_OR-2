@@ -5,8 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 import sit.int221.BEOR2.utilities.CharConverter;
 
-import java.util.List;
-
 @Getter
 @Setter
 @Entity
@@ -15,7 +13,7 @@ public class Status {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    private Integer statusID;
+    private Integer id;
 
     @Column(name = "statusName", nullable = false, length = 50, unique = true)
     @Convert(converter = CharConverter.class)
