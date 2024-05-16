@@ -15,7 +15,7 @@ import java.util.List;
 @Service
 public class TaskService {
     private final String statusString = "NOT FOUND";
-    private final String pathInstance = "/v2/tasks";
+    private final String pathInstance = "/v2/tasks/";
 
     @Autowired
     private TaskRepository taskRepository;

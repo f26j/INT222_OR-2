@@ -24,10 +24,10 @@ public class Status {
     private String description;
 
     public void setName(String name) {
-        this.name = StringUtils.trimAllWhitespace(name);
+        this.name = StringUtils.trimWhitespace(name);
     }
 
     public void setDescription(String description) {
-        this.description = StringUtils.trimAllWhitespace(description);
+        this.description = StringUtils.trimWhitespace(description);
     }
 }

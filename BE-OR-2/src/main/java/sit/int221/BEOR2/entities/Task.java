@@ -39,14 +39,14 @@ public class Task {
     private ZonedDateTime updatedOn;
 
     public void setTitle(String title) {
-        this.title = StringUtils.trimAllWhitespace(title);
+        this.title = StringUtils.trimWhitespace(title);
     }
 
     public void setDescription(String description) {
-        this.description = StringUtils.trimAllWhitespace(description);
+        this.description = StringUtils.trimWhitespace(description);
     }
 
     public void setAssignees(String assignees) {
-        this.assignees = StringUtils.trimAllWhitespace(assignees);
+        this.assignees = StringUtils.trimWhitespace(assignees);
     }
 }

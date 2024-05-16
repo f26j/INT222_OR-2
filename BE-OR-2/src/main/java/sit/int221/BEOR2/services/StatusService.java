@@ -18,7 +18,7 @@ import java.util.List;
 @Service
 public class StatusService {
     private final String statusString = "NOT FOUND";
-    private final String pathInstance = "/v2/statuses";
+    private final String pathInstance = "/v2/statuses/";
 
     @Autowired
     private StatusRepository statusRepository;
