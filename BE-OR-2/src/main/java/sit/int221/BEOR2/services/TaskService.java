@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import sit.int221.BEOR2.entities.Task;
 import sit.int221.BEOR2.exceptions.TaskNotFoundException;
@@ -27,24 +28,31 @@ public class TaskService {
         return taskRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Task id " + id + " does not exist !!!"));
     }
 
+    @Transactional
     public Task addTask(@RequestBody Task task) {
         return taskRepository.saveAndFlush(task);
     }
 
+    @Transactional
     public Task editTask(@PathVariable Integer id, @RequestBody Task editedTask) {
         if (!taskRepository.existsById(id)) {
             throw new TaskNotFoundException(statusString, pathInstance + id);
-        } else if (taskRepository.existsById(id)) {
+        }
+
+        if (taskRepository.existsById(id)) {
             editedTask.setId(id);
             return taskRepository.saveAndFlush(editedTask);
         }
         return null;
     }
 
+    @Transactional
     public void deleteTask(@PathVariable Integer id) {
         if (!taskRepository.existsById(id)) {
             throw new TaskNotFoundException(statusString, pathInstance + id);
-        } else if (taskRepository.existsById(id)) {
+        }
+
+        if (taskRepository.existsById(id)) {
             taskRepository.deleteById(id);
         }
     }

@@ -29,24 +29,31 @@ public class StatusService {
         return statusRepository.findAll(Sort.by("id"));
     }
 
+    @Transactional
     public Status addStatus(@RequestBody Status status) {
         return statusRepository.saveAndFlush(status);
     }
 
+    @Transactional
     public Status editStatus(@PathVariable Integer id, @RequestBody Status editedStatus) {
         if (!statusRepository.existsById(id)) {
             throw new ResourceNotFoundException("The requested task does not exist");
-        } else if (statusRepository.existsById(id)) {
+        }
+
+        if (statusRepository.existsById(id)) {
             editedStatus.setId(id);
             return statusRepository.saveAndFlush(editedStatus);
         }
         return null;
     }
 
+    @Transactional
     public void deleteStatus(@PathVariable Integer id) {
         if (!statusRepository.existsById(id)) {
             throw new TaskNotFoundException(statusString, pathInstance + id);
-        } else if (statusRepository.existsById(id)) {
+        }
+
+        if (statusRepository.existsById(id)) {
             statusRepository.deleteById(id);
         }
     }
@@ -54,10 +61,12 @@ public class StatusService {
     @Transactional
     public void transferStatus(@PathVariable Integer id, @PathVariable Integer newId) {
         Status deleteId = statusRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(statusString, pathInstance + id));
-        Status transferId = statusRepository.findById(newId).orElse(null);
-        List<Task> tasksToUpdate = taskRepository.findByStatus(deleteId);
-        tasksToUpdate.forEach(task -> task.setStatus(transferId));
-        taskRepository.saveAllAndFlush(tasksToUpdate);
+        Status transferId = statusRepository.findById(newId).orElseThrow(() -> new TaskNotFoundException(statusString, pathInstance + id));
+        List<Task> tasks = taskRepository.findByStatus(deleteId);
+        for (Task task : tasks) {
+            task.setStatus(transferId);
+        }
+        taskRepository.saveAllAndFlush(tasks);
         statusRepository.delete(deleteId);
     }
 }
