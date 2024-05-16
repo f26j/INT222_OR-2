@@ -211,7 +211,7 @@ const openStatus = () => {
     </header>
     <main>
       <div class="body">
-        <div class="itbkk-manage-status">
+        <!-- <div class="itbkk-manage-status">
           <button type="button" class="btn-status flex" @click="openStatus">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -226,7 +226,7 @@ const openStatus = () => {
             </svg>
             <p>Manage Status</p>
           </button>
-        </div>
+        </div> -->
 
         <div class="btn-add" v-for="task in store.tasks.value">
           <div
