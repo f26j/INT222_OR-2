@@ -7,6 +7,6 @@ RUN mvn clean package
 
 # Production stage
 FROM openjdk:17-jdk-alpine AS PRODUCTION_STAGE
-COPY --from=BUILD_STAGE /target/app.jar /app.jar
+COPY --from=BUILD_STAGE /bev1/target/app.jar /app.jar
 EXPOSE 8080
 CMD ["java", "-jar", "/app.jar"]

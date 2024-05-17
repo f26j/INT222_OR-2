@@ -36,10 +36,10 @@ const closeModal = () => {
 const editTask = async () => {
   const editedTask = {
     id: id,
-    title: newTitle.value,
-    description: newDescription.value,
-    assignees: newAssignees.value,
-    status: newStatus.value,
+    title: newTitle.value.trim(),
+    description: newDescription.value.trim(),
+    assignees: newAssignees.value.trim(),
+    status: newStatus.value.trim(),
     updatedOn: new Date(),
   };
   if (!editedTask.title) {

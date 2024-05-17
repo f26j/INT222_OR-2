@@ -21,10 +21,10 @@ const closeModal = () => {
 
 const addTask = async () => {
   const newTask = {
-    title: newTitle.value,
-    description: newDescription.value,
-    assignees: newAssignees.value,
-    status: newStatus.value,
+    title: newTitle.value.trim(),
+    description: newDescription.value.trim() === "" ? null : newDescription.value.trim(),
+    assignees: newAssignees.value.trim() === "" ? null : newAssignees.value.trim(),
+    status: newStatus.value.trim(),
     createdOn: new Date(),
     updatedOn: new Date(),
   };
