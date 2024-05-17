@@ -1,8 +1,8 @@
 -- Database
-CREATE DATABASE IF NOT EXISTS int221project;
+CREATE DATABASE IF NOT EXISTS itbkk_v1;
 
 -- Use
-USE int221project;
+USE itbkk_v1;
 
 -- Drop
 DROP TABLE IF EXISTS task;
