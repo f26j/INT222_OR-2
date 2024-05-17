@@ -1,5 +1,6 @@
 # Build stage
 FROM maven:3.8.5-openjdk-17 AS BUILD_STAGE
+WORKDIR /bev1
 COPY pom.xml .
 COPY src ./src
 RUN mvn clean package
