@@ -3,10 +3,12 @@ package sit.int221.BEOR2.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.server.ResponseStatusException;
 import sit.int221.BEOR2.entities.Status;
 import sit.int221.BEOR2.entities.Task;
 import sit.int221.BEOR2.exceptions.TaskNotFoundException;
@@ -29,6 +31,10 @@ public class StatusService {
         return statusRepository.findAll(Sort.by("id"));
     }
 
+    public Status getStatusById(@PathVariable Integer id) {
+        return statusRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Status id " + id + " does not exist !!!"));
+    }
+
     @Transactional
     public Status addStatus(@RequestBody Status status) {
         return statusRepository.saveAndFlush(status);
@@ -41,6 +47,9 @@ public class StatusService {
         }
 
         if (statusRepository.existsById(id)) {
+            if (editedStatus.getId() == 1) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            }
             editedStatus.setId(id);
             return statusRepository.saveAndFlush(editedStatus);
         }

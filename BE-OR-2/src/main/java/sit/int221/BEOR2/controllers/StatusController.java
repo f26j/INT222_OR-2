@@ -30,6 +30,12 @@ public class StatusController {
         return statuses.stream().map(status -> new StatusDTO(status.getId(), status.getName(), status.getDescription())).toList();
     }
 
+    @GetMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK) // 200
+    public StatusDTO getStatusById(@PathVariable Integer id) {
+        return modelMapper.map(statusService.getStatusById(id), StatusDTO.class);
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED) // 201
     public StatusDTO addStatus(@RequestBody Status status) {

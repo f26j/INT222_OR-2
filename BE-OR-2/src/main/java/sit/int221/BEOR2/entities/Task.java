@@ -43,10 +43,18 @@ public class Task {
     }
 
     public void setDescription(String description) {
-        this.description = StringUtils.trimWhitespace(description);
+        if (description == null || description.isEmpty()) {
+            this.description = null;
+        } else {
+            this.description = StringUtils.trimWhitespace(description);
+        }
     }
 
     public void setAssignees(String assignees) {
-        this.assignees = StringUtils.trimWhitespace(assignees);
+        if (description == null || description.isEmpty()) {
+            this.description = null;
+        } else {
+            this.description = StringUtils.trimWhitespace(description);
+        }
     }
 }
