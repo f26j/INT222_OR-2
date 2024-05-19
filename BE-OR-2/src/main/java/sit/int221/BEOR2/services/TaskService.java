@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import sit.int221.BEOR2.entities.Task;
 import sit.int221.BEOR2.exceptions.TaskNotFoundException;
+import sit.int221.BEOR2.repositories.StatusRepository;
 import sit.int221.BEOR2.repositories.TaskRepository;
 
 import java.util.List;
@@ -22,7 +23,7 @@ public class TaskService {
     @Autowired
     private TaskRepository taskRepository;
     @Autowired
-    private StatusService statusService;
+    private StatusRepository statusRepository;
 
     public List<Task> getTasks() {
         return taskRepository.findAll(Sort.by("id"));
@@ -34,10 +35,10 @@ public class TaskService {
 
     @Transactional
     public Task addTask(@RequestBody Task task) {
-        if (task.getStatus() == null) {
+        if (!statusRepository.existsById(task.getStatus().getId()) || task.getStatus().getId() == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
-        statusService.getStatusById(task.getStatus().getId());
+        statusRepository.findById(task.getStatus().getId());
         return taskRepository.saveAndFlush(task);
     }
 
