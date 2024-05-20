@@ -13,7 +13,7 @@ import java.time.ZonedDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TaskDTO {
-    private Integer id;
+    private int id;
     private String title;
     private String description;
     private String assignees;

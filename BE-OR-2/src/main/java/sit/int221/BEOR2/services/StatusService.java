@@ -30,7 +30,7 @@ public class StatusService {
         return statusRepository.findAll(Sort.by("id"));
     }
 
-    public Status getStatusById(@PathVariable Integer id) {
+    public Status getStatusById(@PathVariable int id) {
         return statusRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Status id " + id + " does not exist !!!"));
     }
 
@@ -40,7 +40,7 @@ public class StatusService {
     }
 
     @Transactional
-    public Status editStatus(@PathVariable Integer id, @RequestBody Status editedStatus) {
+    public Status editStatus(@PathVariable int id, @RequestBody Status editedStatus) {
         if (!statusRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "The requested task does not exist");
         }
@@ -57,7 +57,7 @@ public class StatusService {
     }
 
     @Transactional
-    public void deleteStatus(@PathVariable Integer id) {
+    public void deleteStatus(@PathVariable int id) {
         if (!statusRepository.existsById(id)) {
             throw new APINotFoundException(statusString, pathInstance + id);
         }
@@ -68,8 +68,8 @@ public class StatusService {
     }
 
     @Transactional
-    public void transferStatus(@PathVariable Integer id, @PathVariable Integer newId) {
-        if (newId.equals(id)) {
+    public void transferStatus(@PathVariable int id, @PathVariable int newId) {
+        if (newId == id) {
             return;
         }
 

@@ -13,7 +13,7 @@ import java.util.Date;
 @NoArgsConstructor
 public class ErrorResponse {
     private Date timestamp;
-    private Integer status;
+    private int status;
     private String message;
     private String instance;
 }
