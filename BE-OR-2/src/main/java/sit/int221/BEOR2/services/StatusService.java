@@ -2,7 +2,6 @@ package sit.int221.BEOR2.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.server.ResponseStatusException;
 import sit.int221.BEOR2.entities.Status;
 import sit.int221.BEOR2.entities.Task;
-import sit.int221.BEOR2.exceptions.TaskNotFoundException;
+import sit.int221.BEOR2.exceptions.APINotFoundException;
 import sit.int221.BEOR2.repositories.StatusRepository;
 import sit.int221.BEOR2.repositories.TaskRepository;
 
@@ -32,7 +31,7 @@ public class StatusService {
     }
 
     public Status getStatusById(@PathVariable Integer id) {
-        return statusRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Status id " + id + " does not exist !!!"));
+        return statusRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Status id " + id + " does not exist !!!"));
     }
 
     @Transactional
@@ -43,13 +42,14 @@ public class StatusService {
     @Transactional
     public Status editStatus(@PathVariable Integer id, @RequestBody Status editedStatus) {
         if (!statusRepository.existsById(id)) {
-            throw new ResourceNotFoundException("The requested task does not exist");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "The requested task does not exist");
+        }
+
+        if (editedStatus.getId() == 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
         if (statusRepository.existsById(id)) {
-            if (editedStatus.getId() == 1) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-            }
             editedStatus.setId(id);
             return statusRepository.saveAndFlush(editedStatus);
         }
@@ -59,7 +59,7 @@ public class StatusService {
     @Transactional
     public void deleteStatus(@PathVariable Integer id) {
         if (!statusRepository.existsById(id)) {
-            throw new TaskNotFoundException(statusString, pathInstance + id);
+            throw new APINotFoundException(statusString, pathInstance + id);
         }
 
         if (statusRepository.existsById(id)) {
@@ -69,12 +69,18 @@ public class StatusService {
 
     @Transactional
     public void transferStatus(@PathVariable Integer id, @PathVariable Integer newId) {
-        Status deleteId = statusRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(statusString, pathInstance + id));
-        Status transferId = statusRepository.findById(newId).orElseThrow(() -> new TaskNotFoundException(statusString, pathInstance + id));
+        if (newId.equals(id)) {
+            return;
+        }
+
+        Status deleteId = statusRepository.findById(id).orElseThrow(() -> new APINotFoundException(statusString, pathInstance + id));
+        Status transferId = statusRepository.findById(newId).orElse(null);
         List<Task> tasks = taskRepository.findByStatus(deleteId);
+
         for (Task task : tasks) {
             task.setStatus(transferId);
         }
+
         taskRepository.saveAllAndFlush(tasks);
         statusRepository.delete(deleteId);
     }

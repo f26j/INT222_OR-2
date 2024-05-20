@@ -51,10 +51,10 @@ public class Task {
     }
 
     public void setAssignees(String assignees) {
-        if (description == null || description.isEmpty()) {
-            this.description = null;
+        if (assignees == null || assignees.isEmpty()) {
+            this.assignees = null;
         } else {
-            this.description = StringUtils.trimWhitespace(description);
+            this.assignees = StringUtils.trimWhitespace(assignees);
         }
     }
 }
