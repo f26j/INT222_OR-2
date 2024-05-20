@@ -11,7 +11,7 @@ import sit.int221.BEOR2.entities.Status;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SimpleTaskDTO {
-    private int id;
+    private Integer id;
     private String title;
     private String assignees;
     private Status status;

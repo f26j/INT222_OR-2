@@ -34,7 +34,7 @@ public class TaskController {
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public TaskDTO getTaskById(@PathVariable int id) {
+    public TaskDTO getTaskById(@PathVariable Integer id) {
         return modelMapper.map(taskService.getTaskById(id), TaskDTO.class);
     }
 
@@ -46,13 +46,13 @@ public class TaskController {
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public AddEditTaskDTO editTask(@PathVariable int id, @RequestBody Task editedTask) {
+    public AddEditTaskDTO editTask(@PathVariable Integer id, @RequestBody Task editedTask) {
         return modelMapper.map(taskService.editTask(id, editedTask), AddEditTaskDTO.class);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public void deleteTask(@PathVariable int id) {
+    public void deleteTask(@PathVariable Integer id) {
         taskService.deleteTask(id);
     }
 }

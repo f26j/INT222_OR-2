@@ -27,7 +27,7 @@ public class StatusController {
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public Status getStatusById(@PathVariable int id) {
+    public Status getStatusById(@PathVariable Integer id) {
         return statusService.getStatusById(id);
     }
 
@@ -39,19 +39,19 @@ public class StatusController {
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public Status editStatus(@PathVariable int id, @RequestBody Status editedStatus) {
+    public Status editStatus(@PathVariable Integer id, @RequestBody Status editedStatus) {
         return statusService.editStatus(id, editedStatus);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public void deleteStatus(@PathVariable int id) {
+    public void deleteStatus(@PathVariable Integer id) {
         statusService.deleteStatus(id);
     }
 
     @DeleteMapping("/{id}/{newId}")
     @ResponseStatus(HttpStatus.OK)
-    public void transferStatus(@PathVariable int id, @PathVariable int newId) {
+    public void transferStatus(@PathVariable Integer id, @PathVariable Integer newId) {
         statusService.transferStatus(id, newId);
     }
 }

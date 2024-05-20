@@ -28,7 +28,7 @@ public class TaskService {
         return taskRepository.findAll(Sort.by("id"));
     }
 
-    public Task getTaskById(@PathVariable int id) {
+    public Task getTaskById(@PathVariable Integer id) {
         return taskRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task id " + id + " does not exist !!!"));
     }
 
@@ -42,7 +42,7 @@ public class TaskService {
     }
 
     @Transactional
-    public Task editTask(@PathVariable int id, @RequestBody Task editedTask) {
+    public Task editTask(@PathVariable Integer id, @RequestBody Task editedTask) {
         if (!taskRepository.existsById(id)) {
             throw new APINotFoundException(statusString, pathInstance + id);
         }
@@ -55,7 +55,7 @@ public class TaskService {
     }
 
     @Transactional
-    public void deleteTask(@PathVariable int id) {
+    public void deleteTask(@PathVariable Integer id) {
         if (!taskRepository.existsById(id)) {
             throw new APINotFoundException(statusString, pathInstance + id);
         }

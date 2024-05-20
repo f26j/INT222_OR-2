@@ -11,7 +11,7 @@ import sit.int221.BEOR2.entities.Status;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AddEditTaskDTO {
-    private int id;
+    private Integer id;
     private String title;
     private String description;
     private String assignees;
