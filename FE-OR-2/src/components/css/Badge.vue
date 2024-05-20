@@ -1,29 +1,29 @@
 <script setup>
-import { computed,defineProps } from 'vue';
-
+import { ref, computed, defineProps } from 'vue';
+import { useCounterStore } from "@/stores/counter.js";
 const props = defineProps({
-  status : String
+  status : Object
 })
-
+const store = useCounterStore();
 const className = computed(() => {
-  switch (props.status) {
-        case "TO_DO":
-          return "status-To";
-        case "DONE":
-          return "status-Done";
-        case "DOING":
-          return "status-Doing";
-        case "NO_STATUS":
-          return "status-No";
-        default:
-          return "";
-      }
-});
+  switch (props.status.id) {
+    case 2:
+      return "status-To";
+    case 4:
+      return "status-Done";
+    case 3:
+      return "status-Doing";
+    case 1:
+      return "status-No";
+    default:
+      return "status-New";
+}});
+console.log(props.status.name)
 </script>
 
 <template>
   <div :class="{ 'status-badge': true, [className]: status }">
-    <span v-if="status === 'TO_DO'" class="flex-align-items">
+    <span v-if="status.id === 2" class="flex-align-items">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="1em"
@@ -37,7 +37,7 @@ const className = computed(() => {
       </svg>
       To Do
     </span>
-    <span v-if="status === 'DONE'" class="flex-align-items">
+    <span v-if="status.id === 4" class="flex-align-items">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="1em"
@@ -51,7 +51,7 @@ const className = computed(() => {
       </svg>
       Done
     </span>
-    <span v-if="status === 'DOING'" class="flex-align-items">
+    <span v-if="status.id === 3" class="flex-align-items">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="1em"
@@ -65,7 +65,7 @@ const className = computed(() => {
       </svg>
       Doing
     </span>
-    <span v-if="status === 'NO_STATUS'" class="flex-align-items">
+    <span v-if="status.id === 1" class="flex-align-items">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="1em"
@@ -79,6 +79,21 @@ const className = computed(() => {
       </svg>
       No Status
     </span>
+    <span v-if="status.id >= 5" class="flex-align-items">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="1em"
+        height="1em"
+        viewBox="0 0 2048 2048"
+      >
+        <path
+          fill="currentColor"
+          d="M960 0q132 0 255 34t229 97t194 150t150 194t97 230t35 255q0 133-34 255t-97 229t-150 194t-194 150t-230 97t-255 35q-133 0-255-34t-229-97t-194-150t-150-194t-97-230T0 960q0-132 34-255t97-229t150-194t194-150t230-97T960 0m576 1024V896H384v128z"
+        ></path>
+      </svg>
+      {{ props.status.name}}
+    </span>
+    
   </div>
 </template>
 <style>
@@ -116,6 +131,12 @@ const className = computed(() => {
 .status-Done {
   color: #00725b;
   background-color: #d9fbea;
+  animation: neon-white 1.5s ease-in-out infinite alternate;
+}
+
+.status-New {
+  color: #00725b;
+  background-color: #ffaef7;
   animation: neon-white 1.5s ease-in-out infinite alternate;
 }
 

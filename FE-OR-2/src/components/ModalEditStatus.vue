@@ -1,29 +1,50 @@
 <script setup>
-// import zone
-import { ref } from "vue"
-import { useRouter } from "vue-router"
+import { ref, onMounted } from "vue"
+import { useRoute, useRouter } from "vue-router"
 import { useStatusStore } from "@/stores/counter.js"
 import { useToastStore } from "@/stores/toast.js"
-
-// const zone
 const store = useStatusStore()
-const toastStore = useToastStore()
-const fetchURL = ref(import.meta.env.VITE_API_STATUS)
+
+const fetchStatus = import.meta.env.VITE_API_STATUS
+const route = useRoute()
 const router = useRouter()
+const toastStore = useToastStore()
 const newName = ref("")
 const newDescription = ref("")
 const statuses = ref([])
-const addSuccess = ref(false)
+const modalEditStatus = ref([""])
+const id = route.params.id
 
-
-// function zone
+const originalName = ref("")
+const originalDescription = ref("")
 
 const closeModal = () => {
-  router.push({ name: "statusView" })
+  router.push({ path: "/status/manage" })
 }
 
-const addStatus = async () => {
+async function getStatus() {
+  const data = await fetch(fetchStatus)
+  const res = await data.json()
+  console.log(res)
+  const selectId = res.find((status) => status.id == id)
+  console.log(selectId)
+
+  newName.value = selectId.name
+  newDescription.value = selectId.description
+
+  originalName.value = selectId.name
+  originalDescription.value = selectId.description
+}
+
+onMounted(() => {
+  getStatus()
+})
+
+const editSuccess = ref(false)
+
+const editStatus = async () => {
   const newStatus = {
+    id: id,
     name: newName.value.trim(),
     description: newDescription.value.trim(),
   }
@@ -31,8 +52,8 @@ const addStatus = async () => {
     return
   }
   try {
-    const response = await fetch(`${fetchURL.value}`, {
-      method: "POST",
+    const response = await fetch(`${fetchStatus}/${id}`, {
+      method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
@@ -40,21 +61,26 @@ const addStatus = async () => {
     })
     const data = await response.json()
     if (!response.ok) {
-      throw new Error("Failed to add new status")
+      toastStore.handleStatusEditedF()
+      throw new Error("Failed to edit new status")
     } else {
-      store.statuses.value.push(data)
-      toastStore.handleStatusAdded()
+      const statusIndex = store.statuses.value.findIndex(
+        (status) => status.id == id
+      )
+      toastStore.handleStatusEdited()
+      store.statuses.value.splice(statusIndex, 1, data)
     }
-    closeModal()
+    router.push({ name: "statusView" }).catch(() => {})
   } catch (error) {
-    toastStore.handleStatusAddedF()
+    editSuccess.value = false
+    toastStore.handleStatusEditedF()
     console.error("Error adding new status:", error.message)
-    closeModal()
   }
   statuses.value.push(newStatus)
   newName.value = ""
   newDescription.value = ""
 }
+
 </script>
 <template>
   <div
@@ -69,7 +95,7 @@ const addStatus = async () => {
         <form @submit.prevent="addStatus">
           <div class="modal-header">
             <div class="itbkktitle text-left">
-              <h4>Add New Status</h4>
+              <h4>Edit Status</h4>
             </div>
           </div>
           <hr />
@@ -79,13 +105,13 @@ const addStatus = async () => {
               <div class="titlee flex flex-wrap -mx-3 mb-2">
                 <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
                   <label
-                    class="itbkk-status-name block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                    class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
                     for="grid-city"
                   >
                     Name
                   </label>
                   <textarea
-                    class="ttitle-stt appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
+                    class="itbkk-status-name ttitle-stt appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
                     id="name"
                     type="text"
                     placeholder="Enter name... (Required)"
@@ -95,7 +121,7 @@ const addStatus = async () => {
                 </div>
               </div>
 
-              <div class="itbkk-status-description text-left">
+              <div class="text-left">
                 <div class="flex flex-wrap -mx-3 mb-2">
                   <div class="desc w-full md:w-1/3 px-3 mb-6 md:mb-0">
                     <label
@@ -104,7 +130,7 @@ const addStatus = async () => {
                       >Description
                     </label>
                     <textarea
-                      class="itbkkdesc-stt appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                      class="itbkk-status-description itbkkdesc-stt appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                       id="description"
                       type="text"
                       placeholder="Enter description..."
@@ -127,10 +153,14 @@ const addStatus = async () => {
                 Cancel
               </button>
               <button
-                @click="$emit('toastAddStatus')"
+                @click="editStatus"
                 class="itbkk-button-confirm ok border"
                 type="submit"
-                :disabled="newName.length === 0"
+                :disabled="
+                  newName?.length === 0 ||
+                  (newName === originalName &&
+                    newDescription === originalDescription)
+                "
               >
                 Save
               </button>
@@ -177,6 +207,21 @@ const addStatus = async () => {
 .itbkkdesc-stt {
   width: 750px;
   height: 200px;
+}
+
+.time {
+  padding-left: 15px;
+  padding-bottom: 10px;
+}
+
+.itbkk-timezone {
+  justify-content: center;
+  align-items: center;
+}
+
+.itbkk-created-on {
+  justify-content: center;
+  align-items: center;
 }
 
 .ok {

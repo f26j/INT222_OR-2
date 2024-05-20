@@ -1,51 +1,65 @@
 <script setup>
-import { ref, defineEmits } from "vue";
+import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { useToastStore } from "@/stores/toast.js"
-import { useCounterStore } from "@/stores/counter.js"
-const store = useCounterStore()
-const toastStore = useToastStore()
+import { useToastStore } from "@/stores/toast.js";
+import { useCounterStore } from "@/stores/counter.js";
 
-const fetchURL = ref(import.meta.env.VITE_API);
+// Store,Api zone
+const fetchTask = import.meta.env.VITE_API_TASK;
+const fetchStatus = import.meta.env.VITE_API_STATUS;
 const router = useRouter();
+const store = useCounterStore();
+const toastStore = useToastStore();
+
+// Variable zone
 const newTitle = ref("");
 const newDescription = ref("");
 const newAssignees = ref("");
-const newStatus = ref("NO_STATUS");
+const newStatus = ref({
+  id: 1,
+  name: "No Status",
+  description: "The default status",
+});
 
-const emit = defineEmits(['close','openToast','toastAdd'])
+async function fetchDataStatus() {
+  const response = await fetch(fetchStatus)
+  const dataStatus = await response.json()
+  return dataStatus
+}
 
-const closeModal = () => {
-  router.push({ path: "/task" });
-};
+onMounted(async () => {
+  const datastatus = await fetchDataStatus()
+  store.status.value = datastatus
+});
 
 const addTask = async () => {
   const newTask = {
     title: newTitle.value.trim(),
-    description: newDescription.value.trim() === "" ? null : newDescription.value.trim(),
-  assignees: newAssignees.value.trim() === "" ? null : newAssignees.value.trim(),
-    status: newStatus.value.trim(),
-    createdOn: new Date(),
-    updatedOn: new Date(),
+    description:
+      newDescription.value.trim() === "" ? null : newDescription.value.trim(),
+    assignees:
+      newAssignees.value.trim() === "" ? null : newAssignees.value.trim(),
+    status: store.status.value.find(status => status.name == newStatus.value.name),
   };
-  if(!newTask.title){
-    return
+  if (!newTask.title) {
+    return;
   }
   try {
-    const response = await fetch(`${fetchURL.value}`, {
+    const response = await fetch(fetchTask, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(newTask),
     });
-    const data = await response.json()
+    const data = await response.json();
     if (!response.ok) {
       throw new Error("Failed to add new task");
-    }else{
-      store.tasks.value.push(data)
+    } else {
+      console.log(data)
+      store.tasks.value.push(data);
     }
-    toastStore.handleTaskAdded()
+    toastStore.handleTaskAdded();
     router.push({ name: "task" }).catch(() => {});
   } catch (error) {
     console.error("Error adding new task:", error.message);
@@ -53,7 +67,15 @@ const addTask = async () => {
   newTitle.value = "";
   newDescription.value = "";
   newAssignees.value = "";
-  newStatus.value = "NO_STATUS";
+  newStatus.value = {
+    statusID: 1,
+    name: "NO_STATUS",
+    description: "The default status",
+  };
+};
+
+const closeModal = () => {
+  router.push({ path: "/task" });
 };
 </script>
 <template>
@@ -145,12 +167,9 @@ const addTask = async () => {
                       <select
                         class="statusbx block w-60 bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                         id="grid-state"
-                        v-model="newStatus"
+                        v-model="newStatus.name"
                       >
-                        <option value="NO_STATUS">No Status</option>
-                        <option value="TO_DO">To Do</option>
-                        <option value="DOING">Doing</option>
-                        <option value="DONE">Done</option>
+                      <option v-for="(status, index) in store.status.value" :selected="status.name == newStatus.value">{{ status.name }}</option>
                       </select>
                     </div>
                   </div>
@@ -161,14 +180,9 @@ const addTask = async () => {
             <div class="modal-footer">
               <div class="itbkk-button">
                 <hr />
+                <button @click="closeModal" class="close border">Cancel</button>
                 <button
-                  @click="closeModal"
-                  class="close border"
-                >
-                  Cancel
-                </button>
-                <button
-                @click="$emit('toastAdd')"
+                  @click="$emit('toastAdd')"
                   class="ok border"
                   type="submit"
                   :disabled="newTitle.length === 0"
@@ -257,7 +271,6 @@ const addTask = async () => {
 .ok:disabled:hover {
   transform: scale(1);
 }
-
 
 .close:hover {
   background-color: rgb(163, 42, 48);

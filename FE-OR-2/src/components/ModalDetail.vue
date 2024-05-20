@@ -1,28 +1,28 @@
 <script setup>
-import { onMounted, ref, defineEmits, defineProps } from "vue"
+import { onMounted, ref, defineEmits } from "vue"
 import { useRoute, useRouter } from "vue-router"
+import { useCounterStore } from "@/stores/counter.js";
 
 const emit = defineEmits(["close"])
-const fetchURL = import.meta.env.VITE_API
+const fetchTask = import.meta.env.VITE_API_TASK
 
-// const props = defineProps({
-//   title: String,
-//   description: String,
-//   assignees: String,
-//   status: String,
-//   createdOn: String,
-//   updatedOn: String,
-//   localTimeZone: String,
-// })
-
+const store = useCounterStore();
 const route = useRoute()
 const router = useRouter()
 const id = route.params.id
 const localTimeZone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone)
 const modalDetail = ref([""])
 
+function formatDate(date) {
+  const d = new Date(date)
+  return d
+    .toLocaleString("en-GB", { timeZone: localTimeZone.value })
+    .split(",")
+    .join(" ")
+}
+
 const openModalDetail = async () => {
-  const data = await fetch(`${fetchURL}/${id}`)
+  const data = await fetch(`${fetchTask}/${id}`)
   const res = await data.json()
   console.log(res)
   modalDetail.value = res
@@ -102,8 +102,8 @@ console.log("Task ID:", id)
                       type="text"
                       :class="{ 'italic !text-gray-400': !modalDetail.assignees }"
                       disabled
-                      >{{ 
-                        modalDetail.assignees?.trim() || "Unassigned" 
+                      >{{
+                        modalDetail.assignees?.trim() || "Unassigned"
                       }}</textarea
                     >
                   </div>
@@ -125,10 +125,7 @@ console.log("Task ID:", id)
                       v-model="modalDetail.status"
                       disabled
                     >
-                      <option :value="'NO_STATUS'">No Status</option>
-                      <option :value="'TO_DO'">To Do</option>
-                      <option :value="'DOING'">Doing</option>
-                      <option :value="'DONE'">Done</option>
+                    <option v-for="(status, index) in store.status.value" :selected="status.name == modalDetail.status.name">{{ status.name }}</option>
                     </select>
                   </div>
                 </div>
@@ -139,10 +136,10 @@ console.log("Task ID:", id)
                   <p>Timezone : {{ localTimeZone }}</p>
                 </div>
                 <div class="itbkk-created-on text-left">
-                  <p>CreatedOn : {{ modalDetail.createdOn }}</p>
+                  <p>CreatedOn : {{ formatDate(modalDetail.createdOn) }}</p>
                 </div>
                 <div class="itbkk-updated-on text-left">
-                  <p>UpdatedOn : {{ modalDetail.updatedOn }}</p>
+                  <p>UpdatedOn : {{ formatDate(modalDetail.updatedOn) }}</p>
                 </div>
               </div>
             </div>

@@ -1,20 +1,26 @@
 <script setup>
+// Import zone
 import { ref } from "vue"
 import { useRouter } from "vue-router"
 import { useStatusStore } from "@/stores/counter.js"
-const store = useStatusStore()
+import { useToastStore } from "@/stores/toast.js"
 
-const fetchURL = ref(import.meta.env.VITE_API_STATUS)
+// Variable zone
+const store = useStatusStore()
+const toastStore = useToastStore()
+const fetchStatus = import.meta.env.VITE_API_STATUS
 const router = useRouter()
 const newName = ref("")
 const newDescription = ref("")
 const statuses = ref([])
+const addSuccess = ref(false)
+
+
+// Function zone
 
 const closeModal = () => {
-  router.push({ path: "/status/manage" })
+  router.push({ name: "statusView" })
 }
-
-const addSuccess = ref(false)
 
 const addStatus = async () => {
   const newStatus = {
@@ -25,7 +31,7 @@ const addStatus = async () => {
     return
   }
   try {
-    const response = await fetch(`${fetchURL.value}`, {
+    const response = await fetch(fetchStatus, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -34,18 +40,16 @@ const addStatus = async () => {
     })
     const data = await response.json()
     if (!response.ok) {
-      showToastAddStatus.value = false
-      addSuccess.value = false
       throw new Error("Failed to add new status")
     } else {
       store.statuses.value.push(data)
-      addSuccess.value = true
+      toastStore.handleStatusAdded()
     }
-    emit("close")
-    router.push({ name: "statusView" }).catch(() => {})
+    closeModal()
   } catch (error) {
-    addSuccess.value = false
+    toastStore.handleStatusAddedF()
     console.error("Error adding new status:", error.message)
+    closeModal()
   }
   statuses.value.push(newStatus)
   newName.value = ""
@@ -65,7 +69,7 @@ const addStatus = async () => {
         <form @submit.prevent="addStatus">
           <div class="modal-header">
             <div class="itbkktitle text-left">
-              <h4>Edit Status</h4>
+              <h4>Add New Status</h4>
             </div>
           </div>
           <hr />
@@ -75,13 +79,13 @@ const addStatus = async () => {
               <div class="titlee flex flex-wrap -mx-3 mb-2">
                 <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
                   <label
-                    class="itbkk-status-name block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                    class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
                     for="grid-city"
                   >
                     Name
                   </label>
                   <textarea
-                    class="ttitle-stt appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
+                    class="itbkk-status-name ttitle-stt appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
                     id="name"
                     type="text"
                     placeholder="Enter name... (Required)"
@@ -91,7 +95,7 @@ const addStatus = async () => {
                 </div>
               </div>
 
-              <div class="itbkk-status-description text-left">
+              <div class="text-left">
                 <div class="flex flex-wrap -mx-3 mb-2">
                   <div class="desc w-full md:w-1/3 px-3 mb-6 md:mb-0">
                     <label
@@ -100,7 +104,7 @@ const addStatus = async () => {
                       >Description
                     </label>
                     <textarea
-                      class="itbkkdesc-stt appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                      class="itbkk-status-description itbkkdesc-stt appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                       id="description"
                       type="text"
                       placeholder="Enter description..."

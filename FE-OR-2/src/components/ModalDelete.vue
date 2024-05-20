@@ -1,8 +1,4 @@
 <script setup>
-import { ref } from 'vue';
-// import { closeModal } from "./HomeView.vue";
-// import { showAlertDelete } from "./HomeView.vue";
-
 const props = defineProps({
   showModal: Boolean,
   taskId: Number,
@@ -15,7 +11,7 @@ defineEmits(["closeModal", "confirmDeleteModal"])
 
 <template>
   <div class="details fixed inset-0 overflow-y-auto bg-black bg-opacity-50">
-    <!-- <div class="flex items-start justify-center mt-24 text-center"> -->
+
       <div
         class="modalDelete rounded-lg text-center shadow-xlp-6 w-min"
         role="dialog"

@@ -1,25 +1,29 @@
 <script setup>
+// Import zone
+import { onMounted, ref} from "vue"
+import { useRouter, useRoute } from "vue-router"
+import { storeToRefs } from 'pinia'
+import { useCounterStore } from "@/stores/counter.js"
+import { useToastStore } from "@/stores/toast.js"
 import Bg_effect from "../components/css/Background.vue"
 import Badges from "../components/css/Badge.vue"
 import Copyright from "../components/css/Copyright.vue"
-import ToastAdd from "./ToastAdd.vue"
-import ToastEdit from "./ToastEdit.vue"
-import ModalDelete from "./ModalDelete.vue"
-import ToastDelete from "./ToastDelete.vue"
+import ToastAdd from "../components/toast/ToastAdd.vue"
+import ToastEdit from "../components/toast/ToastEdit.vue"
+import ModalDelete from "../components/ModalDelete.vue"
+import ToastDelete from "../components/toast/ToastDelete.vue"
 
-import { storeToRefs } from 'pinia'
-import { onMounted, ref} from "vue"
-import { useRouter, useRoute } from "vue-router"
-import { useCounterStore } from "@/stores/counter.js"
-import { useToastStore } from "@/stores/toast.js"
-
+// Store,Api zone
+const fetchTask = import.meta.env.VITE_API_TASK
+const fetchStatus = import.meta.env.VITE_API_STATUS
+const router = useRouter()
+const route = useRoute()
 const store = useCounterStore()
 const toastStore = useToastStore()
 const { showToastAdd ,showToastEdit, closeToast } = storeToRefs(toastStore)
-console.log(showToastEdit)
-const fetchURL = ref(import.meta.env.VITE_API)
-const router = useRouter()
-const route = useRoute()
+
+
+// Variable zone
 const title = ref("")
 const description = ref("")
 const assignees = ref("")
@@ -31,7 +35,8 @@ const localTimeZone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone)
 const selectDeleteTaskId = ref("")
 const selectDeleteTaskTitle = ref("")
 const selectDeleteTaskIndex = ref("")
-console.log(taskId)
+
+// Function zone
 function formatDate(date) {
   const d = new Date(date)
   return d
@@ -39,29 +44,27 @@ function formatDate(date) {
     .split(",")
     .join(" ")
 }
+
 async function fetchData() {
-  const response = await fetch(`${fetchURL.value}`)
+  const response = await fetch(fetchTask)
   const data = await response.json()
   return data
 }
+async function fetchDataStatus() {
+  const response = await fetch(fetchStatus)
+  const dataStatus = await response.json()
+  return dataStatus
+}
 onMounted(async () => {
   const data = await fetchData()
+  const datastatus = await fetchDataStatus()
   store.tasks.value = data
-  console.log(store.tasks.value)
+  store.status.value = datastatus
 })
 const showDetail = ref(false)
 const openModalDetail = async (id) => {
-  const data = await fetch(`${fetchURL.value}/${id}`)
+  const data = await fetch(`${fetchTask}/${id}`)
   const res = await data.json()
-  if (!data.ok) {
-    router.push("/")
-    setTimeout(() => {
-      alert("The requested task does not exist")
-    }, 500)
-    return
-  }
-  console.log(data)
-  console.log(res)
   title.value = res.title
   description.value = res.description
   assignees.value = res.assignees
@@ -70,7 +73,6 @@ const openModalDetail = async (id) => {
   updatedOn.value = formatDate(res.updatedOn)
   showDetail.value = true
   router.push({ name: "task-detail", params: { id: id } })
-  console.log(title.value)
 }
 
 const showAdd = ref(false)
@@ -82,7 +84,7 @@ const openModalAdd = async (task) => {
 
 const showEdit = ref(false)
 const openModalEdit = async (id, edit) => {
-  const data = await fetch(`${fetchURL.value}/${id}`)
+  const data = await fetch(`${fetchTask}/${id}`)
   const res = await data.json()
   if (!data.ok) {
     router.push("/")
@@ -91,8 +93,6 @@ const openModalEdit = async (id, edit) => {
     }, 500)
     return
   }
-  console.log(data)
-  console.log(res)
   title.value = res.title
   description.value = res.description
   assignees.value = res.assignees
@@ -101,7 +101,6 @@ const openModalEdit = async (id, edit) => {
   updatedOn.value = formatDate(res.updatedOn)
   showDetail.value = true
   router.push({ name: "task-edit", params: { id: id } })
-  console.log(title.value)
 }
 
 if (window.location.pathname === `/task/${taskId}`) {
@@ -122,7 +121,7 @@ const openModalDelete = (taskId, title, index) => {
 }
 async function deleteTask(taskId) {
   try {
-    const response = await fetch(`${fetchURL.value}/${taskId}`, {
+    const response = await fetch(`${fetchTask}/${taskId}`, {
       method: "DELETE",
     })
     if (response.ok) {
@@ -145,13 +144,11 @@ const confirmDelete = async () => {
     toastSuccess.value = true
     setTimeout(() => {
       showToastDelete.value = false
-      closeModal()
     }, 5000)
   } catch (error) {
     toastSuccess.value = false
     setTimeout(() => {
       showToastDelete.value = false
-      closeModal()
     }, 5000)
     console.error("Error deleting task:", error)
   }
@@ -185,8 +182,8 @@ const openStatus = () => {
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
     </header>
     <main class="flex flex-col items-center">
-      <div class="itbkk-manage-status">
-        <button type="button" class="btstatus flex" @click="openStatus">
+      <div class="manageStatus">
+        <button type="button" class="itbkk-manage-status flex" @click="openStatus">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="32"
@@ -265,7 +262,7 @@ const openStatus = () => {
                 </span>
                 <span v-else>{{ task.assignees }}</span>
               </td>
-              <td class="itbkk-status"><Badges :status="task.status" /></td>
+              <td class="itbkk-status" ><Badges :status="task.status" /></td>
               <td class="itbkk-button-action">
                 <svg
                   class="itbkk-button-edit"
@@ -351,7 +348,7 @@ const openStatus = () => {
   padding-left: 5px;
   padding-right: 5px;
 }
-.itbkk-manage-status {
+.manageStatus {
   /* justify-content: center; */
   /* text-align: center; */
   /* margin-left: 10rem; */
@@ -361,7 +358,7 @@ const openStatus = () => {
   max-width: 900px;
   padding-left: 2rem;
 }
-.btstatus {
+.itbkk-manage-status {
   font-style: italic;
   background-color: #343365;
   color: #fff7d9;
@@ -371,7 +368,7 @@ const openStatus = () => {
   border-radius: 50px;
   transition: transform 0.3s ease;
 }
-.btstatus:hover {
+.itbkk-manage-status:hover {
   background-color: #6a4581;
   background-color: #8e5bb1;
 }
