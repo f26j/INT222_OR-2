@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 
 export const useCounterStore = defineStore('counter', () => {
   const tasks = ref([])
+  const status = ref([])
     
   const updateTask = (updatedTask) => {
     console.log(updatedTask)
@@ -18,7 +19,7 @@ export const useCounterStore = defineStore('counter', () => {
     }
   }
 
-  return { tasks, updateTask }
+  return { tasks, updateTask, status }
 })
 
 export const useStatusStore = defineStore('counterStatus', () => {

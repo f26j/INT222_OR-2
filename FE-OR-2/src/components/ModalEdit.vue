@@ -1,86 +1,111 @@
 <script setup>
-import { onMounted, ref } from "vue"
-import { useRoute, useRouter } from "vue-router"
-import { useCounterStore } from "@/stores/counter.js"
-import { useToastStore } from "@/stores/toast.js"
+// Import zone
+import { onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useCounterStore } from "@/stores/counter.js";
+import { useToastStore } from "@/stores/toast.js";
 
-const store = useCounterStore()
-const toastStore = useToastStore()
-const route = useRoute()
-const router = useRouter()
-const id = route.params.id
-const modalEdit = ref([""])
-const fetchURL = import.meta.env.VITE_API
+// Store,Api zone
+const route = useRoute();
+const router = useRouter();
+const store = useCounterStore();
+const toastStore = useToastStore();
+const fetchTask = import.meta.env.VITE_API_TASK;
+const fetchStatus = import.meta.env.VITE_API_STATUS
 
-const localTimeZone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone)
-const newTitle = ref("")
-const newDescription = ref("")
-const newAssignees = ref("")
-const newStatus = ref("")
+// Variable zone
+const id = route.params.id;
+const modalEdit = ref([""]);
+const localTimeZone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone);
+const newTitle = ref("");
+const newDescription = ref("");
+const newAssignees = ref("");
+const newStatus = ref({});
 
-const originalTitle = ref("")
-const originalAssignee = ref("")
-const originalDescription = ref("")
-const originalStatus = ref("")
+const originalTitle = ref("");
+const originalAssignee = ref("");
+const originalDescription = ref("");
+const originalStatus = ref({});
 
-const openModalEdit = async () => {
-  const data = await fetch(`${fetchURL}/${id}`)
-  const res = await data.json()
-  console.log(res)
-  modalEdit.value = res
-  newTitle.value = modalEdit.value.title
-  newDescription.value = modalEdit.value.description
-  newAssignees.value = modalEdit.value.assignees
-  newStatus.value = modalEdit.value.status
+const trimmedDescription = newDescription.value.trim();
+const trimmedAssignees = newAssignees.value.trim();
 
-  originalTitle.value = modalEdit.value.title
-  originalAssignee.value = modalEdit.value.assignees
-  originalDescription.value = modalEdit.value.description
-  originalStatus.value = modalEdit.value.status
-
+async function fetchDataStatus() {
+  const response = await fetch(fetchStatus)
+  const dataStatus = await response.json()
+  return dataStatus
 }
 
+function formatDate(date) {
+  const d = new Date(date)
+  return d
+    .toLocaleString("en-GB", { timeZone: localTimeZone.value })
+    .split(",")
+    .join(" ")
+}
+
+const openModalEdit = async () => {
+  const data = await fetch(`${fetchTask}/${id}`);
+  const res = await data.json();
+  modalEdit.value = res;
+  newTitle.value = modalEdit.value.title;
+  newDescription.value = modalEdit.value.description;
+  newAssignees.value = modalEdit.value.assignees;
+  newStatus.value = modalEdit.value.status;
+
+  console.log(modalEdit.value.status)
+
+  originalTitle.value = modalEdit.value.title;
+  originalAssignee.value = modalEdit.value.assignees;
+  originalDescription.value = modalEdit.value.description;
+  originalStatus.value = modalEdit.value.status;
+};
+
 onMounted(async () => {
-  openModalEdit()
-})
+  openModalEdit();
+  const datastatus = await fetchDataStatus()
+  store.status.value = datastatus
+});
 
 console.log(id);
 console.log("Task ID:", id);
+console.log(newStatus.value)
+console.log(originalStatus.value)
 
 const editTask = async () => {
   const editedTask = {
     id: id,
     title: newTitle.value.trim(),
-    description: newDescription.value.trim(),
-    assignees: newAssignees.value.trim(),
-    status: newStatus.value.trim(),
-  }
+    description: trimmedDescription === "" ? null : trimmedDescription,
+    assignees: trimmedAssignees === "" ? null : trimmedAssignees,
+    status: store.status.value.find(status => status.name == newStatus.value.name),
+  };
   if (!editedTask.title) {
-    return
+    return;
   }
   try {
-    const response = await fetch(`${fetchURL}/${id}`, {
+    const response = await fetch(`${fetchTask}/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(editedTask),
-    })
+    });
     if (!response.ok) {
-      throw new Error("Failed to edit task")
+      throw new Error("Failed to edit task");
     } else if (response.ok) {
-      store.updateTask({ ...editedTask })
+      store.updateTask({ ...editedTask });
     }
-    closeModal()
-    toastStore.handleTaskEdited()
+    closeModal();
+    toastStore.handleTaskEdited();
   } catch (error) {
-    console.error("Error editing task:", error.message)
+    console.error("Error editing task:", error.message);
   }
-}
+};
 
 const closeModal = () => {
-  router.push({ path: "/task" })
-}
+  router.push({ path: "/task" });
+};
 </script>
 <template>
   <div class="details fixed inset-0 overflow-y-auto bg-black bg-opacity-50">
@@ -173,12 +198,9 @@ const closeModal = () => {
                     <select
                       class="statusbx block w-60 bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                       id="grid-state"
-                      v-model="newStatus"
+                      v-model="newStatus.name"
                     >
-                      <option value="NO_STATUS">No Status</option>
-                      <option value="TO_DO">To Do</option>
-                      <option value="DOING">Doing</option>
-                      <option value="DONE">Done</option>
+                      <option v-for="(status, index) in store.status.value" :selected="status.name == newStatus.value">{{ status.name }}</option>
                     </select>
                   </div>
                 </div>
@@ -188,10 +210,10 @@ const closeModal = () => {
                   <p>Timezone : {{ localTimeZone }}</p>
                 </div>
                 <div class="itbkk-created-on text-left">
-                  <p>CreatedOn : {{ modalEdit.createdOn }}</p>
+                   <p>CreatedOn : {{ formatDate(modalEdit.createdOn) }}</p>
                 </div>
                 <div class="itbkk-updated-on text-left">
-                  <p>UpdatedOn : {{ modalEdit.updatedOn }}</p>
+                  <p>UpdatedOn : {{ formatDate(modalEdit.updatedOn) }}</p>
                 </div>
               </div>
             </div>
@@ -204,7 +226,13 @@ const closeModal = () => {
               <button
                 class="ok border"
                 type="submit"
-                :disabled="newTitle?.length === 0 || newTitle === originalTitle && newAssignees === originalAssignee && newDescription === originalDescription && newStatus === originalStatus"
+                :disabled="
+                  newTitle?.length === 0 ||
+                  (newTitle === originalTitle &&
+                    newAssignees === originalAssignee &&
+                    newDescription === originalDescription &&
+                    newStatus.name == originalStatus.name)
+                "
               >
                 Save
               </button>

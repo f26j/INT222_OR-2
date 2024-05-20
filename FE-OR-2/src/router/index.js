@@ -1,11 +1,12 @@
 import { createRouter, createWebHistory } from "vue-router"
 import HomeView from "../views/HomeView.vue"
-import ModalDetail from "../views/ModalDetail.vue"
-import ModalAdd from "../views/ModalAdd.vue"
-import ModalEdit from "../views/ModalEdit.vue"
+import ModalDetail from "../components/ModalDetail.vue"
+import ModalAdd from "../components/ModalAdd.vue"
+import ModalEdit from "../components/ModalEdit.vue"
 import StatusView from "../views/StatusView.vue"
-import ModalAddStatus from "../views/ModalAddStatus.vue"
-import ModalEditStatus from "../views/ModalEditStatus.vue"
+import ModalAddStatus from "../components/ModalAddStatus.vue"
+import ModalEditStatus from "../components/ModalEditStatus.vue"
+import ManageStatus from "../components/ManageStatus.vue"
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -43,6 +44,7 @@ const router = createRouter({
         {
           path: "manage",
           name: "statusView",
+          component: ManageStatus, 
         },
         {
           path: "add",
@@ -50,7 +52,7 @@ const router = createRouter({
           component: ModalAddStatus,
         },
         {
-          path: "edit",
+          path: ":id/edit",
           name: "status-edit",
           component: ModalEditStatus,
         },

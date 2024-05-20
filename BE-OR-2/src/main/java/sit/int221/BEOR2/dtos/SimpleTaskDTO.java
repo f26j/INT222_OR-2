@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import sit.int221.BEOR2.entities.Status;
 
 @Getter
 @Setter
@@ -13,5 +14,5 @@ public class SimpleTaskDTO {
     private Integer id;
     private String title;
     private String assignees;
-    private String status;
+    private Status status;
 }

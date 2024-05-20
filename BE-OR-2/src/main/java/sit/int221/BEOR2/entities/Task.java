@@ -3,13 +3,15 @@ package sit.int221.BEOR2.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import sit.int221.BEOR2.utilities.CharConverter;
+import lombok.ToString;
+import org.springframework.util.StringUtils;
 
 import java.time.ZonedDateTime;
 
 @Getter
 @Setter
 @Entity
+@ToString
 @Table(name = "task")
 public class Task {
     @Id
@@ -18,19 +20,17 @@ public class Task {
     private Integer id;
 
     @Column(name = "taskTitle", nullable = false, length = 100)
-    @Convert(converter = CharConverter.class)
     private String title;
 
     @Column(name = "taskDescription", length = 500)
-    @Convert(converter = CharConverter.class)
     private String description;
 
     @Column(name = "taskAssignees", length = 30)
-    @Convert(converter = CharConverter.class)
     private String assignees;
 
-    @Column(name = "taskStatus", nullable = false)
-    private String status;
+    @ManyToOne
+    @JoinColumn(name = "taskStatus", nullable = false)
+    private Status status;
 
     @Column(name = "createdOn", insertable = false, updatable = false, nullable = false)
     private ZonedDateTime createdOn;
@@ -38,11 +38,23 @@ public class Task {
     @Column(name = "updatedOn", insertable = false, updatable = false, nullable = false)
     private ZonedDateTime updatedOn;
 
-    public void setStatus(String status) {
-        if (status == null || status.isEmpty()) {
-            this.status = "NO_STATUS";
+    public void setTitle(String title) {
+        this.title = StringUtils.trimWhitespace(title);
+    }
+
+    public void setDescription(String description) {
+        if (description == null || description.isEmpty()) {
+            this.description = null;
         } else {
-            this.status = status;
+            this.description = StringUtils.trimWhitespace(description);
+        }
+    }
+
+    public void setAssignees(String assignees) {
+        if (assignees == null || assignees.isEmpty()) {
+            this.assignees = null;
+        } else {
+            this.assignees = StringUtils.trimWhitespace(assignees);
         }
     }
 }
