@@ -38,10 +38,12 @@ public class Task {
     @Column(name = "updatedOn", insertable = false, updatable = false, nullable = false)
     private ZonedDateTime updatedOn;
 
+    @SuppressWarnings("deprecation")
     public void setTitle(String title) {
         this.title = StringUtils.trimWhitespace(title);
     }
 
+    @SuppressWarnings("deprecation")
     public void setDescription(String description) {
         if (description == null || description.isEmpty()) {
             this.description = null;
@@ -50,6 +52,7 @@ public class Task {
         }
     }
 
+    @SuppressWarnings("deprecation")
     public void setAssignees(String assignees) {
         if (assignees == null || assignees.isEmpty()) {
             this.assignees = null;

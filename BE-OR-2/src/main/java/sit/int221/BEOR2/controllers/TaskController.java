@@ -44,10 +44,16 @@ public class TaskController {
         return modelMapper.map(taskService.addTask(task), AddEditTaskDTO.class);
     }
 
+    // @PostMapping(name = "error")
+    // @ResponseStatus(HttpStatus.NOT_FOUND)
+    // public ErrorAddTaskDTO errorAddTask(@RequestBody Task task) {
+    //    return modelMapper.map(taskService.errorAddTask(task), ErrorAddTaskDTO.class);
+    // }
+
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public AddEditTaskDTO editTask(@PathVariable Integer id, @RequestBody Task editedTask) {
-        return modelMapper.map(taskService.editTask(id, editedTask), AddEditTaskDTO.class);
+    public AddEditTaskDTO editTask(@PathVariable Integer id, @RequestBody Task task) {
+        return modelMapper.map(taskService.editTask(id, task), AddEditTaskDTO.class);
     }
 
     @DeleteMapping("/{id}")

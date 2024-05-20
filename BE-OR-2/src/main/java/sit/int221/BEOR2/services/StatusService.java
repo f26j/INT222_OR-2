@@ -40,18 +40,18 @@ public class StatusService {
     }
 
     @Transactional
-    public Status editStatus(@PathVariable Integer id, @RequestBody Status editedStatus) {
+    public Status editStatus(@PathVariable Integer id, @RequestBody Status status) {
         if (!statusRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "The requested task does not exist");
         }
 
-        if (editedStatus.getId() == 1) {
+        if (status.getId() == 1) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
         if (statusRepository.existsById(id)) {
-            editedStatus.setId(id);
-            return statusRepository.saveAndFlush(editedStatus);
+            status.setId(id);
+            return statusRepository.saveAndFlush(status);
         }
         return null;
     }
