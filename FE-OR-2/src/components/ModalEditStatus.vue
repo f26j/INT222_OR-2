@@ -1,47 +1,56 @@
 <script setup>
-import { ref, onMounted } from "vue"
-import { useRoute, useRouter } from "vue-router"
-import { useStatusStore } from "@/stores/api.js"
-import { useToastStore } from "@/stores/toast.js"
-const store = useStatusStore()
+import { ref, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useStatusStore } from "@/stores/api.js";
+import { useToastStore } from "@/stores/toast.js";
+const store = useStatusStore();
 
-const fetchStatus = import.meta.env.VITE_API_STATUS
-const route = useRoute()
-const router = useRouter()
-const toastStore = useToastStore()
-const newName = ref("")
-const newDescription = ref("")
-const statuses = ref([])
-const id = route.params.id
+const fetchStatus = import.meta.env.VITE_API_STATUS;
+const route = useRoute();
+const router = useRouter();
+const toastStore = useToastStore();
+const newName = ref("");
+const newDescription = ref("");
+const statuses = ref([]);
+const id = route.params.id;
 
-const originalName = ref("")
-const originalDescription = ref("")
+const originalName = ref("");
+const originalDescription = ref("");
 
 const closeModal = () => {
-  router.push({ path: "/status/manage" })
-}
+  router.push({ path: "/status/manage" });
+};
 async function getStatus() {
-  const data = await fetch(fetchStatus)
-  const res = await data.json()
-  const selectId = res.find((status) => status.id == id)
-  newName.value = selectId.name
-  newDescription.value = selectId.description
+  const data = await fetch(fetchStatus);
+  const res = await data.json();
+  const selectId = res.find((status) => status.id == id);
+  if (!selectId) {
+    router.push({ path: "/status/manage" });
+    setTimeout(() => {
+      alert("An error has occurred, the status does not exist");
+    }, 500);
+    return;
+  }
+  newName.value = selectId.name;
+  newDescription.value = selectId.description;
 
-  originalName.value = selectId.name
-  originalDescription.value = selectId.description
+  originalName.value = selectId.name;
+  originalDescription.value = selectId.description;
 }
 onMounted(() => {
-  getStatus()
-})
-const editSuccess = ref(false)
+  getStatus();
+});
+const editSuccess = ref(false);
 const editStatus = async () => {
+  const trimmedName = newName.value.trim();
+  const trimmedDescription = newDescription.value.trim();
   const newStatus = {
     id: id,
-    name: newName.value.trim(),
-    description: newDescription.value.trim(),
-  }
+    name: trimmedName === "" ? null : trimmedName,
+    description: trimmedDescription === "" ? null : trimmedDescription,
+  };
   if (!newStatus.name) {
-    return
+    return;
   }
   try {
     const response = await fetch(`${fetchStatus}/${id}`, {
@@ -50,28 +59,28 @@ const editStatus = async () => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(newStatus),
-    })
-    const data = await response.json()
+    });
+    const data = await response.json();
     if (!response.ok) {
-      toastStore.handleStatusEditedF()
-      throw new Error("Failed to edit new status")
+      toastStore.handleStatusEditedF();
+      throw new Error("Failed to edit new status");
     } else {
       const statusIndex = store.statuses.value.findIndex(
         (status) => status.id == id
-      )
-      toastStore.handleStatusEdited()
-      store.statuses.value.splice(statusIndex, 1, data)
+      );
+      toastStore.handleStatusEdited();
+      store.statuses.value.splice(statusIndex, 1, data);
     }
-    router.push({ name: "statusView" }).catch(() => {})
+    router.push({ name: "statusView" }).catch(() => {});
   } catch (error) {
-    editSuccess.value = false
-    toastStore.handleStatusEditedF()
-    console.error("Error adding new status:", error.message)
+    editSuccess.value = false;
+    toastStore.handleStatusEditedF();
+    console.error("Error adding new status:", error.message);
   }
-  statuses.value.push(newStatus)
-  newName.value = ""
-  newDescription.value = ""
-}
+  statuses.value.push(newStatus);
+  newName.value = "";
+  newDescription.value = "";
+};
 </script>
 <template>
   <div
@@ -184,6 +193,10 @@ const editStatus = async () => {
   justify-content: center;
   align-items: center;
   z-index: 3;
+}
+
+.itbkk-message {
+  color: black;
 }
 
 .titlee {

@@ -21,9 +21,11 @@ const closeModal = () => {
 }
 
 const addStatus = async () => {
+  const trimmedName = newName.value.trim();
+  const trimmedDescription = newDescription.value.trim();
   const newStatus = {
-    name: newName.value.trim(),
-    description: newDescription.value.trim(),
+    name: trimmedName  === "" ? null : trimmedName,
+    description: trimmedDescription  === "" ? null : trimmedDescription,
   }
   if (!newStatus.name) {
     return
