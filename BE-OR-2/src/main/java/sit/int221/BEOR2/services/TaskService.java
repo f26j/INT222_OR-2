@@ -42,6 +42,14 @@ public class TaskService {
     }
 
     @Transactional
+    public Task errorAddTask(@RequestBody Task task) {
+        if (task.getStatus().getId() != null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+        return null;
+    }
+
+    @Transactional
     public Task editTask(@PathVariable Integer id, @RequestBody Task task) {
         if (!taskRepository.existsById(id)) {
             throw new APINotFoundException(statusString, pathInstance + id);

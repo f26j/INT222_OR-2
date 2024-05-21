@@ -1,65 +1,65 @@
 <script setup>
-import { defineProps, defineEmits } from "vue";
-const emit = defineEmits(["close"]);
+import { defineProps, defineEmits} from "vue"
+const emit = defineEmits(['close'])
 const props = defineProps({
   showToastDelete: false,
   isDeleteSuccess: false,
-});
+})
 const closeToast = () => {
-  showToastDelete.value = false;
-  router.push({ name: "task" });
+  showToastDelete.value = false
+  router.push({ name: "task" })
   return {
     showToastType,
-    closeToast,
-  };
-};
+    closeToast
+  }
+}
 </script>
 
 <template>
-  <div
-    class="deleteToast active toast toast-top toast-end"
-    :style="{ backgroundColor: isDeleteSuccess ? '#DEFCDE' : '#FFF0F0' }"
-  >
-    <div class="deleteToast-content">
-      <div class="icon">
-        <svg
-          v-if="isDeleteSuccess"
-          xmlns="http://www.w3.org/2000/svg"
-          width="32"
-          height="32"
-          viewBox="0 0 16 16"
-        >
-          <path
-            fill="currentColor"
-            d="M11 1.75V3h2.25a.75.75 0 0 1 0 1.5H2.75a.75.75 0 0 1 0-1.5H5V1.75C5 .784 5.784 0 6.75 0h2.5C10.216 0 11 .784 11 1.75M4.496 6.675l.66 6.6a.25.25 0 0 0 .249.225h5.19a.25.25 0 0 0 .249-.225l.66-6.6a.75.75 0 0 1 1.492.149l-.66 6.6A1.748 1.748 0 0 1 10.595 15h-5.19a1.75 1.75 0 0 1-1.741-1.575l-.66-6.6a.75.75 0 1 1 1.492-.15M6.5 1.75V3h3V1.75a.25.25 0 0 0-.25-.25h-2.5a.25.25 0 0 0-.25.25"
-          />
-        </svg>
-        <svg
-          v-else
-          xmlns="http://www.w3.org/2000/svg"
-          width="32"
-          height="32"
-          viewBox="0 0 16 16"
-        >
-          <path
-            fill="#ef4444"
-            d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0M9 11a1 1 0 1 1-2 0a1 1 0 0 1 2 0"
-          />
-        </svg>
+    <div
+      class="deleteToast active toast toast-top toast-end"
+      :style="{ backgroundColor: isDeleteSuccess ? '#DEFCDE' : '#FFF0F0' }"
+    >
+      <div class="deleteToast-content">
+        <div class="icon">
+          <svg
+            v-if="isDeleteSuccess"
+            xmlns="http://www.w3.org/2000/svg"
+            width="32"
+            height="32"
+            viewBox="0 0 16 16"
+          >
+            <path
+              fill="currentColor"
+              d="M11 1.75V3h2.25a.75.75 0 0 1 0 1.5H2.75a.75.75 0 0 1 0-1.5H5V1.75C5 .784 5.784 0 6.75 0h2.5C10.216 0 11 .784 11 1.75M4.496 6.675l.66 6.6a.25.25 0 0 0 .249.225h5.19a.25.25 0 0 0 .249-.225l.66-6.6a.75.75 0 0 1 1.492.149l-.66 6.6A1.748 1.748 0 0 1 10.595 15h-5.19a1.75 1.75 0 0 1-1.741-1.575l-.66-6.6a.75.75 0 1 1 1.492-.15M6.5 1.75V3h3V1.75a.25.25 0 0 0-.25-.25h-2.5a.25.25 0 0 0-.25.25"
+            />
+          </svg>
+          <svg
+            v-else
+            xmlns="http://www.w3.org/2000/svg"
+            width="32"
+            height="32"
+            viewBox="0 0 16 16"
+          >
+            <path
+              fill="#ef4444"
+              d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0M9 11a1 1 0 1 1-2 0a1 1 0 0 1 2 0"
+            />
+          </svg>
+        </div>
+        <div class="message">
+          <span class="text-1">{{ isDeleteSuccess ? "Success" : "Error" }}</span>
+          <span class="itbkk-message text-2">{{
+            isDeleteSuccess
+              ? "The task has been deleted"
+              : "The task does not exist"
+          }}</span>
+        </div>
+        <i @click="$emit('close')" class="close"></i>
       </div>
-      <div class="message">
-        <span class="text-1">{{ isDeleteSuccess ? "Success" : "Error" }}</span>
-        <span class="itbkk-message text-2">{{
-          isDeleteSuccess
-            ? "The task has been deleted"
-            : "The task does not exist"
-        }}</span>
-      </div>
-      <i @click="$emit('close')" class="close"></i>
+      <div v-if="isDeleteSuccess" class="progress active"></div>
+      <div v-else class="progress inactive"></div>
     </div>
-    <div v-if="isDeleteSuccess" class="progress active"></div>
-    <div v-else class="progress inactive"></div>
-  </div>
 </template>
 
 <style>
@@ -118,6 +118,7 @@ const closeToast = () => {
   font-weight: 600;
   color: #333;
 }
+
 
 .deleteToast .progress {
   position: absolute;

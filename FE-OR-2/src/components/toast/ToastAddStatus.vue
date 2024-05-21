@@ -36,9 +36,7 @@ const toastStore = useToastStore();
         </svg>
       </div>
       <div class="message">
-        <span class="text-1">{{
-          toastStore.addSuccess ? "Success" : "Error"
-        }}</span>
+        <span class="text-1">{{ toastStore.addSuccess ? "Success" : "Error" }}</span>
         <span class="itbkk-message text-2">{{
           toastStore.addSuccess
             ? "The status has been added"

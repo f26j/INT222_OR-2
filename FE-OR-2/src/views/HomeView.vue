@@ -1,145 +1,139 @@
 <script setup>
 // Import zone
-import { onMounted, ref } from "vue";
-import { useRouter, useRoute } from "vue-router";
-import { storeToRefs } from "pinia";
-import { useTaskStore } from "@/stores/api.js";
-import { useToastStore } from "@/stores/toast.js";
-import Bg_effect from "../components/css/Background.vue";
-import Badges from "../components/css/Badge.vue";
-import Copyright from "../components/css/Copyright.vue";
-import ToastAdd from "../components/toast/ToastAdd.vue";
-import ToastEdit from "../components/toast/ToastEdit.vue";
-import ModalDelete from "../components/ModalDelete.vue";
-import ToastDelete from "../components/toast/ToastDelete.vue";
+import { onMounted, ref} from "vue"
+import { useRouter, useRoute } from "vue-router"
+import { storeToRefs } from 'pinia'
+import { useTaskStore } from "@/stores/api.js"
+import { useToastStore } from "@/stores/toast.js"
+import Bg_effect from "../components/css/Background.vue"
+import Badges from "../components/css/Badge.vue"
+import Copyright from "../components/css/Copyright.vue"
+import ToastAdd from "../components/toast/ToastAdd.vue"
+import ToastEdit from "../components/toast/ToastEdit.vue"
+import ModalDelete from "../components/ModalDelete.vue"
+import ToastDelete from "../components/toast/ToastDelete.vue"
 
 // Store,Api zone
-const fetchTask = import.meta.env.VITE_API_TASK;
-const fetchStatus = import.meta.env.VITE_API_STATUS;
-const router = useRouter();
-const route = useRoute();
-const store = useTaskStore();
-const toastStore = useToastStore();
-const { showToastAdd, showToastEdit, closeToast } = storeToRefs(toastStore);
+const fetchTask = import.meta.env.VITE_API_TASK
+const fetchStatus = import.meta.env.VITE_API_STATUS
+const router = useRouter()
+const route = useRoute()
+const store = useTaskStore()
+const toastStore = useToastStore()
+const { showToastAdd ,showToastEdit, closeToast } = storeToRefs(toastStore)
+
 
 // Variable zone
-const taskId = route.params.id;
-const selectDeleteTaskId = ref("");
-const selectDeleteTaskTitle = ref("");
-const selectDeleteTaskIndex = ref("");
+const taskId = route.params.id
+const selectDeleteTaskId = ref("")
+const selectDeleteTaskTitle = ref("")
+const selectDeleteTaskIndex = ref("")
 
 // Function zone
-onMounted(async () => {
-  const data = await fetchData();
-  const datastatus = await fetchDataStatus();
-  store.tasks.value = data;
-  store.status.value = datastatus;
-});
-
 async function fetchData() {
-  const response = await fetch(fetchTask);
-  const data = await response.json();
-  return data;
+  const response = await fetch(fetchTask)
+  const data = await response.json()
+  return data
 }
 async function fetchDataStatus() {
-  const response = await fetch(fetchStatus);
-  const dataStatus = await response.json();
-  return dataStatus;
+  const response = await fetch(fetchStatus)
+  const dataStatus = await response.json()
+  return dataStatus
 }
+onMounted(async () => {
+  const data = await fetchData()
+  const datastatus = await fetchDataStatus()
+  store.tasks.value = data
+  store.status.value = datastatus
+})
 const openModalDetail = async (id) => {
-  router.push({ name: "task-detail", params: { id: id } });
-};
-const openModalAdd = async () => {
-  router.push({ name: "task-add" });
-};
-const openModalEdit = async (id) => {
-  router.push({ name: "task-edit", params: { id: id } });
-};
-if (window.location.pathname === `/task/${taskId}`) {
-  openModalDetail(taskId);
-} else if (window.location.pathname === `/task/${taskId}/edit`) {
-  openModalEdit(taskId);
+  router.push({ name: "task-detail", params: { id: id } })
+}
+const openModalAdd = async (task) => {
+  router.push({ name: "task-add" })
+}
+const openModalEdit = async (id, edit) => {
+  router.push({ name: "task-edit", params: { id: id } })
 }
 
-const showToastDelete = ref(false);
-const deleteSuccess = ref(false);
-const showDelete = ref(false);
-const toastSuccess = ref(false);
+if (window.location.pathname === `/task/${taskId}`) {
+  openModalDetail(taskId)
+} else if (window.location.pathname === `/task/${taskId}/edit`) {
+  openModalEdit(taskId)
+}
+
+const showToastDelete = ref(false)
+const deleteSuccess = ref(false)
+const showDelete = ref(false)
+const toastSuccess = ref(false)
 const openModalDelete = (taskId, title, index) => {
-  showDelete.value = true;
-  selectDeleteTaskId.value = taskId;
-  selectDeleteTaskTitle.value = title;
-  selectDeleteTaskIndex.value = index;
-};
+  showDelete.value = true
+  selectDeleteTaskId.value = taskId
+  selectDeleteTaskTitle.value = title
+  selectDeleteTaskIndex.value = index
+}
 async function deleteTask(taskId) {
   try {
     const response = await fetch(`${fetchTask}/${taskId}`, {
       method: "DELETE",
-    });
+    })
     if (response.ok) {
-      store.tasks.value = store.tasks.value.filter(
-        (task) => task.id !== taskId
-      );
-      deleteSuccess.value = true;
+      store.tasks.value = store.tasks.value.filter((task) => task.id !== taskId)
+      deleteSuccess.value = true
     } else {
-      deleteSuccess.value = false;
-      console.error("Failed to delete task");
+      deleteSuccess.value = false
+      console.error("Failed to delete task")
     }
   } catch (error) {
-    deleteSuccess.value = false;
-    console.error("Error deleting task:", error);
+    deleteSuccess.value = false
+    console.error("Error deleting task:", error)
   }
-  confirmDelete();
-  showDelete.value = false;
+  confirmDelete()
+  showDelete.value = false
 }
 const confirmDelete = async () => {
   try {
-    showToastDelete.value = true;
-    toastSuccess.value = true;
+    showToastDelete.value = true
+    toastSuccess.value = true
     setTimeout(() => {
-      showToastDelete.value = false;
-    }, 5000);
+      showToastDelete.value = false
+    }, 5000)
   } catch (error) {
-    toastSuccess.value = false;
+    toastSuccess.value = false
     setTimeout(() => {
-      showToastDelete.value = false;
-    }, 5000);
-    console.error("Error deleting task:", error);
+      showToastDelete.value = false
+    }, 5000)
+    console.error("Error deleting task:", error)
   }
   return {
     showToastDelete,
     closeModal,
     confirmDelete,
-  };
-};
+  }
+}
 const closeToastDelete = () => {
-  showToastDelete.value = false;
-};
+  showToastDelete.value = false
+}
+
 const closeModal = () => {
   showDelete.value = false;
   router.push({ path: "/task" });
 };
 
 const openStatus = () => {
-  router.push({ name: "statusView" });
-};
+  router.push({name: "statusView"})
+}
 </script>
 <template>
   <div class="body">
     <header>
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
-      <h1 class="text-center">IT-Bangmod Kradan Kanban
-      <h3>Home</h3>
-    </h1>
+      <h1 class="text-center">IT-Bangmod Kradan Kanban</h1>
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
     </header>
     <main class="flex flex-col items-center">
       <div class="manageStatus">
-        <button
-          type="button"
-          class="itbkk-manage-status flex"
-          @click="openStatus"
-        >
+        <button type="button" class="itbkk-manage-status flex" @click="openStatus">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="32"
@@ -218,7 +212,7 @@ const openStatus = () => {
                 </span>
                 <span v-else>{{ task.assignees }}</span>
               </td>
-              <td class="itbkk-status"><Badges :status="task.status" /></td>
+              <td class="itbkk-status" ><Badges :status="task.status" /></td>
               <td class="itbkk-button-action">
                 <svg
                   class="itbkk-button-edit"
@@ -297,16 +291,6 @@ const openStatus = () => {
   margin: 0;
   padding: 0;
   scroll-behavior: smooth;
-}
-
-h3 {
-  font-family: "Ubuntu", sans-serif;
-  font-weight: 400;
-  font-style: normal;
-  font-size: 30px;
-  color: #737292;
-  text-align: center;
-  justify-content: center;
 }
 
 .mntext {

@@ -5,13 +5,13 @@ const toastStore = useToastStore();
 
 <template>
   <div
-    class="editStatusToast active toast toast-top toast-end"
-    :style="{ backgroundColor: toastStore.editSuccess ? '#DEFCDE' : '#FFF0F0' }"
+    class="addStatusToast active toast toast-top toast-end"
+    :style="{ backgroundColor: toastStore.addSuccess ? '#DEFCDE' : '#FFF0F0' }"
   >
-    <div class="editStatusToast-content">
+    <div class="addStatusToast-content">
       <div class="icon">
         <svg
-          v-if="toastStore.editSuccess"
+          v-if="toastStore.addSuccess"
           xmlns="http://www.w3.org/2000/svg"
           width="2em"
           height="2em"
@@ -36,22 +36,22 @@ const toastStore = useToastStore();
         </svg>
       </div>
       <div class="message">
-        <span class="text-1">{{ toastStore.editSuccess ? "Success" : "Error" }}</span>
+        <span class="text-1">{{ toastStore.addSuccess ? "Success" : "Error" }}</span>
         <span class="itbkk-message text-2">{{
-          toastStore.editSuccess
+          toastStore.addSuccess
             ? "The status has been edited"
             : "An error has occurred, the status could not be edited."
         }}</span>
       </div>
       <i @click="toastStore.closeToast" class="close"></i>
     </div>
-    <div v-if="toastStore.editSuccess" class="progress active"></div>
+    <div v-if="toastStore.addSuccess" class="progress active"></div>
     <div v-else class="progress inactive"></div>
   </div>
 </template>
 
 <style>
-.editStatusToast {
+.addStatusToast {
   position: fixed;
   height: 5rem;
   width: 25rem;
@@ -63,7 +63,7 @@ const toastStore = useToastStore();
   overflow: hidden;
   z-index: 4;
 }
-.editStatusToast .editStatusToast-content {
+.addStatusToast .addStatusToast-content {
   display: flex;
   align-items: center;
 }
@@ -73,7 +73,7 @@ const toastStore = useToastStore();
   padding-left: 15px;
 }
 
-.editStatusToast-content .check {
+.addStatusToast-content .check {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -85,7 +85,7 @@ const toastStore = useToastStore();
   border-radius: 50%;
 }
 
-.editStatusToast-content .message {
+.addStatusToast-content .message {
   display: flex;
   flex-direction: column;
   margin: 0 20px;
@@ -107,7 +107,7 @@ const toastStore = useToastStore();
   color: #333;
 }
 
-.editStatusToast .progress {
+.addStatusToast .progress {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -115,7 +115,7 @@ const toastStore = useToastStore();
   width: 100%;
 }
 
-.editStatusToast .progress:before {
+.addStatusToast .progress:before {
   content: "";
   position: absolute;
   bottom: 0;
@@ -124,12 +124,12 @@ const toastStore = useToastStore();
   width: 100%;
 }
 
-.editStatusToast .progress.active:before {
+.addStatusToast .progress.active:before {
   background-color: #5cbb60;
   animation: progress 5s linear forwards;
 }
 
-.editStatusToast .progress.inactive:before {
+.addStatusToast .progress.inactive:before {
   background-color: #ef4444;
   animation: progress 5s linear forwards;
 }
