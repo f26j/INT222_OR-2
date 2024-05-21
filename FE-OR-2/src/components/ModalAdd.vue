@@ -22,21 +22,23 @@ const newStatus = ref({
 });
 
 async function fetchDataStatus() {
-  const response = await fetch(fetchStatus)
-  const dataStatus = await response.json()
-  return dataStatus
+  const response = await fetch(fetchStatus);
+  const dataStatus = await response.json();
+  return dataStatus;
 }
 
 onMounted(async () => {
-  const datastatus = await fetchDataStatus()
-  store.status.value = datastatus
+  const datastatus = await fetchDataStatus();
+  store.status.value = datastatus;
 });
 
 const addTask = async () => {
   const trimmedTitle = newTitle.value.trim();
   const trimmedDescription = newDescription.value.trim();
   const trimmedAssignees = newAssignees.value.trim();
-  const selectedStatus = store.status.value.find(status => status.name === newStatus.value.name);
+  const selectedStatus = store.status.value.find(
+    (status) => status.name === newStatus.value.name
+  );
 
   const newTask = {
     title: trimmedTitle,
@@ -59,7 +61,7 @@ const addTask = async () => {
     if (!response.ok) {
       throw new Error("Failed to add new task");
     } else {
-      console.log(data)
+      console.log(data);
       store.tasks.value.push(data);
     }
     toastStore.handleTaskAdded();
@@ -172,7 +174,12 @@ const closeModal = () => {
                         id="grid-state"
                         v-model="newStatus.name"
                       >
-                      <option v-for="(status, index) in store.status.value" :selected="status.name == newStatus.value">{{ status.name }}</option>
+                        <option
+                          v-for="(status, index) in store.status.value"
+                          :selected="status.name == newStatus.value"
+                        >
+                          {{ status.name }}
+                        </option>
                       </select>
                     </div>
                   </div>

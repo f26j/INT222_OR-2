@@ -118,7 +118,7 @@ const closeModal = () => {
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
       <h1 class="text-center">
         IT-Bangmod Kradan Kanban
-        <h3>Task Status</h3>
+        <h3>Manage Status</h3>
       </h1>
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
     </header>
@@ -205,7 +205,7 @@ const closeModal = () => {
                 <button
                   class="itbkk-button-edit flex w-20"
                   @click="openModalEdit(status.id)"
-                  v-if="status.name !== 'No Status'"
+                  v-if="status.name !== 'No Status' && status.name !== 'Done'"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -224,7 +224,7 @@ const closeModal = () => {
                 <button
                   class="itbkk-button-delete flex w-24"
                   @click="openModalDelete(status.id, status.name)"
-                  v-if="status.name !== 'No Status'"
+                  v-if="status.name !== 'No Status' && status.name !== 'Done'"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
