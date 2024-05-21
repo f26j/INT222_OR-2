@@ -1,8 +1,7 @@
-describe(`TC-PBI7-EDIT-STATUS-4\n 
+describe(`TC-PBI7-EDIT-STATUS-3\n 
           Test Scenario : failed - status (id) does not exist`, () => {
   
     beforeEach(()=> {
-        cy.viewport(1024, 768) ;
         cy.visit('/task') ;
         cy.wait(100) ;
     }) ;
