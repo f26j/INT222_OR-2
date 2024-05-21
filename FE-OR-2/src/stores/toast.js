@@ -8,6 +8,7 @@ export const useToastStore = defineStore("toast", () => {
   const showToastEditStatus = ref(false);
   const showToastDeleteStatus = ref(false);
   const addSuccess = ref(false)
+  const editSuccess = ref(false)
   const deleteSuccess = ref(false)
 
   const handleTaskAdded = () => {
@@ -46,7 +47,7 @@ export const useToastStore = defineStore("toast", () => {
   
   const handleStatusEdited = () => {
     showToastEditStatus.value = true;
-    addSuccess.value = true
+    editSuccess.value = true
     console.log(showToastEditStatus.value);
     setTimeout(() => {
       showToastEditStatus.value = false;
@@ -55,7 +56,7 @@ export const useToastStore = defineStore("toast", () => {
   
   const handleStatusEditedF = () => {
     showToastEditStatus.value = true;
-    addSuccess.value = false
+    editSuccess.value = false
     console.log(showToastEditStatus.value);
     setTimeout(() => {
       showToastEditStatus.value = false;
@@ -95,6 +96,7 @@ export const useToastStore = defineStore("toast", () => {
     showToastEditStatus,
     showToastDeleteStatus,
     addSuccess,
+    editSuccess,
     deleteSuccess,
     handleTaskAdded,
     handleTaskEdited,
