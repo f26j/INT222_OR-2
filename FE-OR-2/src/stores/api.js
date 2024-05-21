@@ -1,7 +1,7 @@
 import { ref, toRaw } from 'vue'
 import { defineStore } from 'pinia'
 
-export const useCounterStore = defineStore('counter', () => {
+export const useTaskStore = defineStore('apiTask', () => {
   const tasks = ref([])
   const status = ref([])
     
@@ -22,7 +22,7 @@ export const useCounterStore = defineStore('counter', () => {
   return { tasks, updateTask, status }
 })
 
-export const useStatusStore = defineStore('counterStatus', () => {
+export const useStatusStore = defineStore('apiStatus', () => {
   const statuses = ref([])
     
   const updateStatus = (updatedStatus) => {

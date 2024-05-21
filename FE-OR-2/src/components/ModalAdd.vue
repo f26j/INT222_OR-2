@@ -2,13 +2,13 @@
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useToastStore } from "@/stores/toast.js";
-import { useCounterStore } from "@/stores/counter.js";
+import { useTaskStore } from "@/stores/api.js";
 
 // Store,Api zone
 const fetchTask = import.meta.env.VITE_API_TASK;
 const fetchStatus = import.meta.env.VITE_API_STATUS;
 const router = useRouter();
-const store = useCounterStore();
+const store = useTaskStore();
 const toastStore = useToastStore();
 
 // Variable zone
@@ -33,19 +33,22 @@ onMounted(async () => {
 });
 
 const addTask = async () => {
+  const trimmedTitle = newTitle.value.trim();
+  const trimmedDescription = newDescription.value.trim();
+  const trimmedAssignees = newAssignees.value.trim();
+  const selectedStatus = store.status.value.find(status => status.name === newStatus.value.name);
+
   const newTask = {
-    title: newTitle.value.trim(),
-    description:
-      newDescription.value.trim() === "" ? null : newDescription.value.trim(),
-    assignees:
-      newAssignees.value.trim() === "" ? null : newAssignees.value.trim(),
-    status: store.status.value.find(status => status.name == newStatus.value.name),
+    title: trimmedTitle,
+    description: trimmedDescription === "" ? null : trimmedDescription,
+    assignees: trimmedAssignees === "" ? null : trimmedAssignees,
+    status: selectedStatus,
   };
   if (!newTask.title) {
     return;
   }
   try {
-    const response = await fetch(fetchTask, {
+    const response = await fetch(`${fetchTask}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -75,7 +78,7 @@ const addTask = async () => {
 };
 
 const closeModal = () => {
-  router.push({ path: "/task" });
+  router.push({ name: "task" });
 };
 </script>
 <template>

@@ -39,8 +39,8 @@ public class StatusController {
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public Status editStatus(@PathVariable Integer id, @RequestBody Status editedStatus) {
-        return statusService.editStatus(id, editedStatus);
+    public Status editStatus(@PathVariable Integer id, @RequestBody Status status) {
+        return statusService.editStatus(id, status);
     }
 
     @DeleteMapping("/{id}")

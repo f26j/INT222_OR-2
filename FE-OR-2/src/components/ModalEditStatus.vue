@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from "vue"
 import { useRoute, useRouter } from "vue-router"
-import { useStatusStore } from "@/stores/counter.js"
+import { useStatusStore } from "@/stores/api.js"
 import { useToastStore } from "@/stores/toast.js"
 const store = useStatusStore()
 
@@ -12,7 +12,6 @@ const toastStore = useToastStore()
 const newName = ref("")
 const newDescription = ref("")
 const statuses = ref([])
-const modalEditStatus = ref([""])
 const id = route.params.id
 
 const originalName = ref("")
@@ -21,27 +20,20 @@ const originalDescription = ref("")
 const closeModal = () => {
   router.push({ path: "/status/manage" })
 }
-
 async function getStatus() {
   const data = await fetch(fetchStatus)
   const res = await data.json()
-  console.log(res)
   const selectId = res.find((status) => status.id == id)
-  console.log(selectId)
-
   newName.value = selectId.name
   newDescription.value = selectId.description
 
   originalName.value = selectId.name
   originalDescription.value = selectId.description
 }
-
 onMounted(() => {
   getStatus()
 })
-
 const editSuccess = ref(false)
-
 const editStatus = async () => {
   const newStatus = {
     id: id,
@@ -80,7 +72,6 @@ const editStatus = async () => {
   newName.value = ""
   newDescription.value = ""
 }
-
 </script>
 <template>
   <div

@@ -2,7 +2,6 @@ describe(`TC-PBI6-ADD-STATUS-2\n
           Test Scenario : normal - add new status with no description`, () => {
   
     beforeEach(()=> {
-        cy.viewport(1024, 768) ;
         cy.visit('/task') ;
         cy.wait(100) ;
     }) ;

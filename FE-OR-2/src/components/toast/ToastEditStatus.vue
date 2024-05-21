@@ -39,8 +39,8 @@ const toastStore = useToastStore();
         <span class="text-1">{{ toastStore.addSuccess ? "Success" : "Error" }}</span>
         <span class="itbkk-message text-2">{{
           toastStore.addSuccess
-            ? "The status has been added"
-            : "An error has occurred, the status could not be added."
+            ? "The status has been edited"
+            : "An error has occurred, the status could not be edited."
         }}</span>
       </div>
       <i @click="toastStore.closeToast" class="close"></i>

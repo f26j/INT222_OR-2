@@ -2,13 +2,13 @@
 // Import zone
 import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useCounterStore } from "@/stores/counter.js";
+import { useTaskStore } from "@/stores/api.js";
 import { useToastStore } from "@/stores/toast.js";
 
 // Store,Api zone
 const route = useRoute();
 const router = useRouter();
-const store = useCounterStore();
+const store = useTaskStore();
 const toastStore = useToastStore();
 const fetchTask = import.meta.env.VITE_API_TASK;
 const fetchStatus = import.meta.env.VITE_API_STATUS
@@ -27,9 +27,6 @@ const originalAssignee = ref("");
 const originalDescription = ref("");
 const originalStatus = ref({});
 
-const trimmedDescription = newDescription.value.trim();
-const trimmedAssignees = newAssignees.value.trim();
-
 async function fetchDataStatus() {
   const response = await fetch(fetchStatus)
   const dataStatus = await response.json()
@@ -47,18 +44,24 @@ function formatDate(date) {
 const openModalEdit = async () => {
   const data = await fetch(`${fetchTask}/${id}`);
   const res = await data.json();
+  if (!data.ok) {
+    router.push("/")
+    setTimeout(() => {
+      alert("The requested task does not exist")
+    }, 500)
+    return
+  }
   modalEdit.value = res;
-  newTitle.value = modalEdit.value.title;
-  newDescription.value = modalEdit.value.description;
-  newAssignees.value = modalEdit.value.assignees;
-  newStatus.value = modalEdit.value.status;
+  newTitle.value = modalEdit.value.title || "";
+  newDescription.value = modalEdit.value.description || "";
+  newAssignees.value = modalEdit.value.assignees || ""; 
+  newStatus.value = { ...modalEdit.value.status };
 
-  console.log(modalEdit.value.status)
+  originalTitle.value = modalEdit.value.title || "";
+  originalAssignee.value = modalEdit.value.assignees || "";
+  originalDescription.value = modalEdit.value.description || "";
+  originalStatus.value = { ...modalEdit.value.status };
 
-  originalTitle.value = modalEdit.value.title;
-  originalAssignee.value = modalEdit.value.assignees;
-  originalDescription.value = modalEdit.value.description;
-  originalStatus.value = modalEdit.value.status;
 };
 
 onMounted(async () => {
@@ -67,17 +70,12 @@ onMounted(async () => {
   store.status.value = datastatus
 });
 
-console.log(id);
-console.log("Task ID:", id);
-console.log(newStatus.value)
-console.log(originalStatus.value)
-
 const editTask = async () => {
   const editedTask = {
     id: id,
     title: newTitle.value.trim(),
-    description: trimmedDescription === "" ? null : trimmedDescription,
-    assignees: trimmedAssignees === "" ? null : trimmedAssignees,
+    description: newDescription.value.trim(),
+    assignees: newAssignees.value.trim(),
     status: store.status.value.find(status => status.name == newStatus.value.name),
   };
   if (!editedTask.title) {
@@ -104,7 +102,7 @@ const editTask = async () => {
 };
 
 const closeModal = () => {
-  router.push({ path: "/task" });
+  router.push({ name: "task" });
 };
 </script>
 <template>
@@ -200,7 +198,7 @@ const closeModal = () => {
                       id="grid-state"
                       v-model="newStatus.name"
                     >
-                      <option v-for="(status, index) in store.status.value" :selected="status.name == newStatus.value">{{ status.name }}</option>
+                      <option v-for="(status, index) in store.status.value" :value="status.name">{{ status.name }}</option>
                     </select>
                   </div>
                 </div>
@@ -231,7 +229,7 @@ const closeModal = () => {
                   (newTitle === originalTitle &&
                     newAssignees === originalAssignee &&
                     newDescription === originalDescription &&
-                    newStatus.name == originalStatus.name)
+                    JSON.stringify(newStatus) === JSON.stringify(originalStatus))
                 "
               >
                 Save

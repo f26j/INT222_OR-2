@@ -1,17 +1,24 @@
 <script setup>
-import { onMounted, ref, defineEmits } from "vue"
+import { onMounted, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
-import { useCounterStore } from "@/stores/counter.js";
+import { useTaskStore } from "@/stores/api.js";
 
-const emit = defineEmits(["close"])
 const fetchTask = import.meta.env.VITE_API_TASK
+const fetchStatus = import.meta.env.VITE_API_STATUS
 
-const store = useCounterStore();
+const store = useTaskStore();
 const route = useRoute()
 const router = useRouter()
 const id = route.params.id
 const localTimeZone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone)
 const modalDetail = ref([""])
+const status = ref({});
+
+async function fetchDataStatus() {
+  const response = await fetch(fetchStatus)
+  const dataStatus = await response.json()
+  return dataStatus
+}
 
 function formatDate(date) {
   const d = new Date(date)
@@ -21,11 +28,16 @@ function formatDate(date) {
     .join(" ")
 }
 
+onMounted(async () => {
+  const datastatus = await fetchDataStatus()
+  store.status.value = datastatus
+});
+
 const openModalDetail = async () => {
   const data = await fetch(`${fetchTask}/${id}`)
   const res = await data.json()
-  console.log(res)
   modalDetail.value = res
+  status.value = { ...modalDetail.value.status };
   if (!data.ok) {
     router.push("/")
     setTimeout(() => {
@@ -40,11 +52,8 @@ onMounted(async () => {
 })
 
 const closeModal = () => {
-  router.push({ path: "/task" });
+  router.push({ name: "task" });
 };
-
-console.log(id)
-console.log("Task ID:", id)
 </script>
 <template>
   <div class="details fixed inset-0 overflow-y-auto bg-black bg-opacity-50">
@@ -54,7 +63,7 @@ console.log("Task ID:", id)
       aria-modal="true"
     >
       <div class="modal-content">
-        <form @submit.prevent="handleSubmit">
+        <form @submit.prevent="openModalDetail">
           <div class="modal-header">
             <div class="itbkk-title text-left">
               <h1>{{ modalDetail.title }}</h1>
@@ -102,8 +111,8 @@ console.log("Task ID:", id)
                       type="text"
                       :class="{ 'italic !text-gray-400': !modalDetail.assignees }"
                       disabled
-                      >{{
-                        modalDetail.assignees?.trim() || "Unassigned"
+                      >{{ 
+                        modalDetail.assignees?.trim() || "Unassigned" 
                       }}</textarea
                     >
                   </div>
@@ -122,10 +131,10 @@ console.log("Task ID:", id)
                     <select
                       class="statusbx block w-60 bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                       id="grid-state"
-                      v-model="modalDetail.status"
+                      v-model="status.name"
                       disabled
                     >
-                    <option v-for="(status, index) in store.status.value" :selected="status.name == modalDetail.status.name">{{ status.name }}</option>
+                    <option v-for="(status, index) in store.status.value" :selected="status.name == modalDetail.status">{{ status.name }}</option>
                     </select>
                   </div>
                 </div>

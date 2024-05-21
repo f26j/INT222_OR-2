@@ -2,19 +2,17 @@
 // Import zone
 import { ref } from "vue"
 import { useRouter } from "vue-router"
-import { useStatusStore } from "@/stores/counter.js"
+import { useStatusStore } from "@/stores/api.js"
 import { useToastStore } from "@/stores/toast.js"
 
 // Variable zone
 const store = useStatusStore()
 const toastStore = useToastStore()
-const fetchStatus = import.meta.env.VITE_API_STATUS
+const fetchURL = ref(import.meta.env.VITE_API_STATUS)
 const router = useRouter()
 const newName = ref("")
 const newDescription = ref("")
 const statuses = ref([])
-const addSuccess = ref(false)
-
 
 // Function zone
 
@@ -31,7 +29,7 @@ const addStatus = async () => {
     return
   }
   try {
-    const response = await fetch(fetchStatus, {
+    const response = await fetch(`${fetchURL.value}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

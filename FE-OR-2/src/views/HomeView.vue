@@ -3,7 +3,7 @@
 import { onMounted, ref} from "vue"
 import { useRouter, useRoute } from "vue-router"
 import { storeToRefs } from 'pinia'
-import { useCounterStore } from "@/stores/counter.js"
+import { useTaskStore } from "@/stores/api.js"
 import { useToastStore } from "@/stores/toast.js"
 import Bg_effect from "../components/css/Background.vue"
 import Badges from "../components/css/Badge.vue"
@@ -18,33 +18,18 @@ const fetchTask = import.meta.env.VITE_API_TASK
 const fetchStatus = import.meta.env.VITE_API_STATUS
 const router = useRouter()
 const route = useRoute()
-const store = useCounterStore()
+const store = useTaskStore()
 const toastStore = useToastStore()
 const { showToastAdd ,showToastEdit, closeToast } = storeToRefs(toastStore)
 
 
 // Variable zone
-const title = ref("")
-const description = ref("")
-const assignees = ref("")
-const status = ref("")
-const createdOn = ref("")
-const updatedOn = ref("")
 const taskId = route.params.id
-const localTimeZone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone)
 const selectDeleteTaskId = ref("")
 const selectDeleteTaskTitle = ref("")
 const selectDeleteTaskIndex = ref("")
 
 // Function zone
-function formatDate(date) {
-  const d = new Date(date)
-  return d
-    .toLocaleString("en-GB", { timeZone: localTimeZone.value })
-    .split(",")
-    .join(" ")
-}
-
 async function fetchData() {
   const response = await fetch(fetchTask)
   const data = await response.json()
@@ -61,45 +46,13 @@ onMounted(async () => {
   store.tasks.value = data
   store.status.value = datastatus
 })
-const showDetail = ref(false)
 const openModalDetail = async (id) => {
-  const data = await fetch(`${fetchTask}/${id}`)
-  const res = await data.json()
-  title.value = res.title
-  description.value = res.description
-  assignees.value = res.assignees
-  status.value = res.status
-  createdOn.value = formatDate(res.createdOn)
-  updatedOn.value = formatDate(res.updatedOn)
-  showDetail.value = true
   router.push({ name: "task-detail", params: { id: id } })
 }
-
-const showAdd = ref(false)
 const openModalAdd = async (task) => {
-
   router.push({ name: "task-add" })
 }
-
-
-const showEdit = ref(false)
 const openModalEdit = async (id, edit) => {
-  const data = await fetch(`${fetchTask}/${id}`)
-  const res = await data.json()
-  if (!data.ok) {
-    router.push("/")
-    setTimeout(() => {
-      alert("The requested task does not exist")
-    }, 500)
-    return
-  }
-  title.value = res.title
-  description.value = res.description
-  assignees.value = res.assignees
-  status.value = res.status
-  createdOn.value = formatDate(res.createdOn)
-  updatedOn.value = formatDate(res.updatedOn)
-  showDetail.value = true
   router.push({ name: "task-edit", params: { id: id } })
 }
 
@@ -163,9 +116,6 @@ const closeToastDelete = () => {
 }
 
 const closeModal = () => {
-  showDetail.value = false;
-  showAdd.value = false;
-  showEdit.value = false;
   showDelete.value = false;
   router.push({ path: "/task" });
 };
@@ -349,10 +299,6 @@ const openStatus = () => {
   padding-right: 5px;
 }
 .manageStatus {
-  /* justify-content: center; */
-  /* text-align: center; */
-  /* margin-left: 10rem; */
-  /* padding-left: 10rem; */
   display: flex;
   width: 100%;
   max-width: 900px;
@@ -453,22 +399,7 @@ const openStatus = () => {
 header {
   margin-bottom: 20px;
 }
-/* .btna {
-  background-color: #04aa6d76;
-  border: none;
-  color: white;
-  padding: 15px 32px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  border-radius: 50px;
-  border: 2px solid #04AA6D;
-}
-.btna:hover {
-  background-color: #adcdc1;
-  color: white;
-} */
+
 .addtask {
   margin-right: 45rem;
   text-align: center;

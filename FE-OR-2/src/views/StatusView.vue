@@ -3,24 +3,27 @@
 import { onMounted, ref } from "vue"
 import { useRouter } from "vue-router"
 import { storeToRefs } from "pinia"
-import { useCounterStore } from "@/stores/counter.js"
-import { useStatusStore } from "@/stores/counter.js"
+import { useStatusStore } from "@/stores/api.js"
 import { useToastStore } from "@/stores/toast.js"
 import Bg_effect from "../components/css/Background.vue"
 import Copyright from "../components/css/Copyright.vue"
 import ToastAddStatus from "../components/toast/ToastAddStatus.vue"
 import ToastEditStatus from "../components/toast/ToastEditStatus.vue"
+import ToastDeleteStatus from "../components/toast/ToastDeleteStatus.vue"
+import ModalDeleteStatus from "../components/ModalDeleteStatus.vue"
 
 // Store,Api zone
 const fetchStatus = import.meta.env.VITE_API_STATUS
 const router = useRouter()
 const store = useStatusStore()
-const storeTask = useCounterStore()
 const toastStore = useToastStore()
-const { showToastAddStatus, showToastEditStatus, closeToast } =
+const { showToastAddStatus, showToastEditStatus, showToastDeleteStatus, closeToast } =
   storeToRefs(toastStore)
 
 // Variable zone
+const showDelete = ref(false)
+const selectDeleteStatusId = ref("")
+const selectDeleteStatusName = ref("")
 
 // Function zone
 async function fetchData() {
@@ -44,6 +47,68 @@ const openModalEdit = (id) => {
   } else {
     console.error("ID parameter is required to open the edit modal")
   }
+}
+
+const openModalDelete = (id, name) => {
+  showDelete.value = true
+  selectDeleteStatusId.value = id
+  selectDeleteStatusName.value = name
+}
+
+async function deleteStatus(id) {
+  try {
+    const response = await fetch(`${fetchStatus}/${id}`, {
+      method: "DELETE",
+    })
+    if (response.ok) {
+      store.statuses.value = store.statuses.value.filter((status) => status.id !== id)
+      toastStore.handleStatusDeleted()
+    } else {
+      toastStore.handleStatusDeletedF()
+      console.error("Failed to delete status")
+    }
+  } catch (error) {
+    toastStore.handleStatusDeletedF()
+    console.error("Error deleting status:", error)
+  }
+  confirmDeleteStatus()
+  showDelete.value = false
+}
+async function deleteTransfer(id, newId) {
+  try {
+    const response = await fetch(`${fetchStatus}/${id}/${newId}`, {
+      method: "DELETE",
+    })
+    if (response.ok) {
+      store.statuses.value = store.statuses.value.filter((status) => status.id !== id)
+      toastStore.handleStatusDeleted()
+    } else {
+      toastStore.handleStatusDeletedF()
+      console.error("Failed to delete status")
+    }
+  } catch (error) {
+    toastStore.handleStatusDeletedF()
+    console.error("Error deleting status:", error)
+  }
+  confirmDeleteStatus()
+  showDelete.value = false
+}
+const confirmDeleteStatus = async () => {
+  try {
+    toastStore.handleStatusDeleted()
+  } catch (error) {
+    toastStore.handleStatusDeletedF()
+    console.error("Error deleting status:", error)
+  }
+  return {
+    closeModal,
+    confirmDeleteStatus,
+  }
+}
+
+const closeModal = () => {
+  showDelete.value = false
+  router.push({ name: "statusView" })
 }
 </script>
 
@@ -127,8 +192,10 @@ const openModalEdit = (id) => {
               <td class="itbkk-status-name">
                 <p>{{ status.name }}</p>
               </td>
-              <td class="itbkk-status-description">
-                <p v-if="!status.description?.trim()" class="noDesc">
+              <td 
+                class="itbkk-status-description" 
+                :class="{'italic-gray': !status.description?.trim()}">
+                <p v-if="!status.description?.trim()">
                   No description is provided.
                 </p>
                 <p v-else>{{ status.description }}</p>
@@ -156,6 +223,7 @@ const openModalEdit = (id) => {
                 </button>
                 <button
                   class="itbkk-button-delete flex w-24"
+                  @click="openModalDelete(status.id, status.name)"
                   v-if="status.name !== 'No Status'"
                 >
                   <svg
@@ -187,6 +255,17 @@ const openModalEdit = (id) => {
       </ToastAddStatus>
       <ToastEditStatus v-if="showToastEditStatus" @close="closeToast">
       </ToastEditStatus>
+      <ToastDeleteStatus v-if="showToastDeleteStatus" @close="closeToast">
+      </ToastDeleteStatus>
+      <ModalDeleteStatus
+        v-if="showDelete"
+        :statusId="selectDeleteStatusId"
+        :name="selectDeleteStatusName"
+        @closeModal="closeModal"
+        @confirmDeleteStatus="deleteStatus"
+        @deleteTransfer="deleteTransfer"
+        >
+      </ModalDeleteStatus>
     </main>
     <footer>
       <Copyright />
@@ -313,7 +392,7 @@ h3 {
   color: #343365;
 }
 
-.noDesc {
+.italic-gray {
   font-style: italic;
   color: gray;
 }

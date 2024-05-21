@@ -6,7 +6,9 @@ export const useToastStore = defineStore("toast", () => {
   const showToastEdit = ref(false);
   const showToastAddStatus = ref(false);
   const showToastEditStatus = ref(false);
+  const showToastDeleteStatus = ref(false);
   const addSuccess = ref(false)
+  const deleteSuccess = ref(false)
 
   const handleTaskAdded = () => {
     showToastAdd.value = true;
@@ -60,10 +62,30 @@ export const useToastStore = defineStore("toast", () => {
     }, 5000);
   };
 
+  const handleStatusDeleted = () => {
+    showToastDeleteStatus.value = true;
+    deleteSuccess.value = true
+    console.log(showToastDeleteStatus.value);
+    setTimeout(() => {
+      showToastDeleteStatus.value = false;
+    }, 5000);
+  };
+  
+  const handleStatusDeletedF = () => {
+    showToastDeleteStatus.value = true;
+    deleteSuccess.value = false
+    console.log(showToastDeleteStatus.value);
+    setTimeout(() => {
+      showToastDeleteStatus.value = false;
+    }, 5000);
+  };
+
   const closeToast = () => {
     showToastAdd.value = false;
     showToastEdit.value = false;
     showToastAddStatus.value = false;
+    showToastEditStatus.value = false;
+    showToastDeleteStatus.value = false;
   };
 
   return {
@@ -71,13 +93,17 @@ export const useToastStore = defineStore("toast", () => {
     showToastEdit,
     showToastAddStatus,
     showToastEditStatus,
+    showToastDeleteStatus,
     addSuccess,
+    deleteSuccess,
     handleTaskAdded,
     handleTaskEdited,
     handleStatusAdded,
     handleStatusAddedF,
     handleStatusEdited,
     handleStatusEditedF,
+    handleStatusDeleted,
+    handleStatusDeletedF,
     closeToast,
   };
 });
