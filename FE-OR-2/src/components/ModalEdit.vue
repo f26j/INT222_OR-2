@@ -248,14 +248,11 @@ const closeModal = () => {
 @import url("https://fonts.gstatic.com");
 @import url("https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
 
-/* .itbkk-description,
-.itbkk-assignees {
-  font-style: italic;
-}
+
 textarea::placeholder {
   font-style: italic;
   color: gray;
-} */
+} 
 
 .modals {
   background-color: #bfb8da;

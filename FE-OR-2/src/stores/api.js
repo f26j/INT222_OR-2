@@ -19,7 +19,11 @@ export const useTaskStore = defineStore('apiTask', () => {
     }
   }
 
-  return { tasks, updateTask, status }
+  const addTask = (task) => {
+    tasks.value.push(task);
+  }
+
+  return { tasks, updateTask, status, addTask }
 })
 
 export const useStatusStore = defineStore('apiStatus', () => {

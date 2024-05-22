@@ -58,7 +58,7 @@ defineEmits(["closeModal", "confirmDeleteModal"])
   transition: transform 0.3s ease-in-out;
 }
 
-button:hover {
+.Button button:hover {
   transform: scale(1.08);
   transition: transform 0.3s ease;
   box-shadow: 5px 5px 5px #c6c6c646;
