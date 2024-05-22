@@ -26,12 +26,13 @@ public class TaskService {
     @Autowired
     private StatusRepository statusRepository;
 
-    public List<Task> getTasks(List<String> statuses) {
+    public List<Task> getTasks(List<String> statuses, String sort, String order) {
         Specification<Task> spec = Specification.where(null);
         if (statuses != null && !statuses.isEmpty()) {
             spec = spec.and(TaskSpecification.hasStatuses(statuses));
         }
-        return taskRepository.findAll(spec, Sort.by("id"));
+        Sort sorting = Sort.by(Sort.Direction.fromString(order), sort);
+        return taskRepository.findAll(spec, sorting);
     }
 
     public Task getTaskById(@PathVariable Integer id) {
