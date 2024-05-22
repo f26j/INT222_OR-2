@@ -2,10 +2,10 @@
 import { onMounted, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { useTaskStore } from "@/stores/api.js";
-
+ 
 const fetchTask = import.meta.env.VITE_API_TASK
 const fetchStatus = import.meta.env.VITE_API_STATUS
-
+ 
 const store = useTaskStore();
 const route = useRoute()
 const router = useRouter()
@@ -13,13 +13,13 @@ const id = route.params.id
 const localTimeZone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone)
 const modalDetail = ref([""])
 const status = ref({});
-
+ 
 async function fetchDataStatus() {
   const response = await fetch(fetchStatus)
   const dataStatus = await response.json()
   return dataStatus
 }
-
+ 
 function formatDate(date) {
   const d = new Date(date)
   return d
@@ -27,12 +27,12 @@ function formatDate(date) {
     .split(",")
     .join(" ")
 }
-
+ 
 onMounted(async () => {
   const datastatus = await fetchDataStatus()
   store.status.value = datastatus
 });
-
+ 
 const openModalDetail = async () => {
   const data = await fetch(`${fetchTask}/${id}`)
   const res = await data.json()
@@ -46,11 +46,11 @@ const openModalDetail = async () => {
     return
   }
 }
-
+ 
 onMounted(async () => {
   openModalDetail()
 })
-
+ 
 const closeModal = () => {
   router.push({ name: "task" });
 };
@@ -70,7 +70,7 @@ const closeModal = () => {
             </div>
           </div>
           <hr />
-
+ 
           <div class="modal-body">
             <div class="itbkk-description text-left">
               <div class="flex flex-wrap -mx-3 mb-2">
@@ -87,14 +87,12 @@ const closeModal = () => {
                     type="text"
                     :class="{ 'italic !text-gray-400': !modalDetail.description }"
                     disabled
-                    >{{
-                      modalDetail.description?.trim() || "No Description Provided"
-                    }}</textarea
+                    >{{ modalDetail.description?.trim() || "No Description Provided" }}</textarea
                   >
                 </div>
               </div>
             </div>
-
+ 
             <div class="detailright flex-col">
               <div class="text-left">
                 <div class="assign flex flex-wrap -mx-3 mb-2">
@@ -111,14 +109,14 @@ const closeModal = () => {
                       type="text"
                       :class="{ 'italic !text-gray-400': !modalDetail.assignees }"
                       disabled
-                      >{{ 
-                        modalDetail.assignees?.trim() || "Unassigned" 
+                      >{{
+                        modalDetail.assignees?.trim() || "Unassigned"
                       }}</textarea
                     >
                   </div>
                 </div>
               </div>
-
+ 
               <div class="itbkk-status text-left">
                 <div class="w-full md:w-1/3 mb-6 md:mb-0">
                   <label
@@ -139,7 +137,7 @@ const closeModal = () => {
                   </div>
                 </div>
               </div>
-
+ 
               <div class="time">
                 <div class="itbkk-timezone text-left">
                   <p>Timezone : {{ localTimeZone }}</p>
@@ -153,16 +151,13 @@ const closeModal = () => {
               </div>
             </div>
           </div>
-
+ 
           <div class="modal-footer">
             <div class="itbkk-button">
               <hr />
               <button @click="closeModal" class="close border">
                 Close
               </button>
-              <!-- <button @click="$emit('close')" class="ok border" type="submit">
-                  OK
-                </button> -->
             </div>
           </div>
         </form>
@@ -170,28 +165,19 @@ const closeModal = () => {
     </div>
   </div>
 </template>
-
+ 
 <style>
 @import url("https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono");
 @import url("https://fonts.googleapis.com");
 @import url("https://fonts.gstatic.com");
 @import url("https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
-
-/* .itbkk-description,
-.itbkk-assignees {
-  font-style: italic;
-}
-textarea::placeholder {
-  font-style: italic;
-  color: gray;
-} */
-
+ 
 .modals {
   background-color: #bfb8da;
   color: #47467b;
   width: 800px;
 }
-
+ 
 .details {
   color: #47467b;
   font-family: "Ubuntu", sans-serif;
@@ -202,7 +188,7 @@ textarea::placeholder {
   align-items: center;
   z-index: 3;
 }
-
+ 
 .ok {
   width: 4rem;
   background-color: rgb(179, 236, 168);
@@ -211,7 +197,7 @@ textarea::placeholder {
   float: right;
   border-radius: 50px;
 }
-
+ 
 .close {
   width: 4rem;
   background-color: rgb(248, 195, 199);
@@ -221,17 +207,17 @@ textarea::placeholder {
   float: right;
   border-radius: 50px;
 }
-
+ 
 .ok:hover {
   background-color: rgb(28, 126, 36);
   color: rgb(179, 236, 168);
 }
-
+ 
 .close:hover {
   background-color: rgb(163, 42, 48);
   color: rgb(248, 195, 199);
 }
-
+ 
 .modal-header {
   color: #47467b;
   font-family: "Ubuntu", sans-serif;
@@ -241,63 +227,63 @@ textarea::placeholder {
   margin: 15px;
   overflow-x: auto;
 }
-
+ 
 .modal-header::-webkit-scrollbar {
   height: 12px;
 }
-
+ 
 h1 {
   padding-bottom: 5px;
 }
-
+ 
 .desc {
   margin: 15px;
 }
-
+ 
 .descinput {
   width: 30rem;
   height: 20rem;
 }
-
+ 
 .ass {
   width: 15rem;
   height: 10rem;
 }
-
+ 
 .time {
   margin-top: 10px;
   margin-right: 15px;
   font-size: 0.8rem;
   font-weight: 800;
 }
-
+ 
 .modal-body {
   display: flex;
   padding: 10px;
 }
-
+ 
 .detailright {
   padding: 15px;
 }
-
+ 
 ::-webkit-scrollbar {
   width: 12px;
 }
-
+ 
 ::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 10px;
 }
-
+ 
 ::-webkit-scrollbar-thumb {
   border-radius: 10px;
   background: #a8a8a8;
 }
-
+ 
 ::-webkit-scrollbar-thumb:hover {
   background: #9b9b9b;
 }
-
+ 
 @media screen and (max-width: 800px) {
   .modals {
     width: 400px;
@@ -306,23 +292,23 @@ h1 {
     overflow-x: hidden;
     padding-bottom: 3rem;
   }
-
+ 
   .modal-header::-webkit-scrollbar {
     height: 12px;
   }
-
+ 
   h1 {
     padding-bottom: 5px;
   }
-
+ 
   .modal-body {
     display: block;
   }
-
+ 
   .itbkk-assignees {
     width: 21rem;
   }
-
+ 
   .descinput {
     width: 21rem;
     height: 20rem;

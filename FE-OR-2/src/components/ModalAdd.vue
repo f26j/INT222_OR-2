@@ -85,7 +85,7 @@ const closeModal = () => {
 </script>
 <template>
   <div class="details fixed inset-0 overflow-y-auto bg-black bg-opacity-50">
-    <div class="flex items-start justify-center mt-24 text-center">
+
       <div
         class="modals rounded-lg text-center shadow-xlp-6 w-min"
         role="dialog"
@@ -204,7 +204,6 @@ const closeModal = () => {
           </form>
         </div>
       </div>
-    </div>
   </div>
 </template>
 
