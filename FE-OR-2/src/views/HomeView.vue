@@ -1,6 +1,6 @@
 <script setup>
 // Import zone
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { storeToRefs } from "pinia";
 import { useTaskStore } from "@/stores/api.js";
@@ -12,7 +12,7 @@ import ToastAdd from "../components/toast/ToastAdd.vue";
 import ToastEdit from "../components/toast/ToastEdit.vue";
 import ModalDelete from "../components/ModalDelete.vue";
 import ToastDelete from "../components/toast/ToastDelete.vue";
-
+ 
 // Store,Api zone
 const fetchTask = import.meta.env.VITE_API_TASK;
 const fetchStatus = import.meta.env.VITE_API_STATUS;
@@ -21,21 +21,23 @@ const route = useRoute();
 const store = useTaskStore();
 const toastStore = useToastStore();
 const { showToastAdd, showToastEdit, closeToast } = storeToRefs(toastStore);
-
+ 
 // Variable zone
 const taskId = route.params.id;
 const selectDeleteTaskId = ref("");
 const selectDeleteTaskTitle = ref("");
 const selectDeleteTaskIndex = ref("");
-
+const originalTasks = ref([]);
+ 
 // Function zone
 onMounted(async () => {
   const data = await fetchData();
   const datastatus = await fetchDataStatus();
-  store.tasks.value = data;
+  originalTasks.value = [...data];
+  store.tasks.value = [...data];
   store.status.value = datastatus;
 });
-
+ 
 async function fetchData() {
   const response = await fetch(fetchTask);
   const data = await response.json();
@@ -60,7 +62,7 @@ if (window.location.pathname === `/task/${taskId}`) {
 } else if (window.location.pathname === `/task/${taskId}/edit`) {
   openModalEdit(taskId);
 }
-
+ 
 const showToastDelete = ref(false);
 const deleteSuccess = ref(false);
 const showDelete = ref(false);
@@ -77,9 +79,8 @@ async function deleteTask(taskId) {
       method: "DELETE",
     });
     if (response.ok) {
-      store.tasks.value = store.tasks.value.filter(
-        (task) => task.id !== taskId
-      );
+      originalTasks.value = originalTasks.value.filter(task => task.id !== taskId);
+      store.tasks.value = [...originalTasks.value];
       deleteSuccess.value = true;
     } else {
       deleteSuccess.value = false;
@@ -119,18 +120,53 @@ const closeModal = () => {
   showDelete.value = false;
   router.push({ path: "/task" });
 };
-
+ 
 const openStatus = () => {
   router.push({ name: "statusView" });
 };
+ 
+const sortAscending = ref(undefined);
+
+const toggleSortOrder = () => {
+  if (sortAscending.value === undefined) {
+    sortAscending.value = true;
+  } else if (sortAscending.value === true) {
+    sortAscending.value = false;
+  } else {
+    sortAscending.value = undefined;
+  }
+};
+
+const sortedTasks = computed(() => {
+  if (sortAscending.value === undefined) {
+    return originalTasks.value;
+  }
+  return sortTasks([...originalTasks.value], sortAscending.value);
+});
+
+function sortTasks(tasks, ascending) {
+  if (ascending === undefined) return tasks; // No sorting if sort order is undefined
+  return tasks.sort((a, b) => {
+    const statusA = a.status.name.toLowerCase();
+    const statusB = b.status.name.toLowerCase();
+    if (statusA < statusB) return ascending ? -1 : 1;
+    if (statusA > statusB) return ascending ? 1 : -1;
+    return 0;
+  });
+}
+
+watch(() => sortedTasks.value, (newVal) => {
+  store.tasks.value = newVal;
+});
 </script>
 <template>
   <div class="body">
     <header>
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
-      <h1 class="text-center">IT-Bangmod Kradan Kanban
-      <h3>Home</h3>
-    </h1>
+      <h1 class="text-center">
+        IT-Bangmod Kradan Kanban
+        <h3>Home</h3>
+      </h1>
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
     </header>
     <main class="flex flex-col items-center">
@@ -154,7 +190,7 @@ const openStatus = () => {
           <span class="mntext">Manage Status</span>
         </button>
       </div>
-
+ 
       <div class="btn-a" v-for="task in store.tasks.value">
         <div
           class="itbkk-button-add button iconbutton"
@@ -187,7 +223,61 @@ const openStatus = () => {
               <th></th>
               <th>Title</th>
               <th>Assignees</th>
-              <th>Status</th>
+              <th class="sortstt flex justify-center">
+                Status<button class="itbkk-status-sort" @click="toggleSortOrder">
+                  <svg
+                    v-if="sortAscending === true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="1.3em"
+                    height="1.3em"
+                    viewBox="0 0 24 24"
+                    class="a"
+                  >
+                    <path
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="m3 16l4 4l4-4m-4 4V4m13 4h-5m0 2V6.5a2.5 2.5 0 0 1 5 0V10m-5 4h5l-5 6h5"
+                    ></path>
+                  </svg>
+                  <svg
+                    v-else-if="sortAscending === false"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="1.3em"
+                    height="1.3em"
+                    viewBox="0 0 24 24"
+                    class="b"
+                  >
+                    <path
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="m3 8l4-4l4 4M7 4v16M20 8h-5m0 2V6.5a2.5 2.5 0 0 1 5 0V10m-5 4h5l-5 6h5"
+                    ></path>
+                  </svg>
+                  <svg
+                    v-else
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="1.3em"
+                    height="1.3em"
+                    viewBox="0 0 24 24"
+                    class="c"
+                  >
+                    <path
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="m3 16l4 4l4-4m-4 4V4m13 4h-5m0 2V6.5a2.5 2.5 0 0 1 5 0V10m-5 4h5l-5 6h5"
+                    ></path>
+                  </svg>
+                </button>
+              </th>
               <th></th>
             </tr>
           </thead>
@@ -298,7 +388,7 @@ const openStatus = () => {
   padding: 0;
   scroll-behavior: smooth;
 }
-
+ 
 h3 {
   font-family: "Ubuntu", sans-serif;
   font-weight: 400;
@@ -308,7 +398,32 @@ h3 {
   text-align: center;
   justify-content: center;
 }
+ 
+.itbkk-status-sort{
+  box-shadow: none;
+  padding-left: 10px;
+}
 
+.itbkk-status-sort svg{
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+.a {
+  color: rgb(250, 133, 188);
+}
+.b {
+  color: rgb(250, 133, 188);
+}
+.c {
+  color: rgb(209, 209, 209);
+}
+.b:hover, .a:hover {
+  color: rgb(214, 103, 177);
+}
+ 
+.c:hover {
+  color: rgb(216, 216, 216);
+}
 .mntext {
   padding-top: 5px;
   padding-left: 5px;
@@ -415,7 +530,7 @@ h3 {
 header {
   margin-bottom: 20px;
 }
-
+ 
 .addtask {
   margin-right: 45rem;
   text-align: center;
@@ -544,7 +659,7 @@ footer {
     z-index: 1;
     position: relative;
   }
-
+ 
   .itbkk-button-action {
     justify-content: left;
     padding-left: 3rem;

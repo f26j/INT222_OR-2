@@ -42,8 +42,8 @@ onMounted(() => {
 });
 const editSuccess = ref(false);
 const editStatus = async () => {
-  const trimmedName = newName.value.trim();
-  const trimmedDescription = newDescription.value.trim();
+  const trimmedName = newName.value;
+  const trimmedDescription = newDescription.value;
   const newStatus = {
     id: id,
     name: trimmedName === "" ? null : trimmedName,
@@ -172,7 +172,7 @@ const editStatus = async () => {
   </div>
 </template>
 
-<style>
+<style scoped>
 @import url("https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono");
 @import url("https://fonts.googleapis.com");
 @import url("https://fonts.gstatic.com");

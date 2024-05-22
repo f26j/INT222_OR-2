@@ -93,9 +93,10 @@ async function deleteTransfer(id, newId) {
   confirmDeleteStatus()
   showDelete.value = false
 }
+
 const confirmDeleteStatus = async () => {
   try {
-    toastStore.handleStatusDeleted()
+    return
   } catch (error) {
     toastStore.handleStatusDeletedF()
     console.error("Error deleting status:", error)
@@ -110,6 +111,7 @@ const closeModal = () => {
   showDelete.value = false
   router.push({ name: "statusView" })
 }
+
 </script>
 
 <template>
