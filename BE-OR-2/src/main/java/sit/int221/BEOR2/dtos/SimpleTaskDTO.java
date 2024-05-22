@@ -15,4 +15,8 @@ public class SimpleTaskDTO {
     private String title;
     private String assignees;
     private Status status;
+
+    public String getStatus() {
+        return status.getName();
+    }
 }

@@ -27,8 +27,8 @@ public class TaskController {
 
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
-    public List<SimpleTaskDTO> getTasks() {
-        List<Task> tasks = taskService.getTasks();
+    public List<SimpleTaskDTO> getTasks(@RequestParam(value = "filterStatuses", required = false) List<String> statuses) {
+        List<Task> tasks = taskService.getTasks(statuses);
         return tasks.stream().map(task -> new SimpleTaskDTO(task.getId(), task.getTitle(), task.getAssignees(), task.getStatus())).toList();
     }
 

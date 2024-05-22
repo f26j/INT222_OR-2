@@ -2,6 +2,7 @@ package sit.int221.BEOR2.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,6 +12,7 @@ import sit.int221.BEOR2.entities.Task;
 import sit.int221.BEOR2.exceptions.APINotFoundException;
 import sit.int221.BEOR2.repositories.StatusRepository;
 import sit.int221.BEOR2.repositories.TaskRepository;
+import sit.int221.BEOR2.specifications.TaskSpecification;
 
 import java.util.List;
 
@@ -24,8 +26,12 @@ public class TaskService {
     @Autowired
     private StatusRepository statusRepository;
 
-    public List<Task> getTasks() {
-        return taskRepository.findAll(Sort.by("id"));
+    public List<Task> getTasks(List<String> statuses) {
+        Specification<Task> spec = Specification.where(null);
+        if (statuses != null && !statuses.isEmpty()) {
+            spec = spec.and(TaskSpecification.hasStatuses(statuses));
+        }
+        return taskRepository.findAll(spec, Sort.by("id"));
     }
 
     public Task getTaskById(@PathVariable Integer id) {
