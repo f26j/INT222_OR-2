@@ -1,8 +1,10 @@
 package sit.int221.BEOR2.controllers;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import sit.int221.BEOR2.dtos.StatusDTO;
 import sit.int221.BEOR2.entities.Status;
 import sit.int221.BEOR2.services.StatusService;
 
@@ -18,11 +20,14 @@ import java.util.List;
 public class StatusController {
     @Autowired
     private StatusService statusService;
+    @Autowired
+    private ModelMapper modelMapper;
 
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
-    public List<Status> getStatuses() {
-        return statusService.getStatuses();
+    public List<StatusDTO> getStatuses() {
+        List<Status> statuses = statusService.getStatuses();
+        return statuses.stream().map(status -> new StatusDTO(status.getId(), status.getName(), status.getDescription())).toList();
     }
 
     @GetMapping("/{id}")
@@ -33,14 +38,14 @@ public class StatusController {
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public Status addStatus(@RequestBody Status status) {
-        return statusService.addStatus(status);
+    public StatusDTO addStatus(@RequestBody Status status) {
+        return modelMapper.map(statusService.addStatus(status), StatusDTO.class);
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public Status editStatus(@PathVariable Integer id, @RequestBody Status status) {
-        return statusService.editStatus(id, status);
+    public StatusDTO editStatus(@PathVariable Integer id, @RequestBody Status status) {
+        return modelMapper.map(statusService.editStatus(id, status), StatusDTO.class);
     }
 
     @DeleteMapping("/{id}")
