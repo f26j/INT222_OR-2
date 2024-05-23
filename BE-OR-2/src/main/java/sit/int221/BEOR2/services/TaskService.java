@@ -1,5 +1,6 @@
 package sit.int221.BEOR2.services;
 
+import jakarta.persistence.Column;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -14,6 +15,7 @@ import sit.int221.BEOR2.repositories.StatusRepository;
 import sit.int221.BEOR2.repositories.TaskRepository;
 import sit.int221.BEOR2.specifications.TaskSpecification;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -37,14 +39,13 @@ public class TaskService {
     }
 
     private void validateStatuses(List<String> statuses) {
-        List<String> field = List.of(
-                "id", "taskTitle", "taskDescription",
-                "taskAssignees", "taskStatus", "createdOn", "updatedOn",
-                "title", "description", "assignees", "status"
-        );
+        List<String> fields = Arrays.stream(Task.class.getDeclaredFields())
+                .filter(field -> field.isAnnotationPresent(Column.class))
+                .map(field -> field.getAnnotation(Column.class).name())
+                .toList();
 
         for (String status : statuses) {
-            if (field.contains(status)) {
+            if (fields.contains(status)) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid filter parameter");
             }
         }
