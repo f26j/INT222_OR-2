@@ -6,7 +6,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import sit.int221.BEOR2.dtos.AddEditTaskDTO;
 import sit.int221.BEOR2.dtos.SimpleTaskDTO;
-import sit.int221.BEOR2.dtos.TaskDTO;
 import sit.int221.BEOR2.entities.Task;
 import sit.int221.BEOR2.services.TaskService;
 
@@ -38,8 +37,8 @@ public class TaskController {
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public TaskDTO getTaskById(@PathVariable Integer id) {
-        return modelMapper.map(taskService.getTaskById(id), TaskDTO.class);
+    public Task getTaskById(@PathVariable Integer id) {
+        return taskService.getTaskById(id);
     }
 
     @PostMapping("")
