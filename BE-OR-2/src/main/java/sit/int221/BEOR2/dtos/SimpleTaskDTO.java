@@ -16,6 +16,7 @@ public class SimpleTaskDTO {
     private String assignees;
     private Status status;
 
+    // Disable it if you want to compatible with front-end
     public String getStatus() {
         return status.getName();
     }

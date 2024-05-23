@@ -29,10 +29,25 @@ public class TaskService {
     public List<Task> getTasks(List<String> statuses, String sort, String order) {
         Specification<Task> spec = Specification.where(null);
         if (statuses != null && !statuses.isEmpty()) {
+            validateStatuses(statuses);
             spec = spec.and(TaskSpecification.hasStatuses(statuses));
         }
         Sort sorting = Sort.by(Sort.Direction.fromString(order), sort);
         return taskRepository.findAll(spec, sorting);
+    }
+
+    private void validateStatuses(List<String> statuses) {
+        List<String> field = List.of(
+                "id", "taskTitle", "taskDescription",
+                "taskAssignees", "taskStatus", "createdOn", "updatedOn",
+                "title", "description", "assignees", "status"
+        );
+
+        for (String status : statuses) {
+            if (field.contains(status)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid filter parameter");
+            }
+        }
     }
 
     public Task getTaskById(@PathVariable Integer id) {
