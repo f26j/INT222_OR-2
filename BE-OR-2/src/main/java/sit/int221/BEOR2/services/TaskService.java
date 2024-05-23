@@ -1,7 +1,6 @@
 package sit.int221.BEOR2.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +24,7 @@ public class TaskService {
     private StatusRepository statusRepository;
 
     public List<Task> getTasks() {
-        return taskRepository.findAll(Sort.by("id"));
+        return taskRepository.findAll();
     }
 
     public Task getTaskById(@PathVariable Integer id) {
