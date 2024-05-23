@@ -30,10 +30,9 @@ public class TaskController {
     public List<SimpleTaskDTO> getTasks(
             @RequestParam(value = "filterStatuses", required = false) List<String> statuses,
             @RequestParam(value = "sortBy", required = false, defaultValue = "id") String sort,
-            @RequestParam(value = "orderBy", required = false, defaultValue = "asc") String order,
-            @RequestParam(value = "taskAssignees", required = false) String assignees
+            @RequestParam(value = "orderBy", required = false, defaultValue = "asc") String order
     ) {
-        List<Task> tasks = taskService.getTasks(statuses, sort, order, assignees);
+        List<Task> tasks = taskService.getTasks(statuses, sort, order);
         return tasks.stream().map(task -> new SimpleTaskDTO(task.getId(), task.getTitle(), task.getAssignees(), task.getStatus())).toList();
     }
 

@@ -26,13 +26,8 @@ public class TaskService {
     @Autowired
     private StatusRepository statusRepository;
 
-    public List<Task> getTasks(List<String> statuses, String sort, String order, String assignees) {
+    public List<Task> getTasks(List<String> statuses, String sort, String order) {
         Specification<Task> spec = Specification.where(null);
-
-        if (assignees != null && !assignees.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid filter parameter");
-        }
-
         if (statuses != null && !statuses.isEmpty()) {
             spec = spec.and(TaskSpecification.hasStatuses(statuses));
         }
