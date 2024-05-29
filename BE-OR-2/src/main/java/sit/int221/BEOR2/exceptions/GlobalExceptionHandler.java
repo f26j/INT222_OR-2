@@ -11,7 +11,7 @@ import java.util.Date;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(APINotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleTaskNotFoundException(APINotFoundException exception, WebRequest request) {
+    public ResponseEntity<ErrorResponse> handleAPINotFoundException(APINotFoundException exception, WebRequest request) {
         ErrorResponse errorResponse = new ErrorResponse();
 
         errorResponse.setTimestamp(new Date());

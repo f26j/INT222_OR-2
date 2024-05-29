@@ -44,7 +44,7 @@ public class StatusService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "The requested task does not exist");
         }
 
-        if (status.getId() == 1) {
+        if (id == 1) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
@@ -61,6 +61,10 @@ public class StatusService {
             throw new APINotFoundException(statusString, pathInstance + id);
         }
 
+        if (id == 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+
         if (statusRepository.existsById(id)) {
             statusRepository.deleteById(id);
         }
@@ -68,8 +72,8 @@ public class StatusService {
 
     @Transactional
     public void transferStatus(@PathVariable Integer id, @PathVariable Integer newId) {
-        if (newId.equals(id)) {
-            return;
+        if (newId.equals(id) || id == 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
         Status deleteId = statusRepository.findById(id).orElseThrow(() -> new APINotFoundException(statusString, pathInstance + id));
