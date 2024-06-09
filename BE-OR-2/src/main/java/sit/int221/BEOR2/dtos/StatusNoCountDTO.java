@@ -4,15 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import sit.int221.BEOR2.entities.Status;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class SimpleTaskDTO {
+public class StatusNoCountDTO {
     private Integer id;
-    private String title;
-    private String assignees;
-    private Status status;
+    private String name;
+    private String description;
 }
