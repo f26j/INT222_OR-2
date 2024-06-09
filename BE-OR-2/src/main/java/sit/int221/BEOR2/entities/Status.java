@@ -28,16 +28,6 @@ public class Status {
     @Column(name = "statusDescription", length = 200)
     private String description;
 
-    @SuppressWarnings("deprecation")
-    public void setName(String name) {
-        this.name = StringUtils.trimWhitespace(name);
-    }
-
-    @SuppressWarnings("deprecation")
-    public void setDescription(String description) {
-        this.description = StringUtils.trimWhitespace(description);
-    }
-
     @JsonIgnore
     @OneToMany(mappedBy = "status")
     private List<Task> tasks;
@@ -47,5 +37,15 @@ public class Status {
 
     public Integer getCount() {
         return tasks == null ? 0 : tasks.size();
+    }
+
+    @SuppressWarnings("deprecation")
+    public void setName(String name) {
+        this.name = StringUtils.trimWhitespace(name);
+    }
+
+    @SuppressWarnings("deprecation")
+    public void setDescription(String description) {
+        this.description = StringUtils.trimWhitespace(description);
     }
 }
