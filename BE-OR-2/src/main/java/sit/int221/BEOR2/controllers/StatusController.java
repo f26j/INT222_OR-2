@@ -11,7 +11,7 @@ import sit.int221.BEOR2.services.StatusService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/v2/statuses")
+@RequestMapping("/statuses")
 @CrossOrigin(origins = {
     "http://localhost:5173",
     "http://ip23or2.sit.kmutt.ac.th",
