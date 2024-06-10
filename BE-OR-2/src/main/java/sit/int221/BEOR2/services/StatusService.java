@@ -43,9 +43,8 @@ public class StatusService {
         if (!statusRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "The requested task does not exist");
         }
-
-        // If you want to test with Postman; change to `status.getId() == 1`
-        if (id == 1) {
+        
+        if (status.getId() == 1) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
