@@ -44,7 +44,7 @@ public class StatusService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "The requested task does not exist");
         }
         
-        if (status.getId() == 1) {
+        if (status.getId() == null || status.getId() == 1) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
