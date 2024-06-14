@@ -33,8 +33,12 @@ public class TaskService {
 
     @Transactional
     public Task addTask(@RequestBody Task task) {
+        if (task.getStatus() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Task status is required");
+        }
+
         if (!statusRepository.existsById(task.getStatus().getId())) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "The requested status does not exist");
         }
         statusRepository.findById(task.getStatus().getId());
         return taskRepository.saveAndFlush(task);
