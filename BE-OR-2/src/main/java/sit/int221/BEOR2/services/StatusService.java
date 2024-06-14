@@ -30,7 +30,7 @@ public class StatusService {
     }
 
     public Status getStatusById(@PathVariable Integer id) {
-        return statusRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Status id " + id + " does not exist !!!"));
+        return statusRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Status id " + id + " does not exist"));
     }
 
     @Transactional

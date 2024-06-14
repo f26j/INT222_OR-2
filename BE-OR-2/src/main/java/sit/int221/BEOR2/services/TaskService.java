@@ -28,7 +28,7 @@ public class TaskService {
     }
 
     public Task getTaskById(@PathVariable Integer id) {
-        return taskRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task id " + id + " does not exist !!!"));
+        return taskRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task id " + id + " does not exist"));
     }
 
     @Transactional
