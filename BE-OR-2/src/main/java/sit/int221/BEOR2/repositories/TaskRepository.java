@@ -7,5 +7,5 @@ import sit.int221.BEOR2.entities.Task;
 import java.util.List;
 
 public interface TaskRepository extends JpaRepository<Task, Integer> {
-    List<Task> findByStatus(Status deleteId);
+    List<Task> findByStatus(Status status);
 }
