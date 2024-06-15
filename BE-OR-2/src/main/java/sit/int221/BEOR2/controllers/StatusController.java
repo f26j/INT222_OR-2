@@ -1,5 +1,6 @@
 package sit.int221.BEOR2.controllers;
 
+import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -38,7 +39,7 @@ public class StatusController {
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public StatusNoCountDTO addStatus(@RequestBody Status status) {
+    public StatusNoCountDTO addStatus(@Valid @RequestBody Status status) {
         return modelMapper.map(statusService.addStatus(status), StatusNoCountDTO.class);
     }
 

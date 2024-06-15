@@ -1,6 +1,7 @@
 package sit.int221.BEOR2.entities;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -22,6 +23,7 @@ public class Status {
     @Column(name = "id", nullable = false)
     private Integer id;
 
+    @NotNull
     @Column(name = "statusName", nullable = false, length = 50, unique = true)
     private String name;
 

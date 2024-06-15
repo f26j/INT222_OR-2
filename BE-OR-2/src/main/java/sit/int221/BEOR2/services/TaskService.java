@@ -1,6 +1,7 @@
 package sit.int221.BEOR2.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,9 +16,6 @@ import java.util.List;
 
 @Service
 public class TaskService {
-    private final String statusString = "NOT FOUND";
-    private final String pathInstance = "/v2/tasks/";
-
     @Autowired
     private TaskRepository taskRepository;
     @Autowired
@@ -40,27 +38,40 @@ public class TaskService {
         if (!statusRepository.existsById(task.getStatus().getId())) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "The requested status does not exist");
         }
-        statusRepository.findById(task.getStatus().getId());
-        return taskRepository.saveAndFlush(task);
+
+        try {
+            statusRepository.findById(task.getStatus().getId());
+            return taskRepository.saveAndFlush(task);
+        } catch (DataIntegrityViolationException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Task title and status must not be null, or JSON properties are not correctly formatted");
+        }
     }
 
     @Transactional
     public Task editTask(@PathVariable Integer id, @RequestBody Task task) {
-        if (!taskRepository.existsById(id)) {
-            throw new APINotFoundException(statusString, pathInstance + id);
+        if (!statusRepository.existsById(task.getStatus().getId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Task status must be selected from an existing");
         }
 
-        if (taskRepository.existsById(id)) {
-            task.setId(id);
-            return taskRepository.saveAndFlush(task);
+        if (!taskRepository.existsById(id)) {
+            throw new APINotFoundException();
         }
-        return null;
+
+        try {
+            if (taskRepository.existsById(id)) {
+                task.setId(id);
+                return taskRepository.saveAndFlush(task);
+            }
+            return null;
+        } catch (DataIntegrityViolationException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Task title and status must not be null, or JSON properties are not correctly formatted");
+        }
     }
 
     @Transactional
     public void deleteTask(@PathVariable Integer id) {
         if (!taskRepository.existsById(id)) {
-            throw new APINotFoundException(statusString, pathInstance + id);
+            throw new APINotFoundException();
         }
 
         if (taskRepository.existsById(id)) {
