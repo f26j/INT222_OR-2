@@ -17,9 +17,6 @@ import java.util.List;
 
 @Service
 public class StatusService {
-    private final String statusString = "NOT FOUND";
-    private final String pathInstance = "/v2/statuses/";
-
     @Autowired
     private StatusRepository statusRepository;
     @Autowired
@@ -40,8 +37,9 @@ public class StatusService {
 
     @Transactional
     public Status editStatus(@PathVariable Integer id, @RequestBody Status status) {
-        if (status.getId() == null || status.getId() == 1) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status id " + id + " cannot be edited");
+        // Test on Postman: status.getId() == null || status.getId() == 1
+        if (id == null || id == 1) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Status id " + id + " cannot be edited");
         }
 
         if (!statusRepository.existsById(id)) {
@@ -58,11 +56,11 @@ public class StatusService {
     @Transactional
     public void deleteStatus(@PathVariable Integer id) {
         if (id == 1) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status id " + id + " cannot be deleted");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Status id " + id + " cannot be deleted");
         }
 
         if (!statusRepository.existsById(id)) {
-            throw new APINotFoundException(statusString, pathInstance + id);
+            throw new APINotFoundException();
         }
 
         if (statusRepository.existsById(id)) {
@@ -72,22 +70,17 @@ public class StatusService {
 
     @Transactional
     public void transferStatus(@PathVariable Integer id, @PathVariable Integer newId) {
-        if (newId.equals(id) || id == 1) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status id " + id + " and new id " + newId + " cannot be transferred");
+        if (newId.equals(statusRepository.existsById(id)) || id == 1) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Status id " + id + " and new id " + newId + " cannot be transferred");
         }
 
-        if (!statusRepository.existsById(id)) {
-            throw new APINotFoundException(statusString, pathInstance + id);
-        }
-
-        Status deleteId = statusRepository.findById(id).orElseThrow(() -> new APINotFoundException(statusString, pathInstance + id));
+        Status deleteId = statusRepository.findById(id).orElseThrow(APINotFoundException::new);
         Status transferId = statusRepository.findById(newId).orElse(null);
         List<Task> tasks = taskRepository.findByStatus(deleteId);
 
         for (Task task : tasks) {
             task.setStatus(transferId);
         }
-
         taskRepository.saveAllAndFlush(tasks);
         statusRepository.delete(deleteId);
     }

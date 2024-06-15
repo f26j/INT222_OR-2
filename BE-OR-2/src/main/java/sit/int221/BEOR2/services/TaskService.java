@@ -15,9 +15,6 @@ import java.util.List;
 
 @Service
 public class TaskService {
-    private final String statusString = "NOT FOUND";
-    private final String pathInstance = "/v2/tasks/";
-
     @Autowired
     private TaskRepository taskRepository;
     @Autowired
@@ -33,10 +30,6 @@ public class TaskService {
 
     @Transactional
     public Task addTask(@RequestBody Task task) {
-        if (task.getStatus() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Task status is required");
-        }
-
         if (!statusRepository.existsById(task.getStatus().getId())) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "The requested status does not exist");
         }
@@ -47,7 +40,7 @@ public class TaskService {
     @Transactional
     public Task editTask(@PathVariable Integer id, @RequestBody Task task) {
         if (!taskRepository.existsById(id)) {
-            throw new APINotFoundException(statusString, pathInstance + id);
+            throw new APINotFoundException();
         }
 
         if (taskRepository.existsById(id)) {
@@ -60,7 +53,7 @@ public class TaskService {
     @Transactional
     public void deleteTask(@PathVariable Integer id) {
         if (!taskRepository.existsById(id)) {
-            throw new APINotFoundException(statusString, pathInstance + id);
+            throw new APINotFoundException();
         }
 
         if (taskRepository.existsById(id)) {
