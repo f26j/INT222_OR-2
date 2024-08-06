@@ -1,7 +1,7 @@
 version: "3.8"
 services:
-  web-v2:
-    container_name: web-v2
+  web:
+    container_name: web
     image: vue-app
     restart: always
     build: .

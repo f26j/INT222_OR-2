@@ -16,8 +16,8 @@ services:
       - LANG=C.UTF-8
     command: ["mysqld", "--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
 
-  springapi-v2:
-    container_name: springapi-v2
+  springapi:
+    container_name: springapi
     image: spring-boot
     restart: always
     build: .
