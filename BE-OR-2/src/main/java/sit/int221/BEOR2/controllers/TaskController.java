@@ -4,8 +4,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import sit.int221.BEOR2.dtos.AddEditTaskDTO;
-import sit.int221.BEOR2.dtos.SimpleTaskDTO;
+import sit.int221.BEOR2.dtos.TaskAddEditDTO;
+import sit.int221.BEOR2.dtos.TaskSimpleDTO;
 import sit.int221.BEOR2.entities.Task;
 import sit.int221.BEOR2.services.TaskService;
 
@@ -26,9 +26,9 @@ public class TaskController {
 
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
-    public List<SimpleTaskDTO> getTasks() {
+    public List<TaskSimpleDTO> getTasks() {
         List<Task> tasks = taskService.getTasks();
-        return tasks.stream().map(task -> new SimpleTaskDTO(task.getId(), task.getTitle(), task.getAssignees(), task.getStatus())).toList();
+        return tasks.stream().map(task -> new TaskSimpleDTO(task.getId(), task.getTitle(), task.getAssignees(), task.getStatus())).toList();
     }
 
     @GetMapping("/{id}")
@@ -39,14 +39,14 @@ public class TaskController {
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public AddEditTaskDTO addTask(@RequestBody Task task) {
-        return modelMapper.map(taskService.addTask(task), AddEditTaskDTO.class);
+    public TaskAddEditDTO addTask(@RequestBody Task task) {
+        return modelMapper.map(taskService.addTask(task), TaskAddEditDTO.class);
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public AddEditTaskDTO editTask(@PathVariable Integer id, @RequestBody Task task) {
-        return modelMapper.map(taskService.editTask(id, task), AddEditTaskDTO.class);
+    public TaskAddEditDTO editTask(@PathVariable Integer id, @RequestBody Task task) {
+        return modelMapper.map(taskService.editTask(id, task), TaskAddEditDTO.class);
     }
 
     @DeleteMapping("/{id}")

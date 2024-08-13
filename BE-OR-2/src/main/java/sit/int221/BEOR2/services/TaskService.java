@@ -15,9 +15,6 @@ import java.util.List;
 
 @Service
 public class TaskService {
-    private final String statusString = "NOT FOUND";
-    private final String pathInstance = "/v2/tasks/";
-
     @Autowired
     private TaskRepository taskRepository;
     @Autowired
@@ -28,13 +25,13 @@ public class TaskService {
     }
 
     public Task getTaskById(@PathVariable Integer id) {
-        return taskRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task id " + id + " does not exist !!!"));
+        return taskRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task id " + id + " does not exist"));
     }
 
     @Transactional
     public Task addTask(@RequestBody Task task) {
         if (!statusRepository.existsById(task.getStatus().getId())) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "The requested status does not exist");
         }
         statusRepository.findById(task.getStatus().getId());
         return taskRepository.saveAndFlush(task);
@@ -43,7 +40,7 @@ public class TaskService {
     @Transactional
     public Task editTask(@PathVariable Integer id, @RequestBody Task task) {
         if (!taskRepository.existsById(id)) {
-            throw new APINotFoundException(statusString, pathInstance + id);
+            throw new APINotFoundException();
         }
 
         if (taskRepository.existsById(id)) {
@@ -56,7 +53,7 @@ public class TaskService {
     @Transactional
     public void deleteTask(@PathVariable Integer id) {
         if (!taskRepository.existsById(id)) {
-            throw new APINotFoundException(statusString, pathInstance + id);
+            throw new APINotFoundException();
         }
 
         if (taskRepository.existsById(id)) {

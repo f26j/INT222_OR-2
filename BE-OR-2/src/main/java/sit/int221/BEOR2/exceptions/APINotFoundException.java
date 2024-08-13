@@ -1,13 +1,7 @@
 package sit.int221.BEOR2.exceptions;
 
-import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-@Getter
+@NoArgsConstructor
 public class APINotFoundException extends RuntimeException {
-    private final String instance;
-
-    public APINotFoundException(String message, String instance) {
-        super(message);
-        this.instance = instance;
-    }
 }

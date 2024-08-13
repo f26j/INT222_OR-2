@@ -10,7 +10,7 @@ import sit.int221.BEOR2.entities.Status;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class AddEditTaskDTO {
+public class TaskAddEditDTO {
     private Integer id;
     private String title;
     private String description;
