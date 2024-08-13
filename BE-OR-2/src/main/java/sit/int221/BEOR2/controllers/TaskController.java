@@ -12,7 +12,7 @@ import sit.int221.BEOR2.services.TaskService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/tasks")
+@RequestMapping("/v2/tasks")
 @CrossOrigin(origins = {
     "http://localhost:5173",
     "http://ip23or2.sit.kmutt.ac.th",

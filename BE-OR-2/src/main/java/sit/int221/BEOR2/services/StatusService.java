@@ -39,7 +39,7 @@ public class StatusService {
     public Status editStatus(@PathVariable Integer id, @RequestBody Status status) {
         // Test on Postman: status.getId() == null || status.getId() == 1
         if (id == null || id == 1) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Status id " + id + " cannot be edited");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status id " + id + " cannot be edited");
         }
 
         if (!statusRepository.existsById(id)) {
@@ -56,7 +56,7 @@ public class StatusService {
     @Transactional
     public void deleteStatus(@PathVariable Integer id) {
         if (id == 1) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Status id " + id + " cannot be deleted");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status id " + id + " cannot be deleted");
         }
 
         if (!statusRepository.existsById(id)) {
@@ -71,7 +71,7 @@ public class StatusService {
     @Transactional
     public void transferStatus(@PathVariable Integer id, @PathVariable Integer newId) {
         if (newId.equals(statusRepository.existsById(id)) || id == 1) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Status id " + id + " and new id " + newId + " cannot be transferred");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status id " + id + " and new id " + newId + " cannot be transferred");
         }
 
         Status deleteId = statusRepository.findById(id).orElseThrow(APINotFoundException::new);
