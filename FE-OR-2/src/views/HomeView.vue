@@ -12,6 +12,7 @@ import ToastAdd from "../components/toast/ToastAdd.vue";
 import ToastEdit from "../components/toast/ToastEdit.vue";
 import ModalDelete from "../components/ModalDelete.vue";
 import ToastDelete from "../components/toast/ToastDelete.vue";
+import Navbar from "../components/css/Nevbar.vue"
  
 // Store,Api zone
 const fetchTask = import.meta.env.VITE_API_TASK;
@@ -160,6 +161,7 @@ watch(() => sortedTasks.value, (newVal) => {
 });
 </script>
 <template>
+  <Navbar/>
   <div class="body">
     <header>
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
