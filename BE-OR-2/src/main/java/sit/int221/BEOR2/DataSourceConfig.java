@@ -10,16 +10,16 @@ import javax.sql.DataSource;
 
 @Configuration
 public class DataSourceConfig {
-    @Primary
     @Bean(name = "itbkk_v2")
-    @ConfigurationProperties(prefix = "spring.datasource")
-    public DataSource itbkkV2DataSource() {
+    @Primary
+    @ConfigurationProperties(prefix = "spring.datasource.default")
+    public DataSource defaultDataSource() {
         return DataSourceBuilder.create().build();
     }
 
     @Bean(name = "itbkk_shared")
-    @ConfigurationProperties(prefix = "spring.datasource-share")
-    public DataSource itbkkSharedDataSource() {
+    @ConfigurationProperties(prefix = "spring.datasource.shared")
+    public DataSource sharedDataSource() {
         return DataSourceBuilder.create().build();
     }
 }
