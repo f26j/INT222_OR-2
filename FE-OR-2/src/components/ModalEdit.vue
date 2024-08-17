@@ -208,7 +208,7 @@ const closeModal = () => {
                   <p>Timezone : {{ localTimeZone }}</p>
                 </div>
                 <div class="itbkk-created-on text-left">
-                   <p>CreatedOn : {{ formatDate(modalEdit.createdOn) }}</p>
+                  <p>CreatedOn : {{ formatDate(modalEdit.createdOn) }}</p>
                 </div>
                 <div class="itbkk-updated-on text-left">
                   <p>UpdatedOn : {{ formatDate(modalEdit.updatedOn) }}</p>

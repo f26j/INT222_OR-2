@@ -190,7 +190,7 @@ watch(() => sortedTasks.value, (newVal) => {
           <span class="mntext">Manage Status</span>
         </button>
       </div>
- 
+
       <div class="btn-a" v-for="task in store.tasks.value">
         <div
           class="itbkk-button-add button iconbutton"
