@@ -26,7 +26,6 @@ const toastStore = useToastStore()
 </template>
 
 <style>
-
 .itbkk-message {
   position: fixed;
   height: 5rem;
@@ -35,7 +34,6 @@ const toastStore = useToastStore()
   right: 30px;
   overflow: hidden;
 }
-
 .itbkk-message .progress {
   position: absolute;
   bottom: 0;
@@ -43,7 +41,6 @@ const toastStore = useToastStore()
   height: 3px;
   width: 100%;
 }
-
 .itbkk-message .progress:before {
   content: "";
   position: absolute;
@@ -52,18 +49,15 @@ const toastStore = useToastStore()
   height: 100%;
   width: 100%;
 }
-
 .itbkk-message .progress.inactive:before {
   background-color: #ff8d8d;
   animation: progress 5s linear forwards;
 }
-
 @keyframes progress {
   100% {
     right: 100%;
   }
 }
-
 .toast.active ~ button {
   pointer-events: none;
 }

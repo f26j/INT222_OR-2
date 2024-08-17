@@ -1,12 +1,16 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed } from "vue"
+import { useToastStore } from "@/stores/toast"
 import Bg_effect from "../components/css/Background.vue"
+import Toast_login from "../components/toast/ToastLogin.vue"
 
-const username = ref('')
-const password = ref('')
+const toastStore = useToastStore()
+
+const username = ref("")
+const password = ref("")
 
 const isLoginValid = computed(() => {
-  return username.value.trim() !== '' && password.value.trim() !== ''
+  return username.value.trim() !== "" && password.value.trim() !== ""
 })
 </script>
 <template>
@@ -14,7 +18,7 @@ const isLoginValid = computed(() => {
     class="flex min-h-full flex-col justify-center items-center px-6 py-32 lg:px-8"
   >
     <div
-      class="w-full bg-white bg-opacity-60 rounded-lg shadow dark:border md:mt-0 sm:max-w-md dark:bg-gray-800 dark:border-gray-700 p-6 space-y-4 md:space-y-6 sm:p-8"
+      class="w-full bg-white bg-opacity-60 rounded-lg shadow dark:border md:mt-0 sm:max-w-md p-6 space-y-4 md:space-y-6 sm:p-8"
     >
       <div class="sm:mx-auto sm:w-full sm:max-w-sm">
         <img
@@ -39,7 +43,7 @@ const isLoginValid = computed(() => {
             >
             <div class="mt-2">
               <input
-                class="block w-full rounded-md border-0 py-1.5 p-2 text-gray-600 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-300 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6"
+                class="block w-full rounded-md border-0 py-1.5 p-2 bg-white text-gray-600 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-300 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6"
                 v-model="username"
                 id="username"
                 name="username"
@@ -62,7 +66,7 @@ const isLoginValid = computed(() => {
             </div>
             <div class="mt-2">
               <input
-                class="block w-full rounded-md border-0 py-1.5 p-2 text-gray-600 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-300 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6"
+                class="block w-full rounded-md border-0 py-1.5 p-2 bg-white text-gray-600 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-300 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6"
                 v-model="password"
                 id="password"
                 name="password"
@@ -89,6 +93,7 @@ const isLoginValid = computed(() => {
     </div>
   </div>
   <Bg_effect />
+  <Toast_login />
 </template>
 <style scope>
 @import url("https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono");

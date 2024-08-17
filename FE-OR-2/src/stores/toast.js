@@ -83,12 +83,12 @@ export const useToastStore = defineStore("toast", () => {
   };
 
   const handleLogin = () => {
-    showToastLogin.value = true;
-    console.log(showToastDeleteStatus.value);
+    showToastLogin.value = true
+    console.log(showToastDeleteStatus.value)
     setTimeout(() => {
-      showToastDeleteStatus.value = false;
-    }, 5000);
-  };
+      showToastDeleteStatus.value = false
+    }, 5000)
+  }
 
   const closeToast = () => {
     showToastAdd.value = false;
@@ -97,7 +97,6 @@ export const useToastStore = defineStore("toast", () => {
     showToastEditStatus.value = false;
     showToastDeleteStatus.value = false;
   };
-
 
   return {
     showToastAdd,
@@ -119,5 +118,5 @@ export const useToastStore = defineStore("toast", () => {
     handleStatusDeletedF,
     handleLogin,
     closeToast,
-  };
+  }
 });
