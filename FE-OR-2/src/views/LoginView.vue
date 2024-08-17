@@ -1,6 +1,9 @@
 <script setup>
 import Bg_effect from "../components/css/Background.vue"
 import Toast_login from "../components/toast/ToastLogin.vue"
+import { useToastStore} from "@/stores/toast";
+
+const toastStore = useToastStore();
 </script>
 <template>
   <div
