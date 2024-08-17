@@ -1,4 +1,4 @@
-package sit.int221.BEOR2.entities;
+package sit.int221.BEOR2.db2.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;
