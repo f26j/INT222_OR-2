@@ -1,12 +1,13 @@
 <script setup>
 import Bg_effect from "../components/css/Background.vue"
+import Toast_login from "../components/toast/ToastLogin.vue"
 </script>
 <template>
   <div
     class="flex min-h-full flex-col justify-center items-center px-6 py-32 lg:px-8"
   >
     <div
-      class="w-full bg-white bg-opacity-60 rounded-lg shadow dark:border md:mt-0 sm:max-w-md dark:bg-gray-800 dark:border-gray-700 p-6 space-y-4 md:space-y-6 sm:p-8"
+      class="w-full bg-white bg-opacity-60 rounded-lg shadow dark:border md:mt-0 sm:max-w-md p-6 space-y-4 md:space-y-6 sm:p-8"
     >
       <div class="sm:mx-auto sm:w-full sm:max-w-sm">
         <img
@@ -30,13 +31,9 @@ import Bg_effect from "../components/css/Background.vue"
               >Username</label
             >
             <div class="mt-2">
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autocomplete="email"
+              <input placeholder="Username"
                 required
-                class="block w-full rounded-md border-0 py-1.5 p-2 text-gray-600 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6"
+                class="block w-full rounded-md border-0 py-1.5 p-2 bg-white text-gray-600 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6"
               />
             </div>
           </div>
@@ -57,13 +54,13 @@ import Bg_effect from "../components/css/Background.vue"
             </div> -->
             </div>
             <div class="mt-2">
-              <input
+              <input placeholder="Password"
                 id="password"
                 name="password"
                 type="password"
                 autocomplete="current-password"
                 required
-                class="block w-full rounded-md border-0 py-1.5 p-2 text-gray-600 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                class="block w-full rounded-md border-0 py-1.5 p-2 bg-white text-gray-600 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
               />
             </div>
           </div>
@@ -81,6 +78,7 @@ import Bg_effect from "../components/css/Background.vue"
     </div>
   </div>
   <Bg_effect />
+  <Toast_login/>
 </template>
 <style scope>
 @import url("https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono");
