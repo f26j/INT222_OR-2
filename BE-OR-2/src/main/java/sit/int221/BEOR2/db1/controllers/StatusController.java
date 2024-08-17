@@ -1,12 +1,12 @@
-package sit.int221.BEOR2.controllers;
+package sit.int221.BEOR2.db1.controllers;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import sit.int221.BEOR2.dtos.StatusNoCountDTO;
-import sit.int221.BEOR2.entities.Status;
-import sit.int221.BEOR2.services.StatusService;
+import sit.int221.BEOR2.db1.dtos.StatusNoCountDTO;
+import sit.int221.BEOR2.db1.entities.Status;
+import sit.int221.BEOR2.db1.services.StatusService;
 
 import java.util.List;
 
@@ -27,7 +27,11 @@ public class StatusController {
     @ResponseStatus(HttpStatus.OK)
     public List<StatusNoCountDTO> getStatuses() {
         List<Status> statuses = statusService.getStatuses();
-        return statuses.stream().map(status -> new StatusNoCountDTO(status.getId(), status.getName(), status.getDescription())).toList();
+        return statuses.stream().map(status -> new StatusNoCountDTO(
+                    status.getId(),
+                    status.getName(),
+                    status.getDescription()
+                )).toList();
     }
 
     @GetMapping("/{id}")
