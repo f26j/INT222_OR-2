@@ -1,5 +1,13 @@
 <script setup>
+import { ref, computed } from "vue";
 import Bg_effect from "../components/css/Background.vue"
+
+const username = ref('')
+const password = ref('')
+
+const isLoginValid = computed(() => {
+  return username.value.trim() !== '' && password.value.trim() !== ''
+})
 </script>
 <template>
   <div
@@ -12,7 +20,7 @@ import Bg_effect from "../components/css/Background.vue"
         <img
           class="mx-auto my-2 h-10 w-auto"
           src="../../public/ORv1.2.ico"
-          alt="Your Company"
+          alt="OR-2"
         />
         <h2
           class="mt-8 text-center text-2xl font-bold leading-9 tracking-tight text-[#47467b]"
@@ -25,18 +33,21 @@ import Bg_effect from "../components/css/Background.vue"
         <form class="space-y-6" action="#" method="POST">
           <div class="itbkk-username">
             <label
-              for="email"
               class="block text-sm font-medium leading-6 text-[#47467b]"
+              for="username"
               >Username</label
             >
             <div class="mt-2">
               <input
-                id="email"
-                name="email"
-                type="email"
-                autocomplete="email"
+                class="block w-full rounded-md border-0 py-1.5 p-2 text-gray-600 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-300 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6"
+                v-model="username"
+                id="username"
+                name="username"
+                type="text"
+                placeholder="Username"
+                autocomplete="username"
+                maxlength="50"
                 required
-                class="block w-full rounded-md border-0 py-1.5 p-2 text-gray-600 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6"
               />
             </div>
           </div>
@@ -44,34 +55,31 @@ import Bg_effect from "../components/css/Background.vue"
           <div class="itbkk-password">
             <div class="flex items-center justify-between">
               <label
-                for="password"
                 class="block text-sm font-medium leading-6 text-[#47467b]"
+                for="password"
                 >Password</label
               >
-              <!-- <div class="text-sm">
-              <a
-                href="#"
-                class="font-semibold text-indigo-600 hover:text-indigo-500"
-                >Forgot password?</a
-              >
-            </div> -->
             </div>
             <div class="mt-2">
               <input
+                class="block w-full rounded-md border-0 py-1.5 p-2 text-gray-600 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-300 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6"
+                v-model="password"
                 id="password"
                 name="password"
                 type="password"
+                placeholder="Password"
                 autocomplete="current-password"
+                maxlength="14"
                 required
-                class="block w-full rounded-md border-0 py-1.5 p-2 text-gray-600 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
               />
             </div>
           </div>
 
           <div>
             <button
+              class="itbkk-button-signin flex w-full justify-center rounded-md bg-[#8e5bb1] px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-[#6a4581] hover:scale-105 transition-transform duration-300 ease-in-out"
               type="submit"
-              class="itbkk-button-signin flex w-full justify-center rounded-md bg-[#8e5bb1] px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-[#6a4581] hover:scale-105 transition-transform duration-300 ease"
+              :disabled="!isLoginValid"
             >
               Sign in
             </button>
