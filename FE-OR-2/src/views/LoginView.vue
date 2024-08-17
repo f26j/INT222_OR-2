@@ -81,7 +81,7 @@ const isLoginValid = computed(() => {
 
           <div>
             <button
-              class="itbkk-button-signin flex w-full justify-center rounded-md bg-[#8e5bb1] px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-[#6a4581] hover:scale-105 transition-transform duration-300 ease-in-out"
+              class="itbkk-button-signin disabled:cursor-not-allowed disabled:bg-gray-400 disabled:hover:scale-100 flex w-full justify-center rounded-md bg-[#8e5bb1] px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-[#6a4581] hover:scale-105 transition-transform duration-300 ease-in-out"
               type="submit"
               :disabled="!isLoginValid"
             >
