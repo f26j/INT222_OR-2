@@ -1,4 +1,4 @@
-package sit.int221.BEOR2.services;
+package sit.int221.BEOR2.db1.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -7,11 +7,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.server.ResponseStatusException;
-import sit.int221.BEOR2.entities.Status;
-import sit.int221.BEOR2.entities.Task;
-import sit.int221.BEOR2.exceptions.APINotFoundException;
-import sit.int221.BEOR2.repositories.StatusRepository;
-import sit.int221.BEOR2.repositories.TaskRepository;
+import sit.int221.BEOR2.db1.entities.Status;
+import sit.int221.BEOR2.db1.entities.Task;
+import sit.int221.BEOR2.db1.exceptions.APINotFoundException;
+import sit.int221.BEOR2.db1.repositories.StatusRepository;
+import sit.int221.BEOR2.db1.repositories.TaskRepository;
 
 import java.util.List;
 
