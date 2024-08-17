@@ -2,6 +2,7 @@
 import { useToastStore } from "@/stores/toast.js"
 const toastStore = useToastStore()
 </script>
+
 <template>
   <div class="toast active">
     <div class="toast-content">
