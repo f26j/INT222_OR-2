@@ -1,10 +1,12 @@
 <script setup>
 import { ref, computed } from "vue"
 import { useToastStore } from "@/stores/toast"
+import { storeToRefs } from "pinia"
 import Bg_effect from "../components/css/Background.vue"
 import Toast_login from "../components/toast/ToastLogin.vue"
 
 const toastStore = useToastStore()
+const { showToastLogin, closeToast } = storeToRefs(toastStore)
 
 const username = ref("")
 const password = ref("")
@@ -12,6 +14,33 @@ const password = ref("")
 const isLoginValid = computed(() => {
   return username.value.trim() !== "" && password.value.trim() !== ""
 })
+
+const userLogin = async () => {
+  try {
+    const response = await fetch("/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        username: username.value,
+        password: password.value
+      })
+    })
+
+    if (response.status === 200) {
+      console.log("Login successful")
+    } else if (response.status === 401) {
+      console.error("Username or Password is incorrect.")
+      toastStore.handleLogin()
+    } else {
+      console.error("There is a problem. Please try again later.")
+      toastStore.handleLogin()
+    }
+  } catch (error) {
+    console.error("An error occurred while trying to log in.")
+  }
+}
 </script>
 <template>
   <div
@@ -34,7 +63,7 @@ const isLoginValid = computed(() => {
       </div>
 
       <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-        <form class="space-y-6" action="#" method="POST">
+        <form class="space-y-6" @submit.prevent="userLogin">
           <div class="itbkk-username">
             <label
               class="block text-sm font-medium leading-6 text-[#47467b]"
@@ -93,7 +122,7 @@ const isLoginValid = computed(() => {
     </div>
   </div>
   <Bg_effect />
-  <Toast_login />
+  <Toast_login v-if="showToastLogin" @close="closeToast" />
 </template>
 <style scope>
 @import url("https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono");
