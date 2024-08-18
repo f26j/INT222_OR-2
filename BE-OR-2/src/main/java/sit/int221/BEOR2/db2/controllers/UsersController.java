@@ -2,7 +2,9 @@ package sit.int221.BEOR2.db2.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import sit.int221.BEOR2.db2.entities.Users;
 import sit.int221.BEOR2.db2.services.UsersService;
 
@@ -16,12 +18,18 @@ import java.util.List;
         "http://intproj23.sit.kmutt.ac.th"
 })
 public class UsersController {
+
     @Autowired
     private UsersService usersService;
 
     @GetMapping("/{username}")
     @ResponseStatus(HttpStatus.OK)
-    public List<Users> getUsersByUsername(@PathVariable String username) {
+    public Users getUsersByUsername(@PathVariable("username") String username) {
         return usersService.getUsersByUsername(username);
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<String> handleResponseStatusException(ResponseStatusException ex) {
+        return ResponseEntity.status(ex.getStatusCode().value()).body(ex.getReason());
     }
 }

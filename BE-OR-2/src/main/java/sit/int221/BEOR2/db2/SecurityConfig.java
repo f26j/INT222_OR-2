@@ -22,12 +22,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.disable()) // ปิดการใช้งาน CSRF ถ้าจำเป็น
                 .addFilterBefore(new JWTFilter(jwtService), UsernamePasswordAuthenticationFilter.class)
                 .authorizeRequests(authorizeRequests ->
                         authorizeRequests
-                                .requestMatchers("/auth/login").permitAll()
-                                .anyRequest().authenticated()
+//                                .requestMatchers("/auth/login").permitAll()
+                                .requestMatchers("/login/**").permitAll()  // อนุญาตการเข้าถึง URL ที่เกี่ยวข้องกับการล็อกอิน
+                                .anyRequest().authenticated()   // ต้องการการยืนยันตัวตนสำหรับ URL อื่นๆ
                 );
 
         return http.build();

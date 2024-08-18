@@ -86,7 +86,7 @@ export const useToastStore = defineStore("toast", () => {
     showToastLogin.value = true
     console.log(showToastDeleteStatus.value)
     setTimeout(() => {
-      showToastDeleteStatus.value = false
+      showToastLogin.value = false
     }, 5000)
   }
 
@@ -96,6 +96,7 @@ export const useToastStore = defineStore("toast", () => {
     showToastAddStatus.value = false;
     showToastEditStatus.value = false;
     showToastDeleteStatus.value = false;
+    showToastLogin.value = false;
   };
 
   return {
