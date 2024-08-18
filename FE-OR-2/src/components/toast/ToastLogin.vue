@@ -34,14 +34,16 @@ const toastStore = useToastStore()
   right: 30px;
   overflow: hidden;
 }
-.itbkk-message .progress {
+
+.progress {
   position: absolute;
   bottom: 0;
   left: 0;
   height: 3px;
   width: 100%;
 }
-.itbkk-message .progress:before {
+
+.progress:before {
   content: "";
   position: absolute;
   bottom: 0;
@@ -49,10 +51,15 @@ const toastStore = useToastStore()
   height: 100%;
   width: 100%;
 }
-.itbkk-message .progress.inactive:before {
+.progress:before {
   background-color: #ff8d8d;
   animation: progress 5s linear forwards;
 }
+
+.progress.active:before {
+  animation: progress 5s linear forwards;
+}
+
 @keyframes progress {
   100% {
     right: 100%;

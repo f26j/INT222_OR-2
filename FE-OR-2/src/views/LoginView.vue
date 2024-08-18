@@ -8,6 +8,8 @@ import Toast_login from "../components/toast/ToastLogin.vue";
 const toastStore = useToastStore();
 const { showToastLogin, closeToast } = storeToRefs(toastStore);
 
+const fetchUsers = import.meta.env.VITE_API_USERS;
+
 const username = ref("");
 const password = ref("");
 
@@ -19,7 +21,7 @@ const handleSubmit = async (event) => {
   event.preventDefault();
 
   try {
-    const response = await fetch("/api/login", {
+    const response = await fetch(fetchUsers, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -42,11 +44,6 @@ const handleSubmit = async (event) => {
     console.error("Error during login:", error);
     toastStore.handleLogin();
   }
-};
-
-const closeModal = () => {
-  showToastLogin.value = false;
-  router.push({ name: "LoginView" });
 };
 </script>
 <template>
