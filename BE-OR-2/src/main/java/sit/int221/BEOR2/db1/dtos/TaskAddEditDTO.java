@@ -1,10 +1,10 @@
-package sit.int221.BEOR2.dtos;
+package sit.int221.BEOR2.db1.dtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import sit.int221.BEOR2.entities.Status;
+import sit.int221.BEOR2.db1.entities.Status;
 
 @Getter
 @Setter

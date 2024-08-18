@@ -1,4 +1,4 @@
-package sit.int221.BEOR2.exceptions;
+package sit.int221.BEOR2.db1.exceptions;
 
 import lombok.NoArgsConstructor;
 

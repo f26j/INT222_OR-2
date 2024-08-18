@@ -1,13 +1,13 @@
-package sit.int221.BEOR2.controllers;
+package sit.int221.BEOR2.db1.controllers;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import sit.int221.BEOR2.dtos.TaskAddEditDTO;
-import sit.int221.BEOR2.dtos.TaskSimpleDTO;
-import sit.int221.BEOR2.entities.Task;
-import sit.int221.BEOR2.services.TaskService;
+import sit.int221.BEOR2.db1.dtos.TaskAddEditDTO;
+import sit.int221.BEOR2.db1.dtos.TaskSimpleDTO;
+import sit.int221.BEOR2.db1.entities.Task;
+import sit.int221.BEOR2.db1.services.TaskService;
 
 import java.util.List;
 
@@ -28,7 +28,12 @@ public class TaskController {
     @ResponseStatus(HttpStatus.OK)
     public List<TaskSimpleDTO> getTasks() {
         List<Task> tasks = taskService.getTasks();
-        return tasks.stream().map(task -> new TaskSimpleDTO(task.getId(), task.getTitle(), task.getAssignees(), task.getStatus())).toList();
+        return tasks.stream().map(task -> new TaskSimpleDTO(
+                    task.getId(),
+                    task.getTitle(),
+                    task.getAssignees(),
+                    task.getStatus()
+                )).toList();
     }
 
     @GetMapping("/{id}")
