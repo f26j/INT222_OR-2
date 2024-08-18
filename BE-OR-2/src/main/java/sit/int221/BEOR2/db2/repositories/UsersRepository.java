@@ -5,6 +5,6 @@ import sit.int221.BEOR2.db2.entities.Users;
 
 import java.util.Optional;
 
-public interface UsersRepository extends JpaRepository<Users, Long> {
+public interface UsersRepository extends JpaRepository<Users, String> {
     Optional<Users> findByUsername(String username);
 }
