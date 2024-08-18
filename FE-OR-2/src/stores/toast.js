@@ -67,37 +67,34 @@ export const useToastStore = defineStore("toast", () => {
   const handleStatusDeleted = () => {
     showToastDeleteStatus.value = true
     deleteSuccess.value = true
-    console.log(showToastDeleteStatus.value)
+    console.log(showToastDeleteStatus.value);
     setTimeout(() => {
-      showToastDeleteStatus.value = false
-    }, 5000)
-  }
-
+      showToastDeleteStatus.value = false;
+    }, 5000);
+  };
+  
   const handleStatusDeletedF = () => {
-    showToastDeleteStatus.value = true
+    showToastDeleteStatus.value = true;
     deleteSuccess.value = false
-    console.log(showToastDeleteStatus.value)
+    console.log(showToastDeleteStatus.value);
     setTimeout(() => {
-      showToastDeleteStatus.value = false
-    }, 5000)
-  }
+      showToastDeleteStatus.value = false;
+    }, 5000);
+  };
 
   const handleLogin = () => {
     showToastLogin.value = true
     console.log(showToastLogin.value)
-    setTimeout(() => {
-      showToastLogin.value = false
-    }, 5000)
   }
 
   const closeToast = () => {
-    showToastAdd.value = false
-    showToastEdit.value = false
-    showToastAddStatus.value = false
-    showToastEditStatus.value = false
-    showToastDeleteStatus.value = false
-    showToastLogin.value = false
-  }
+    showToastAdd.value = false;
+    showToastEdit.value = false;
+    showToastAddStatus.value = false;
+    showToastEditStatus.value = false;
+    showToastDeleteStatus.value = false;
+    showToastLogin.value = false;
+  };
 
   return {
     showToastAdd,
