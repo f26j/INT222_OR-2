@@ -12,7 +12,7 @@ const store = useTaskStore();
 const toastStore = useToastStore();
 
 // Variable zone
-const newTitle = ref("");
+const newTitle = ref("");   
 const newDescription = ref("");
 const newAssignees = ref("");
 const newStatus = ref({
