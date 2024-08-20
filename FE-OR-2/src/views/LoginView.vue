@@ -35,6 +35,7 @@ const handleSubmit = async (event) => {
     if (response.status === 200) {
       const data = await response.json();
       console.log("Login successful:", data);
+      localStorage.setItem("authToken", data.token);
     } else if (response.status === 401) {
       toastStore.handleLogin();
     } else {
