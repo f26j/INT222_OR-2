@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router"
+import LoginView from "../views/LoginView.vue"
 import HomeView from "../views/HomeView.vue"
 import ModalDetail from "../components/ModalDetail.vue"
 import ModalAdd from "../components/ModalAdd.vue"
@@ -13,7 +14,7 @@ const router = createRouter({
   routes: [
     {
       path: "/",
-      redirect: "/task",
+      redirect: "/login",
     },
     {
       path: "/task",
@@ -58,6 +59,11 @@ const router = createRouter({
         },
       ],
     },
+    {
+      path: "/login",
+      name: "login",
+      component: LoginView,
+    }
   ],
 })
 
