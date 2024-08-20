@@ -90,6 +90,11 @@ export const useToastStore = defineStore("toast", () => {
     }, 5000)
   }
 
+  const handleLogin = () => {
+    showToastLogin.value = true
+    console.log(showToastLogin.value)
+  }
+
   const closeToast = () => {
     showToastAdd.value = false;
     showToastEdit.value = false;
