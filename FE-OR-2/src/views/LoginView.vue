@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from "vue";
+import { useRouter } from "vue-router";
 import { useToastStore } from "@/stores/toast.js";
 import { storeToRefs } from "pinia";
 import Bg_effect from "../components/css/Background.vue";
@@ -7,6 +8,7 @@ import Toast_login from "../components/toast/ToastLogin.vue";
 
 const toastStore = useToastStore();
 const { showToastLogin, closeToast } = storeToRefs(toastStore);
+const router = useRouter();
 
 const fetchUsers = import.meta.env.VITE_API_USERS;
 
@@ -33,17 +35,29 @@ const handleSubmit = async (event) => {
     });
 
     if (response.status === 200) {
-      const data = await response.json();
-      console.log("Login successful:", data);
-      localStorage.setItem("authToken", data.token);
+      // ตรวจสอบว่ามีเนื้อหาใน response หรือไม่
+      const data = response.headers.get('Content-Length') > 0 
+        ? await response.json().catch(() => null) 
+        : null;
+
+      if (data) {
+        console.log("Login successful:", data);
+        localStorage.setItem("authToken", data.token);
+        router.push('/task'); // Redirect to /tasks after successful login
+      } else {
+        console.log("Login successful, but no JSON response received.");
+        router.push('/task'); // Redirect to /tasks as default behavior
+      }
     } else if (response.status === 401) {
       toastStore.handleLogin();
+      console.log("Login failed: Incorrect username or password.");
     } else {
-      toastStore.handleLogin();
+      console.log("Unexpected status code:", response.status);
+      router.push('/task'); // Redirect to /tasks for any other response status
     }
   } catch (error) {
-    console.error("Error during login:", error);
-    toastStore.handleLogin();
+    console.error("Error during login request:", error);
+    router.push('/task'); // Redirect to /tasks on network error
   }
 };
 </script>
