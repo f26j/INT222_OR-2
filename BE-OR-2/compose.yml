@@ -1,7 +1,7 @@
 version: "3.8"
 services:
-  mysqldb:
-    container_name: mysqldb
+  mysql-db1:
+    container_name: mysql-db1
     image: mysql/mysql-server
     restart: always
     ports:
@@ -16,17 +16,32 @@ services:
       - LANG=C.UTF-8
     command: ["mysqld", "--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
 
-  springapi:
-    container_name: springapi
+  mysql-db2:
+    container_name: mysql-db2
+    image: mysql/mysql-server
+    restart: always
+    ports:
+      - "3307:3306"
+    environment:
+      - MYSQL_DATABASE=itbkk_shared
+      - MYSQL_USER=authuser
+      - MYSQL_ROOT_PASSWORD=VT4eTSRo
+      - MYSQL_PASSWORD=VT4eTSRo
+      - LANG=C.UTF-8
+    command: ["mysqld", "--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+
+  spring-api:
+    container_name: spring-api
     image: spring-boot
     restart: always
     build: .
     ports:
       - "8080:8080"
     environment:
-      - MYSQL_HOST=mysqldb
+      - MYSQL_HOST=mysql-db1
       - MYSQL_USER=root
       - MYSQL_PASSWORD=mysql@sit
       - MYSQL_PORT=3306
     depends_on:
-      - mysqldb
+      - mysql-db1
+      - mysql-db2
