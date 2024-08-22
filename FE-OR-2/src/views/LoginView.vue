@@ -5,15 +5,18 @@ import { useToastStore } from "@/stores/toast.js";
 import { storeToRefs } from "pinia";
 import Bg_effect from "../components/css/Background.vue";
 import Toast_login from "../components/toast/ToastLogin.vue";
+import { jwtDecode, jwtDecode } from "jwt-decode";
 
 const toastStore = useToastStore();
 const { showToastLogin, closeToast } = storeToRefs(toastStore);
 const router = useRouter();
+const jwtDecode = jwtDecode()
 
 const fetchUsers = import.meta.env.VITE_API_USERS;
 
 const username = ref("");
 const password = ref("");
+const token = ref("")
 
 const isLoginValid = computed(() => {
   return username.value.trim() !== "" && password.value.trim() !== "";
@@ -56,8 +59,7 @@ const handleSubmit = async (event) => {
       router.push('/task'); // Redirect to /tasks for any other response status
     }
   } catch (error) {
-    console.error("Error during login request:", error);
-    router.push('/task'); // Redirect to /tasks on network error
+    console.error("Error during login request:", error); // Redirect to /tasks on network error
   }
 };
 </script>
