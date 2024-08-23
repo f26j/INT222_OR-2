@@ -22,7 +22,7 @@ public class UsersController {
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.OK)
     public Users usersLogin(@RequestBody UsersLoginDTO login) {
-        boolean isValid = usersService.matchUsernameAndPassword(login.getUsername(), login.getPassword());
+        boolean isValid = usersService.matchUsernameAndPassword(login.getUserName(), login.getPassword());
 
         if (!isValid) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
