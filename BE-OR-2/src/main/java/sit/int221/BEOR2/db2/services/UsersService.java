@@ -20,19 +20,17 @@ public class UsersService {
 
     @Transactional
     public Users usersLogin(String userName, String password) {
-        Optional<Users> user = usersRepository.findByUsername(userName.trim());
-
-        if (userName.isEmpty() || userName.length() > 50 || password.isEmpty() || password.length() > 14) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid username or password format");
+        if (userName == null || userName.isEmpty() || userName.length() > 50 ||
+                password == null || password.isEmpty() || password.length() > 14) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The username or password must not empty");
         }
 
-        if (user.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The user or password is incorrect");
-        }
+        String name = userName.trim();
+        Optional<Users> user = usersRepository.findByUsername(name);
 
-        if (!passwordEncoder.matches(password, user.get().getPassword())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The user or password is incorrect");
+        if (user.isEmpty() || !passwordEncoder.matches(password, user.get().getPassword())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The username or password is incorrect");
         }
-        return null;
+        return user.get();
     }
 }
