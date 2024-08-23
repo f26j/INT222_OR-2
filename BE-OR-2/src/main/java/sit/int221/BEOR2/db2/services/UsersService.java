@@ -19,12 +19,18 @@ public class UsersService {
     private final Argon2PasswordEncoder passwordEncoder = new Argon2PasswordEncoder(16, 32, 1, 60000, 10);
 
     @Transactional
-    public boolean matchUsernameAndPassword(String username, String password) {
-        Optional<Users> user = usersRepository.findByUsername(username.trim());
-
-        if (username.isEmpty() || username.length() > 50 || password.isEmpty() || password.length() > 14) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+    public Users usersLogin(String userName, String password) {
+        if (userName == null || userName.isEmpty() || userName.length() > 50 ||
+                password == null || password.isEmpty() || password.length() > 14) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The username or password must not empty");
         }
-        return user.isPresent() && passwordEncoder.matches(password, user.get().getPassword());
+
+        String name = userName.trim();
+        Optional<Users> user = usersRepository.findByUsername(name);
+
+        if (user.isEmpty() || !passwordEncoder.matches(password, user.get().getPassword())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The username or password is incorrect");
+        }
+        return user.get();
     }
 }

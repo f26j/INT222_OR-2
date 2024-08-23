@@ -14,7 +14,7 @@ public class WebSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(authorize -> authorize.anyRequest()
                 .permitAll())
-                .csrf(AbstractHttpConfigurer::disable); // No 403 error;
+                .csrf(AbstractHttpConfigurer::disable); // No 403 error
         return http.build();
     }
 }
