@@ -22,7 +22,7 @@ public class UsersService {
     public Users usersLogin(String userName, String password) {
         if (userName == null || userName.isEmpty() || userName.length() > 50 ||
                 password == null || password.isEmpty() || password.length() > 14) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The username or password must not empty");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The username or password must not be empty; overlength character");
         }
 
         String name = userName.trim();
