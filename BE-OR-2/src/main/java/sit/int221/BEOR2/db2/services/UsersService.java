@@ -19,7 +19,7 @@ public class UsersService {
     private final Argon2PasswordEncoder passwordEncoder = new Argon2PasswordEncoder(16, 32, 1, 60000, 10);
 
     @Transactional
-    public Users usersLogin(String userName, String password) {
+    public Users loginUsers(String userName, String password) {
         if (userName == null || userName.isEmpty() || userName.length() > 50 ||
                 password == null || password.isEmpty() || password.length() > 14) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The username or password must not be empty; overlength character");

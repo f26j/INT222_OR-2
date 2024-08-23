@@ -20,7 +20,7 @@ public class UsersController {
 
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.OK)
-    public Users usersLogin(@RequestBody UsersLoginDTO login) {
-        return usersService.usersLogin(login.getUserName(), login.getPassword());
+    public Users loginUsers(@RequestBody UsersLoginDTO login) {
+        return usersService.loginUsers(login.getUserName(), login.getPassword());
     }
 }
