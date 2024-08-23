@@ -27,11 +27,11 @@ public class UsersService {
         }
 
         if (user.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The user is incorrect or does not exist, and the password must correct");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The user or password is incorrect");
         }
 
         if (!passwordEncoder.matches(password, user.get().getPassword())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The user password is incorrect");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The user or password is incorrect");
         }
         return null;
     }
