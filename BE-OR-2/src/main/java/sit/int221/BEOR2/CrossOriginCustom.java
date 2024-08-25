@@ -9,9 +9,10 @@ import java.lang.annotation.Target;
 
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-@CrossOrigin
+@CrossOrigin(origins = {
+        "http://localhost:5173",
+        "http://ip23or2.sit.kmutt.ac.th",
+        "http://intproj23.sit.kmutt.ac.th"
+})
 public @interface CrossOriginCustom {
-    String[] crossOrigins() default {
-        "http://localhost:5173", "http://ip23or2.sit.kmutt.ac.th", "http://intproj23.sit.kmutt.ac.th"
-    };
 }
