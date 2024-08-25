@@ -31,7 +31,8 @@ public class JwtUtil {
 
     private String createToken(Map<String, Object> claims) {
         UriComponents uriComponents = ServletUriComponentsBuilder.fromCurrentRequestUri().build();
-        String issuerUrl = uriComponents.getScheme() + "://" + uriComponents.getHost() + "/or2" + uriComponents.getPath();
+        String issuerUrl = tokenUrl(uriComponents);
+
         return Jwts.builder()
                 .setHeaderParam("typ", "JWT")
                 .setClaims(claims)
@@ -40,6 +41,27 @@ public class JwtUtil {
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    private static String tokenUrl(UriComponents uriComponents) {
+        String scheme = uriComponents.getScheme();
+        String host = uriComponents.getHost();
+        String port = String.valueOf(uriComponents.getPort());
+        String path = uriComponents.getPath();
+
+        if (host.equals("intproj23.sit.kmutt.ac.th") || host.equals("ip23or2.sit.kmutt.ac.th")) {
+            if (!path.startsWith("/or2")) {
+                path = ":" + port + "/or2" + path;
+            }
+        }
+
+        if (host.equals("localhost")) {
+            if (!path.startsWith(port)) {
+                path = ":" + port + path;
+            }
+        }
+
+        return scheme + "://" + host + path;
     }
 
     public String generateToken(String name, String oid, String email, String role) {
