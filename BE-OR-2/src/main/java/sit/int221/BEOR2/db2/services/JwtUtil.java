@@ -7,6 +7,7 @@ import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.web.util.UriComponents;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
@@ -29,10 +30,12 @@ public class JwtUtil {
     }
 
     private String createToken(Map<String, Object> claims) {
+        UriComponents uriComponents = ServletUriComponentsBuilder.fromCurrentRequestUri().build();
+        String issuerUrl = uriComponents.getScheme() + "://" + uriComponents.getHost() + "/or2" + uriComponents.getPath();
         return Jwts.builder()
                 .setHeaderParam("typ", "JWT")
                 .setClaims(claims)
-                .setIssuer(ServletUriComponentsBuilder.fromCurrentRequest().build().toString())
+                .setIssuer(issuerUrl)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
