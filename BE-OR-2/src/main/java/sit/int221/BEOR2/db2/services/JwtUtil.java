@@ -33,7 +33,7 @@ public class JwtUtil {
         UriComponents uriComponents = ServletUriComponentsBuilder.fromCurrentRequestUri().build();
         String host = uriComponents.getHost();
         String basePath = (host.equals("intproj23.sit.kmutt.ac.th") || host.equals("ip23or2.sit.kmutt.ac.th")) ? "/or2" : "";
-        String issuerUrl = uriComponents.getScheme() + "://" + host + ":" + uriComponents.getPort() + basePath + uriComponents.getPath();
+        String issuerUrl = uriComponents.getScheme() + "://" + host + basePath + uriComponents.getPath();
         return Jwts.builder()
                 .setHeaderParam("typ", "JWT")
                 .setClaims(claims)
