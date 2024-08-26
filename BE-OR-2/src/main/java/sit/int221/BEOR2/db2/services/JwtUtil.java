@@ -32,8 +32,8 @@ public class JwtUtil {
     private String createToken(Map<String, Object> claims) {
         UriComponents uriComponents = ServletUriComponentsBuilder.fromCurrentRequestUri().build();
         String host = uriComponents.getHost();
-        String basePath = (host.equals("intproj23.sit.kmutt.ac.th") || host.equals("ip23or2.sit.kmutt.ac.th")) ? "/or2" : "";
-        String issuerUrl = uriComponents.getScheme() + "://" + host + basePath + uriComponents.getPath();
+        String basePath = (host.equals("intproj23.sit.kmutt.ac.th") || host.equals("ip23or2.sit.kmutt.ac.th")) ? "/or2/" : "";
+        String issuerUrl = uriComponents.getScheme() + "://" + host + basePath;
         return Jwts.builder()
                 .setHeaderParam("typ", "JWT")
                 .setClaims(claims)
