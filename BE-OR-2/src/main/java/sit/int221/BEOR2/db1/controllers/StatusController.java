@@ -7,16 +7,13 @@ import org.springframework.web.bind.annotation.*;
 import sit.int221.BEOR2.db1.dtos.StatusNoCountDTO;
 import sit.int221.BEOR2.db1.entities.Status;
 import sit.int221.BEOR2.db1.services.StatusService;
+import sit.int221.BEOR2.CrossOriginCustom;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/v2/statuses")
-@CrossOrigin(origins = {
-    "http://localhost:5173",
-    "http://ip23or2.sit.kmutt.ac.th",
-    "http://intproj23.sit.kmutt.ac.th"
-})
+@CrossOriginCustom
 public class StatusController {
     @Autowired
     private StatusService statusService;

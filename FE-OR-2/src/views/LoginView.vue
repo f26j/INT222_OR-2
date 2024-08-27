@@ -5,18 +5,15 @@ import { useToastStore } from "@/stores/toast.js";
 import { storeToRefs } from "pinia";
 import Bg_effect from "../components/css/Background.vue";
 import Toast_login from "../components/toast/ToastLogin.vue";
-import { jwtDecode, jwtDecode } from "jwt-decode";
 
 const toastStore = useToastStore();
 const { showToastLogin, closeToast } = storeToRefs(toastStore);
 const router = useRouter();
-const jwtDecode = jwtDecode()
 
 const fetchUsers = import.meta.env.VITE_API_USERS;
 
 const username = ref("");
 const password = ref("");
-const token = ref("")
 
 const isLoginValid = computed(() => {
   return username.value.trim() !== "" && password.value.trim() !== "";
@@ -32,34 +29,36 @@ const handleSubmit = async (event) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        username: username.value,
+        userName: username.value,
         password: password.value,
       }),
     });
 
     if (response.status === 200) {
       // ตรวจสอบว่ามีเนื้อหาใน response หรือไม่
-      const data = response.headers.get('Content-Length') > 0 
-        ? await response.json().catch(() => null) 
-        : null;
+      const data =
+        response.headers.get("Content-Length") > 0
+          ? await response.json().catch(() => null)
+          : null;
 
       if (data) {
         console.log("Login successful:", data);
         localStorage.setItem("authToken", data.token);
-        router.push('/task'); // Redirect to /tasks after successful login
+        router.push("/task"); // Redirect to /tasks after successful login
       } else {
         console.log("Login successful, but no JSON response received.");
-        router.push('/task'); // Redirect to /tasks as default behavior
+        router.push("/task"); // Redirect to /tasks as default behavior
       }
     } else if (response.status === 401) {
       toastStore.handleLogin();
       console.log("Login failed: Incorrect username or password.");
     } else {
       console.log("Unexpected status code:", response.status);
-      router.push('/task'); // Redirect to /tasks for any other response status
+      router.push("/task"); // Redirect to /tasks for any other response status
     }
   } catch (error) {
-    console.error("Error during login request:", error); // Redirect to /tasks on network error
+    console.error("Error during login request:", error);
+    router.push("/task"); // Redirect to /tasks on network error
   }
 };
 </script>
@@ -85,7 +84,7 @@ const handleSubmit = async (event) => {
 
       <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
         <form class="space-y-6" @submit="handleSubmit" method="POST">
-          <div class="itbkk-username">
+          <div>
             <label
               class="block text-sm font-medium leading-6 text-[#47467b]"
               for="username"
@@ -93,7 +92,7 @@ const handleSubmit = async (event) => {
             >
             <div class="mt-2">
               <input
-                class="block w-full rounded-md border-0 py-1.5 p-2 bg-white text-gray-600 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-300 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6"
+                class="itbkk-username block w-full rounded-md border-0 py-1.5 p-2 bg-white text-gray-600 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-300 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6"
                 v-model="username"
                 id="username"
                 name="username"
@@ -106,7 +105,7 @@ const handleSubmit = async (event) => {
             </div>
           </div>
 
-          <div class="itbkk-password">
+          <div>
             <div class="flex items-center justify-between">
               <label
                 class="block text-sm font-medium leading-6 text-[#47467b]"
@@ -116,7 +115,7 @@ const handleSubmit = async (event) => {
             </div>
             <div class="mt-2">
               <input
-                class="block w-full rounded-md border-0 py-1.5 p-2 bg-white text-gray-600 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-300 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6"
+                class="itbkk-password block w-full rounded-md border-0 py-1.5 p-2 bg-white text-gray-600 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-300 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6"
                 v-model="password"
                 id="password"
                 name="password"
@@ -131,6 +130,7 @@ const handleSubmit = async (event) => {
 
           <div>
             <button
+              :class="{ disabled: !isLoginValid }"
               class="itbkk-button-signin disabled:cursor-not-allowed disabled:bg-gray-400 disabled:hover:scale-100 flex w-full justify-center rounded-md bg-[#8e5bb1] px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-[#6a4581] hover:scale-105 transition-transform duration-300 ease-in-out"
               type="submit"
               :disabled="!isLoginValid"

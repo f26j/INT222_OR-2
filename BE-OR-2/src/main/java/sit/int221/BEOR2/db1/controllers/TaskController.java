@@ -8,16 +8,13 @@ import sit.int221.BEOR2.db1.dtos.TaskAddEditDTO;
 import sit.int221.BEOR2.db1.dtos.TaskSimpleDTO;
 import sit.int221.BEOR2.db1.entities.Task;
 import sit.int221.BEOR2.db1.services.TaskService;
+import sit.int221.BEOR2.CrossOriginCustom;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/v2/tasks")
-@CrossOrigin(origins = {
-    "http://localhost:5173",
-    "http://ip23or2.sit.kmutt.ac.th",
-    "http://intproj23.sit.kmutt.ac.th"
-})
+@CrossOriginCustom
 public class TaskController {
     @Autowired
     private TaskService taskService;
