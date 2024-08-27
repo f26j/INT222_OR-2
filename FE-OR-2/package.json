@@ -12,9 +12,11 @@
     "test:unit": "cypress run --component",
     "test:unit:dev": "cypress open --component",
     "cypress:open": "cypress open",
-    "cypress:run": "cypress run"
+    "cypress:run": "cypress run",
+    "cypress:run:vm": "cypress run --config baseUrl=http://intproj23.sit.kmutt.ac.th/or2"
   },
   "dependencies": {
+    "fe-or-2": "file:",
     "pinia": "^2.1.7",
     "vue": "^3.4.21",
     "vue-router": "^4.3.0"
