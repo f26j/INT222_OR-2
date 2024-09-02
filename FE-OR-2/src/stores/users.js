@@ -1,24 +1,41 @@
-import { ref, toRaw } from "vue";
-import { defineStore } from "pinia";
+import { defineStore } from 'pinia';
+import jwtDecode from 'vue-jwt-decode';
 
-export const useStatusStore = defineStore("apiStatus", () => {
-  const token = Text();
+// เพิ่มการนำเข้า URL ของ API จาก environment variable
+const fetchUsers = import.meta.env.VITE_API_USERS;
 
-  const updateStatus = (updatedStatus) => {
-    console.log(updatedStatus);
-    console.log(toRaw(statuses.value.value));
-    for (const status of statuses.value) {
-      console.log(statuses);
-    }
-    const index = toRaw(statuses.value.value).findIndex(
-      (status) => parseInt(status.id) === parseInt(updatedStatus.id)
-    );
-    if (index !== -1) {
-      statuses.value.value[index] = updatedStatus;
-    } else {
-      console.error("Status not found in store");
-    }
-  };
+export const useUserStore = defineStore('user', {
+  state: () => ({
+    token: null,
+    fullname: '',
+  }),
+  actions: {
+    async fetchUserData(username, password) {
+      try {
+        const response = await fetch(fetchUsers, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userName: username,
+            password: password,
+          }),
+        });
 
-  return { token, updateStatus };
+        if (!response.ok) {
+          throw new Error('Failed to fetch token');
+        }
+
+        const data = await response.json();
+        this.token = data.access_token;
+
+        const decodedToken = jwtDecode.decode(this.token);
+        this.fullname = decodedToken.name;
+
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    },
+  },
 });
