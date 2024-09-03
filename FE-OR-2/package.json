@@ -16,9 +16,10 @@
     "cypress:run:vm": "cypress run --config baseUrl=http://intproj23.sit.kmutt.ac.th/or2"
   },
   "dependencies": {
-    "fe-or-2": "file:",
+    "jwt-decode": "^4.0.0",
     "pinia": "^2.1.7",
     "vue": "^3.4.21",
+    "vue-jwt-decode": "^0.1.0",
     "vue-router": "^4.3.0"
   },
   "devDependencies": {

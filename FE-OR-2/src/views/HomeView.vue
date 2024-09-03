@@ -12,7 +12,8 @@ import ToastAdd from "../components/toast/ToastAdd.vue";
 import ToastEdit from "../components/toast/ToastEdit.vue";
 import ModalDelete from "../components/ModalDelete.vue";
 import ToastDelete from "../components/toast/ToastDelete.vue";
- 
+import Navbar from "../components/css/Nevbar.vue";
+
 // Store,Api zone
 const fetchTask = import.meta.env.VITE_API_TASK;
 const fetchStatus = import.meta.env.VITE_API_STATUS;
@@ -160,6 +161,7 @@ watch(() => sortedTasks.value, (newVal) => {
 });
 </script>
 <template>
+  <Navbar class="itbkk-fullname"/>
   <div class="body">
     <header>
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
@@ -399,6 +401,9 @@ h3 {
   justify-content: center;
 }
  
+.itbkk-fullname {
+  box-shadow: none;
+}
 .itbkk-status-sort{
   box-shadow: none;
   padding-left: 10px;

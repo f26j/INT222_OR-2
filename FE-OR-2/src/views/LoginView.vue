@@ -2,6 +2,7 @@
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useToastStore } from "@/stores/toast.js";
+import { useUserStore } from '@/stores/users.js';
 import { storeToRefs } from "pinia";
 import Bg_effect from "../components/css/Background.vue";
 import Toast_login from "../components/toast/ToastLogin.vue";
@@ -10,65 +11,42 @@ const toastStore = useToastStore();
 const { showToastLogin, closeToast } = storeToRefs(toastStore);
 const router = useRouter();
 
-const fetchUsers = import.meta.env.VITE_API_USERS;
-
-const username = ref("");
-const password = ref("");
+const username = ref('');
+const password = ref('');
 
 const isLoginValid = computed(() => {
   return username.value.trim() !== "" && password.value.trim() !== "";
 });
 
+const userStore = useUserStore();
+
 const handleSubmit = async (event) => {
   event.preventDefault();
 
+  if (!isLoginValid.value) {
+    toastStore.handleLogin();
+    return;
+  }
+
   try {
-    const response = await fetch(fetchUsers, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        userName: username.value,
-        password: password.value,
-      }),
-    });
+    await userStore.fetchUserData(username.value, password.value);
 
-    if (response.status === 200) {
-      // ตรวจสอบว่ามีเนื้อหาใน response หรือไม่
-      const data =
-        response.headers.get("Content-Length") > 0
-          ? await response.json().catch(() => null)
-          : null;
-
-      if (data) {
-        console.log("Login successful:", data);
-        localStorage.setItem("authToken", data.token);
-        router.push("/task"); // Redirect to /tasks after successful login
-      } else {
-        console.log("Login successful, but no JSON response received.");
-        router.push("/task"); // Redirect to /tasks as default behavior
-      }
-    } else if (response.status === 401) {
-      toastStore.handleLogin();
-      console.log("Login failed: Incorrect username or password.");
+    if (userStore.token) {
+      localStorage.setItem("authToken", userStore.token); // เก็บ token ใน localStorage
+      router.push("/task"); // เปลี่ยนเส้นทางไปยัง /tasks หลังจาก login สำเร็จ
     } else {
-      console.log("Unexpected status code:", response.status);
-      router.push("/task"); // Redirect to /tasks for any other response status
+      toastStore.handleLogin(); // แสดงข้อความ error ถ้า token ไม่มีหรือ login ไม่สำเร็จ
     }
   } catch (error) {
     console.error("Error during login request:", error);
-    router.push("/task"); // Redirect to /tasks on network error
+    toastStore.handleLogin();
   }
 };
 </script>
+
 <template>
-  <div
-    class="flex min-h-full flex-col justify-center items-center px-6 py-32 lg:px-8"
-  >
-    <div
-      class="w-full bg-white bg-opacity-60 rounded-lg shadow dark:border md:mt-0 sm:max-w-md p-6 space-y-4 md:space-y-6 sm:p-8"
-    >
+  <div class="flex min-h-full flex-col justify-center items-center px-6 py-32 lg:px-8">
+    <div class="w-full bg-white bg-opacity-60 rounded-lg shadow dark:border md:mt-0 sm:max-w-md p-6 space-y-4 md:space-y-6 sm:p-8">
       <div class="sm:mx-auto sm:w-full sm:max-w-sm">
         <img
           class="mx-auto my-2 h-10 w-auto"
@@ -83,7 +61,7 @@ const handleSubmit = async (event) => {
       </div>
 
       <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-        <form class="space-y-6" @submit="handleSubmit" method="POST">
+        <form class="space-y-6" @submit.prevent="handleSubmit" method="POST">
           <div>
             <label
               class="block text-sm font-medium leading-6 text-[#47467b]"
