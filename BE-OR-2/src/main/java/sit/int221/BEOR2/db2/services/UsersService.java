@@ -9,6 +9,7 @@ import org.springframework.web.server.ResponseStatusException;
 import sit.int221.BEOR2.db2.dtos.JwtResponse;
 import sit.int221.BEOR2.db2.entities.Users;
 import sit.int221.BEOR2.db2.repositories.UsersRepository;
+import sit.int221.BEOR2.exceptions.APIUnauthorizedException;
 
 import java.util.Optional;
 
@@ -26,7 +27,7 @@ public class UsersService {
     public JwtResponse loginUsers(String userName, String password) {
         if (userName == null || userName.isEmpty() || userName.length() > 50 ||
                 password == null || password.isEmpty() || password.length() > 14) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The username or password must not be empty; overlength character");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The username or password must not be empty; or overlength");
         }
 
         String name = userName.trim();
@@ -43,5 +44,13 @@ public class UsersService {
                 user.get().getRole()
         );
         return new JwtResponse(token);
+    }
+
+    @Transactional
+    public Users validateToken(String token) {
+        if (token == null || !token.startsWith("Bearer ")) {
+            throw new APIUnauthorizedException("Token is invalid");
+        }
+        return null;
     }
 }
