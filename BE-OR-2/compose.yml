@@ -16,20 +16,6 @@ services:
       - LANG=C.UTF-8
     command: ["mysqld", "--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
 
-  mysql-db2:
-    container_name: mysql-db2
-    image: mysql/mysql-server
-    restart: always
-    ports:
-      - "3307:3306"
-    environment:
-      - MYSQL_DATABASE=itbkk_shared
-      - MYSQL_USER=authuser
-      - MYSQL_ROOT_PASSWORD=VT4eTSRo
-      - MYSQL_PASSWORD=VT4eTSRo
-      - LANG=C.UTF-8
-    command: ["mysqld", "--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
-
   spring-api:
     container_name: spring-api
     image: spring-boot
@@ -44,4 +30,3 @@ services:
       - MYSQL_PORT=3306
     depends_on:
       - mysql-db1
-      - mysql-db2
