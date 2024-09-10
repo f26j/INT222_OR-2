@@ -60,7 +60,7 @@ public class StatusService {
         }
 
         if (!statusRepository.existsById(id)) {
-            throw new APINotFoundException();
+            throw new APINotFoundException("NOT FOUND");
         }
 
         if (statusRepository.existsById(id)) {
@@ -74,7 +74,7 @@ public class StatusService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status id " + id + " and new id " + newId + " cannot be transferred");
         }
 
-        Status deleteId = statusRepository.findById(id).orElseThrow(APINotFoundException::new);
+        Status deleteId = statusRepository.findById(id).orElseThrow(() -> new APINotFoundException("NOT FOUND"));
         Status transferId = statusRepository.findById(newId).orElse(null);
         List<Task> tasks = taskRepository.findByStatus(deleteId);
 

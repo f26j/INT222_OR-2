@@ -11,12 +11,12 @@ import java.util.Date;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(APINotFoundException.class)
-    protected ResponseEntity<ErrorResponse> handleAPINotFoundException(HttpServletRequest request) {
+    protected ResponseEntity<ErrorResponse> handleAPINotFoundException(APINotFoundException exception, HttpServletRequest request) {
         ErrorResponse errorResponse = new ErrorResponse();
 
         errorResponse.setTimestamp(new Date());
         errorResponse.setStatus(HttpStatus.NOT_FOUND.value());
-        errorResponse.setMessage("Not Found".toUpperCase());
+        errorResponse.setMessage(exception.getMessage());
         errorResponse.setInstance(request.getRequestURI());
 
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);

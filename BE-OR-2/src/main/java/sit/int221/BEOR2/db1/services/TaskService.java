@@ -40,7 +40,7 @@ public class TaskService {
     @Transactional
     public Task editTask(@PathVariable Integer id, @RequestBody Task task) {
         if (!taskRepository.existsById(id)) {
-            throw new APINotFoundException();
+            throw new APINotFoundException("NOT FOUND");
         }
 
         if (taskRepository.existsById(id)) {
@@ -53,7 +53,7 @@ public class TaskService {
     @Transactional
     public void deleteTask(@PathVariable Integer id) {
         if (!taskRepository.existsById(id)) {
-            throw new APINotFoundException();
+            throw new APINotFoundException("NOT FOUND");
         }
 
         if (taskRepository.existsById(id)) {
