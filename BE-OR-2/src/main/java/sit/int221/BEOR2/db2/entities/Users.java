@@ -25,6 +25,7 @@ public class Users {
     @Column(name = "username", nullable = false, length = 50)
     private String username;
 
+    @JsonIgnore
     @Column(name = "email", nullable = false, length = 50)
     private String email;
 
@@ -32,6 +33,7 @@ public class Users {
     @Column(name = "password", nullable = false, length = 100)
     private String password;
 
+    @JsonIgnore
     @Column(name = "role", nullable = false)
     private String role;
 

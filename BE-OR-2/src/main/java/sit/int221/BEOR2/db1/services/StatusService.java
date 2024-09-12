@@ -1,15 +1,14 @@
 package sit.int221.BEOR2.db1.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.server.ResponseStatusException;
 import sit.int221.BEOR2.db1.entities.Status;
 import sit.int221.BEOR2.db1.entities.Task;
-import sit.int221.BEOR2.exceptions.APINotFoundException;
+import sit.int221.BEOR2.exceptions.ApiBadRequestException;
+import sit.int221.BEOR2.exceptions.ApiNotFoundException;
 import sit.int221.BEOR2.db1.repositories.StatusRepository;
 import sit.int221.BEOR2.db1.repositories.TaskRepository;
 
@@ -27,7 +26,7 @@ public class StatusService {
     }
 
     public Status getStatusById(@PathVariable Integer id) {
-        return statusRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Status id " + id + " does not exist"));
+        return statusRepository.findById(id).orElseThrow(() -> new ApiNotFoundException("Status id " + id + " does not exist"));
     }
 
     @Transactional
@@ -39,11 +38,11 @@ public class StatusService {
     public Status editStatus(@PathVariable Integer id, @RequestBody Status status) {
         // Test on Postman: status.getId() == null || status.getId() == 1
         if (id == null || id == 1) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status id " + id + " cannot be edited");
+            throw new ApiBadRequestException("Status id " + id + " cannot be edited");
         }
 
         if (!statusRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "The requested status does not exist");
+            throw new ApiNotFoundException("The requested status does not exist");
         }
 
         if (statusRepository.existsById(id)) {
@@ -56,11 +55,11 @@ public class StatusService {
     @Transactional
     public void deleteStatus(@PathVariable Integer id) {
         if (id == 1) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status id " + id + " cannot be deleted");
+            throw new ApiBadRequestException("Status id " + id + " cannot be deleted");
         }
 
         if (!statusRepository.existsById(id)) {
-            throw new APINotFoundException("NOT FOUND");
+            throw new ApiNotFoundException("NOT FOUND");
         }
 
         if (statusRepository.existsById(id)) {
@@ -71,10 +70,10 @@ public class StatusService {
     @Transactional
     public void transferStatus(@PathVariable Integer id, @PathVariable Integer newId) {
         if (newId.equals(statusRepository.existsById(id)) || id == 1) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status id " + id + " and new id " + newId + " cannot be transferred");
+            throw new ApiBadRequestException("Status id " + id + " and new id " + newId + " cannot be transferred");
         }
 
-        Status deleteId = statusRepository.findById(id).orElseThrow(() -> new APINotFoundException("NOT FOUND"));
+        Status deleteId = statusRepository.findById(id).orElseThrow(() -> new ApiNotFoundException("NOT FOUND"));
         Status transferId = statusRepository.findById(newId).orElse(null);
         List<Task> tasks = taskRepository.findByStatus(deleteId);
 

@@ -10,27 +10,33 @@ import java.util.Date;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    @ExceptionHandler(APINotFoundException.class)
-    protected ResponseEntity<ErrorResponse> handleAPINotFoundException(APINotFoundException exception, HttpServletRequest request) {
+    @ExceptionHandler(ApiBadRequestException.class)
+    protected ResponseEntity<ErrorResponse> handleApiBadRequestException(ApiBadRequestException exception, HttpServletRequest request) {
         ErrorResponse errorResponse = new ErrorResponse();
-
         errorResponse.setTimestamp(new Date());
-        errorResponse.setStatus(HttpStatus.NOT_FOUND.value());
+        errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
         errorResponse.setMessage(exception.getMessage());
         errorResponse.setInstance(request.getRequestURI());
-
-        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(APIUnauthorizedException.class)
-    protected ResponseEntity<ErrorResponse> handleAPIUnauthorizedException(APIUnauthorizedException exception, HttpServletRequest request) {
+    @ExceptionHandler(ApiUnauthorizedException.class)
+    protected ResponseEntity<ErrorResponse> handleApiUnauthorizedException(ApiUnauthorizedException exception, HttpServletRequest request) {
         ErrorResponse errorResponse = new ErrorResponse();
-
         errorResponse.setTimestamp(new Date());
         errorResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
         errorResponse.setMessage(exception.getMessage());
         errorResponse.setInstance(request.getRequestURI());
-
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(ApiNotFoundException.class)
+    protected ResponseEntity<ErrorResponse> handleApiNotFoundException(ApiNotFoundException exception, HttpServletRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setTimestamp(new Date());
+        errorResponse.setStatus(HttpStatus.NOT_FOUND.value());
+        errorResponse.setMessage(exception.getMessage());
+        errorResponse.setInstance(request.getRequestURI());
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 }

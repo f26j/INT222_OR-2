@@ -14,5 +14,5 @@ import java.lang.annotation.Target;
         "http://ip23or2.sit.kmutt.ac.th",
         "http://intproj23.sit.kmutt.ac.th"
 })
-public @interface CrossOriginCustom {
+public @interface BeOr2CrossOrigin {
 }
