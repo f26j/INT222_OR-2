@@ -7,8 +7,18 @@ USE itbkk_v2;
 -- Drop
 DROP TABLE IF EXISTS task;
 DROP TABLE IF EXISTS status;
+DROP TABLE IF EXISTS board;
 
 -- Table
+CREATE TABLE IF NOT EXISTS board
+(
+    id         VARCHAR(10) PRIMARY KEY,
+    boardName  VARCHAR(120) NOT NULL,
+    boardOwner CHAR(36)     NOT NULL,
+    CONSTRAINT fk_board_owner FOREIGN KEY (boardOwner) REFERENCES itbkk_shared.users (oid)
+) CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS status
 (
     id                INT PRIMARY KEY AUTO_INCREMENT,
