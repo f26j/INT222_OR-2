@@ -47,8 +47,12 @@ public class UsersService {
 
     @Transactional
     public Users validateToken(String token) {
-        if (token == null || !token.startsWith("Bearer ")) {
-            throw new ApiUnauthorizedException("Token is invalid");
+        if (token == null || token.isEmpty()) {
+            throw new ApiUnauthorizedException("No token provided");
+        }
+
+        if (!token.startsWith("Bearer ")) {
+            throw new ApiUnauthorizedException("Token is not starting with 'Bearer '");
         }
         return null;
     }

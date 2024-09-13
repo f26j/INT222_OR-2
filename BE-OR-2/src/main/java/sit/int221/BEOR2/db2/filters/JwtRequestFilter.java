@@ -1,6 +1,8 @@
 package sit.int221.BEOR2.db2.filters;
 
-import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -46,7 +48,16 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
-        } catch (JwtException e) {
+        } catch (ExpiredJwtException e) {
+            request.setAttribute("exception", "Token is expired");
+            customAuthenticationEntryPoint.commence(request, response, new InsufficientAuthenticationException(null));
+            return;
+        } catch (MalformedJwtException e) {
+            request.setAttribute("exception", "Token is not well-formed JWT");
+            customAuthenticationEntryPoint.commence(request, response, new InsufficientAuthenticationException(null));
+            return;
+        } catch (SignatureException e) {
+            request.setAttribute("exception", "Token has been tampered");
             customAuthenticationEntryPoint.commence(request, response, new InsufficientAuthenticationException(null));
             return;
         }
