@@ -48,7 +48,7 @@ public class WebSecurityConfig {
             Map<String, Object> error = new LinkedHashMap<>();
             error.put("timestamp", DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(ZonedDateTime.ofInstant(new Date().toInstant(), ZoneOffset.UTC)) + "+00:00");
             error.put("status", HttpStatus.UNAUTHORIZED.value());
-            error.put("message", "Token is invalid or expired");
+            error.put("message", request.getAttribute("exception"));
             error.put("instance", request.getRequestURI());
 
             response.getOutputStream().println(new ObjectMapper().writeValueAsString(error));
