@@ -7,8 +7,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target({ElementType. TYPE,ElementType. METHOD})
-@Retention(RetentionPolicy. RUNTIME)
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
 @CrossOrigin(origins = {
     "http://localhost:5173",
     "http://ip23or2.sit.kmutt.ac.th",
