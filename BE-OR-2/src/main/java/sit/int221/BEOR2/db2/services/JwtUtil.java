@@ -29,12 +29,12 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
+    @SuppressWarnings("deprecation")
     private String createToken(Map<String, Object> claims) {
         UriComponents uriComponents = ServletUriComponentsBuilder.fromCurrentRequestUri().build();
         String host = uriComponents.getHost();
-        String basePort = (host.equals("localhost") ? ":5173" : "");
         String basePath = (host.equals("intproj23.sit.kmutt.ac.th") || host.equals("ip23or2.sit.kmutt.ac.th")) ? "or2/" : "";
-        String issuerUrl = uriComponents.getScheme() + "://" + host + basePort + "/" + basePath;
+        String issuerUrl = uriComponents.getScheme() + "://" + host + "/" + basePath;
         return Jwts.builder()
                 .setHeaderParam("typ", "JWT")
                 .setClaims(claims)
@@ -67,6 +67,7 @@ public class JwtUtil {
         return claimResolver.apply(claim);
     }
 
+    @SuppressWarnings("deprecation")
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
                 .setSigningKey(getSigningKey())
