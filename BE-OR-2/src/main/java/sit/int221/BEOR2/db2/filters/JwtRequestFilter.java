@@ -2,6 +2,7 @@ package sit.int221.BEOR2.db2.filters;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -15,9 +16,9 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import sit.int221.BEOR2.db2.entities.Users;
+import sit.int221.BEOR2.db2.entities.User;
 import sit.int221.BEOR2.db2.services.JwtUtil;
-import sit.int221.BEOR2.db2.services.UsersService;
+import sit.int221.BEOR2.db2.services.UserService;
 
 import java.io.IOException;
 
@@ -27,7 +28,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     private JwtUtil jwtUtil;
 
     @Autowired
-    private UsersService usersService;
+    private UserService userService;
 
     @Autowired
     private AuthenticationEntryPoint customAuthenticationEntryPoint;
@@ -43,7 +44,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             }
 
             if (token != null && jwtUtil.isTokenExpired(token)) {
-                Users user = usersService.validateToken(token);
+                User user = userService.validateToken(token);
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(user.getUsername(), null, null);
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
@@ -58,6 +59,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             return;
         } catch (SignatureException e) {
             request.setAttribute("exception", "Token has been tampered");
+            customAuthenticationEntryPoint.commence(request, response, new InsufficientAuthenticationException(null));
+            return;
+        } catch (UnsupportedJwtException e) {
+            request.setAttribute("exception", "Token's algorithm is not supported");
             customAuthenticationEntryPoint.commence(request, response, new InsufficientAuthenticationException(null));
             return;
         }
