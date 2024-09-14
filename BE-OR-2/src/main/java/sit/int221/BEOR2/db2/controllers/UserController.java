@@ -5,26 +5,26 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import sit.int221.BEOR2.BeOr2CrossOrigin;
 import sit.int221.BEOR2.db2.dtos.JwtResponse;
-import sit.int221.BEOR2.db2.dtos.UsersLoginDto;
-import sit.int221.BEOR2.db2.entities.Users;
-import sit.int221.BEOR2.db2.services.UsersService;
+import sit.int221.BEOR2.db2.dtos.UserLoginDto;
+import sit.int221.BEOR2.db2.entities.User;
+import sit.int221.BEOR2.db2.services.UserService;
 
 @RestController
 @RequestMapping("")
 @BeOr2CrossOrigin
-public class UsersController {
+public class UserController {
     @Autowired
-    private UsersService usersService;
+    private UserService userService;
 
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.OK)
-    public JwtResponse loginUsers(@RequestBody UsersLoginDto login) {
-        return usersService.loginUsers(login.getUserName(), login.getPassword());
+    public JwtResponse loginUser(@RequestBody UserLoginDto login) {
+        return userService.loginUser(login.getUserName(), login.getPassword());
     }
 
     @PostMapping("/**")
     @ResponseStatus(HttpStatus.OK)
-    public Users validateToken(@RequestHeader("Authorization") String token) {
-        return usersService.validateToken(token);
+    public User validateToken(@RequestHeader("Authorization") String token) {
+        return userService.validateToken(token);
     }
 }
