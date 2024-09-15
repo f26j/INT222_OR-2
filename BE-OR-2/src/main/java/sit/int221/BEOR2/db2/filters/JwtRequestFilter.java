@@ -1,5 +1,6 @@
 package sit.int221.BEOR2.db2.filters;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
@@ -12,13 +13,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import sit.int221.BEOR2.db2.entities.User;
 import sit.int221.BEOR2.db2.services.JwtUtil;
-import sit.int221.BEOR2.db2.services.UserService;
+import sit.int221.BEOR2.exceptions.CustomAuthenticationEntryPoint;
 
 import java.io.IOException;
 
@@ -26,12 +25,8 @@ import java.io.IOException;
 public class JwtRequestFilter extends OncePerRequestFilter {
     @Autowired
     private JwtUtil jwtUtil;
-
     @Autowired
-    private UserService userService;
-
-    @Autowired
-    private AuthenticationEntryPoint customAuthenticationEntryPoint;
+    private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
@@ -44,8 +39,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             }
 
             if (token != null && jwtUtil.isTokenExpired(token)) {
-                User user = userService.validateToken(token);
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(user.getUsername(), null, null);
+                Claims claims = jwtUtil.extractAllClaims(token);
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(claims.getSubject(), null, null);
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }

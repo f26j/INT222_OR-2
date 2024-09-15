@@ -68,7 +68,7 @@ public class JwtUtil {
     }
 
     @SuppressWarnings("deprecation")
-    private Claims extractAllClaims(String token) {
+    public Claims extractAllClaims(String token) {
         return Jwts.parser()
                 .setSigningKey(getSigningKey())
                 .build()
