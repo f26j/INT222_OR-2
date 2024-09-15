@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.*;
 import sit.int221.BEOR2.BeOr2CrossOrigin;
 import sit.int221.BEOR2.db2.dtos.JwtResponse;
 import sit.int221.BEOR2.db2.dtos.UserLoginDto;
-import sit.int221.BEOR2.db2.entities.User;
 import sit.int221.BEOR2.db2.services.UserService;
 
 @RestController
@@ -20,11 +19,5 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     public JwtResponse loginUser(@RequestBody UserLoginDto login) {
         return userService.loginUser(login.getUserName(), login.getPassword());
-    }
-
-    @PostMapping("/**")
-    @ResponseStatus(HttpStatus.OK)
-    public User validateToken(@RequestHeader("Authorization") String token) {
-        return userService.validateToken(token);
     }
 }

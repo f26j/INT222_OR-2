@@ -43,16 +43,4 @@ public class UserService {
         );
         return new JwtResponse(token);
     }
-
-    @Transactional
-    public User validateToken(String token) {
-        if (token == null || token.isEmpty()) {
-            throw new ApiUnauthorizedException("No token provided");
-        }
-
-        if (!token.startsWith("Bearer ")) {
-            throw new ApiUnauthorizedException("Token is not starting with 'Bearer '");
-        }
-        return null;
-    }
 }
