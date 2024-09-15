@@ -57,12 +57,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             request.setAttribute("exception", "Token is not well-formed JWT");
             customAuthenticationEntryPoint.commence(request, response, new InsufficientAuthenticationException(null));
             return;
-        } catch (SignatureException e) {
+        } catch (SignatureException | UnsupportedJwtException e) {
             request.setAttribute("exception", "Token has been tampered");
-            customAuthenticationEntryPoint.commence(request, response, new InsufficientAuthenticationException(null));
-            return;
-        } catch (UnsupportedJwtException e) {
-            request.setAttribute("exception", "Token's algorithm is not supported");
             customAuthenticationEntryPoint.commence(request, response, new InsufficientAuthenticationException(null));
             return;
         }
