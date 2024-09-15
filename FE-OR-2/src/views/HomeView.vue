@@ -12,7 +12,7 @@ import ToastAdd from "../components/toast/ToastAdd.vue";
 import ToastEdit from "../components/toast/ToastEdit.vue";
 import ModalDelete from "../components/ModalDelete.vue";
 import ToastDelete from "../components/toast/ToastDelete.vue";
-import Navbar from "../components/css/Nevbar.vue";
+import Navbar from "../components/css/Navbar.vue";
 
 // Store,Api zone
 const fetchTask = import.meta.env.VITE_API_TASK;
