@@ -27,7 +27,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         error.put("timestamp", DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(ZonedDateTime.ofInstant(new Date().toInstant(), ZoneOffset.UTC)) + "+00:00");
         error.put("status", HttpStatus.UNAUTHORIZED.value());
         String exceptionMessage = (String) request.getAttribute("exception");
-        error.put("message", exceptionMessage != null ? exceptionMessage : "UNAUTHORIZED");
+        error.put("message", exceptionMessage != null ? exceptionMessage : "Token is required to access");
         error.put("instance", request.getRequestURI());
 
         response.getOutputStream().println(new ObjectMapper().writeValueAsString(error));

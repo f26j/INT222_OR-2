@@ -45,20 +45,22 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         } catch (ExpiredJwtException e) {
-            request.setAttribute("exception", "Token is expired");
-            customAuthenticationEntryPoint.commence(request, response, new InsufficientAuthenticationException(null));
+            handleAuthenticationException(request, response, "Token is expired");
             return;
         } catch (MalformedJwtException e) {
-            request.setAttribute("exception", "Token is not well-formed JWT");
-            customAuthenticationEntryPoint.commence(request, response, new InsufficientAuthenticationException(null));
+            handleAuthenticationException(request, response, "Token is not well-formed JWT");
             return;
         } catch (SignatureException | UnsupportedJwtException e) {
-            request.setAttribute("exception", "Token has been tampered");
-            customAuthenticationEntryPoint.commence(request, response, new InsufficientAuthenticationException(null));
+            handleAuthenticationException(request, response, "Token has been tampered");
             return;
         }
 
         chain.doFilter(request, response);
+    }
+
+    private void handleAuthenticationException(HttpServletRequest request, HttpServletResponse response, String message) throws IOException {
+        request.setAttribute("exception", message);
+        customAuthenticationEntryPoint.commence(request, response, new InsufficientAuthenticationException(null));
     }
 
     @Override

@@ -25,14 +25,14 @@ public class UserService {
     public JwtResponse loginUser(String userName, String password) {
         if (userName == null || userName.isEmpty() || userName.length() > 50 ||
                 password == null || password.isEmpty() || password.length() > 14) {
-            throw new ApiBadRequestException("The username or password must not be empty, or overlength");
+            throw new ApiBadRequestException("Username or password must not be empty, or overlength");
         }
 
         String name = userName.trim();
         Optional<User> user = userRepository.findByUsername(name);
 
         if (user.isEmpty() || !passwordEncoder.matches(password, user.get().getPassword())) {
-            throw new ApiUnauthorizedException("The username or password is incorrect");
+            throw new ApiUnauthorizedException("Username or password is incorrect");
         }
 
         String token = jwtUtil.generateToken(
