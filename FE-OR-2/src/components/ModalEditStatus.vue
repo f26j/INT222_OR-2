@@ -20,46 +20,80 @@ const originalDescription = ref("");
 const closeModal = () => {
   router.push({ path: "/status/manage" });
 };
-async function getStatus() {
-  const data = await fetch(fetchStatus);
-  const res = await data.json();
-  const selectId = res.find((status) => status.id == id);
-  if (!selectId) {
-    router.push({ path: "/status/manage" });
-    setTimeout(() => {
-      alert("An error has occurred, the status does not exist");
-    }, 500);
-    return;
-  }
-  newName.value = selectId.name;
-  newDescription.value = selectId.description;
 
-  originalName.value = selectId.name;
-  originalDescription.value = selectId.description;
+function getToken() {
+  const token = localStorage.getItem("jwtToken");
+  if (!token) {
+    console.error("No token available");
+    router.push("/login"); // ถ้าไม่มี token จะ redirect ไปหน้า login
+    return null;
+  }
+  return token;
 }
+
+async function getStatus() {
+  const token = getToken();
+  if (!token) return; // ถ้าไม่มี token ให้หยุดการทำงาน
+
+  try {
+    const response = await fetch(fetchStatus, {
+      headers: {
+        Authorization: `Bearer ${token}`, // ส่ง JWT Token
+        "Content-Type": "application/json",
+      },
+    });
+
+    const res = await response.json();
+    const selectId = res.find((status) => status.id == id);
+    if (!selectId) {
+      router.push({ path: "/status/manage" });
+      setTimeout(() => {
+        alert("An error has occurred, the status does not exist");
+      }, 500);
+      return;
+    }
+    newName.value = selectId.name;
+    newDescription.value = selectId.description;
+
+    originalName.value = selectId.name;
+    originalDescription.value = selectId.description;
+  } catch (error) {
+    console.error("Error fetching status:", error.message);
+    router.push({ path: "/status/manage" });
+  }
+}
+
 onMounted(() => {
   getStatus();
 });
+
 const editSuccess = ref(false);
 const editStatus = async () => {
-  const trimmedName = newName.value;
-  const trimmedDescription = newDescription.value;
+  const token = getToken();
+  if (!token) return; // ถ้าไม่มี token ให้หยุดการทำงาน
+
+  const trimmedName = newName.value.trim();
+  const trimmedDescription = newDescription.value.trim();
   const newStatus = {
     id: id,
     name: trimmedName === "" ? null : trimmedName,
     description: trimmedDescription === "" ? null : trimmedDescription,
   };
+
   if (!newStatus.name) {
     return;
   }
+
   try {
     const response = await fetch(`${fetchStatus}/${id}`, {
       method: "PUT",
       headers: {
+        Authorization: `Bearer ${token}`, // ส่ง JWT Token ใน header
         "Content-Type": "application/json",
       },
       body: JSON.stringify(newStatus),
     });
+
     const data = await response.json();
     if (!response.ok) {
       toastStore.handleStatusEditedF();
@@ -71,15 +105,13 @@ const editStatus = async () => {
       toastStore.handleStatusEdited();
       store.statuses.value.splice(statusIndex, 1, data);
     }
+
     router.push({ name: "statusView" }).catch(() => {});
   } catch (error) {
     editSuccess.value = false;
     toastStore.handleStatusEditedF();
     console.error("Error adding new status:", error.message);
   }
-  statuses.value.push(newStatus);
-  newName.value = "";
-  newDescription.value = "";
 };
 </script>
 <template>

@@ -4,19 +4,16 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import sit.int221.BEOR2.db1.dtos.StatusNoCountDTO;
+import sit.int221.BEOR2.db1.dtos.StatusDto;
 import sit.int221.BEOR2.db1.entities.Status;
 import sit.int221.BEOR2.db1.services.StatusService;
+import sit.int221.BEOR2.BeOr2CrossOrigin;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/v2/statuses")
-@CrossOrigin(origins = {
-    "http://localhost:5173",
-    "http://ip23or2.sit.kmutt.ac.th",
-    "http://intproj23.sit.kmutt.ac.th"
-})
+@BeOr2CrossOrigin
 public class StatusController {
     @Autowired
     private StatusService statusService;
@@ -25,9 +22,9 @@ public class StatusController {
 
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
-    public List<StatusNoCountDTO> getStatuses() {
+    public List<StatusDto> getStatuses() {
         List<Status> statuses = statusService.getStatuses();
-        return statuses.stream().map(status -> new StatusNoCountDTO(
+        return statuses.stream().map(status -> new StatusDto(
                     status.getId(),
                     status.getName(),
                     status.getDescription()
@@ -42,14 +39,14 @@ public class StatusController {
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public StatusNoCountDTO addStatus(@RequestBody Status status) {
-        return modelMapper.map(statusService.addStatus(status), StatusNoCountDTO.class);
+    public StatusDto addStatus(@RequestBody Status status) {
+        return modelMapper.map(statusService.addStatus(status), StatusDto.class);
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public StatusNoCountDTO editStatus(@PathVariable Integer id, @RequestBody Status status) {
-        return modelMapper.map(statusService.editStatus(id, status), StatusNoCountDTO.class);
+    public StatusDto editStatus(@PathVariable Integer id, @RequestBody Status status) {
+        return modelMapper.map(statusService.editStatus(id, status), StatusDto.class);
     }
 
     @DeleteMapping("/{id}")

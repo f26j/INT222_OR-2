@@ -8,10 +8,29 @@ const isDeletable = ref(true);
 const currentStatus = ref({});
 const newStatusId = ref(1);
 
+function getToken() {
+  const token = localStorage.getItem("jwtToken");
+  if (!token) {
+    console.error("No token available");
+    router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
+    return null;
+  }
+  return token;
+}
+
 async function getStatus() {
-  const data = await fetch(`${fetchStatus}/${props.statusId}`);
+  const token = getToken();  // ดึง token จาก localStorage
+  if (!token) return;  // ถ้าไม่มี token ให้หยุดการทำงาน
+
+  const data = await fetch(`${fetchStatus}/${props.statusId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,  // ส่ง JWT Token
+      "Content-Type": "application/json",
+    },
+  });
+
   const res = await data.json();
-  console.log(res.count)
+  console.log(res.count);
   if (res.count > 0) {
     isDeletable.value = false;
   }

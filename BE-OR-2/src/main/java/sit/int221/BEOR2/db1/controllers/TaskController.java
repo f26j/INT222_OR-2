@@ -4,20 +4,17 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import sit.int221.BEOR2.db1.dtos.TaskAddEditDTO;
-import sit.int221.BEOR2.db1.dtos.TaskSimpleDTO;
+import sit.int221.BEOR2.db1.dtos.TaskManagementDto;
+import sit.int221.BEOR2.db1.dtos.TaskDto;
 import sit.int221.BEOR2.db1.entities.Task;
 import sit.int221.BEOR2.db1.services.TaskService;
+import sit.int221.BEOR2.BeOr2CrossOrigin;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/v2/tasks")
-@CrossOrigin(origins = {
-    "http://localhost:5173",
-    "http://ip23or2.sit.kmutt.ac.th",
-    "http://intproj23.sit.kmutt.ac.th"
-})
+@BeOr2CrossOrigin
 public class TaskController {
     @Autowired
     private TaskService taskService;
@@ -26,9 +23,9 @@ public class TaskController {
 
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
-    public List<TaskSimpleDTO> getTasks() {
+    public List<TaskDto> getTasks() {
         List<Task> tasks = taskService.getTasks();
-        return tasks.stream().map(task -> new TaskSimpleDTO(
+        return tasks.stream().map(task -> new TaskDto(
                     task.getId(),
                     task.getTitle(),
                     task.getAssignees(),
@@ -44,14 +41,14 @@ public class TaskController {
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public TaskAddEditDTO addTask(@RequestBody Task task) {
-        return modelMapper.map(taskService.addTask(task), TaskAddEditDTO.class);
+    public TaskManagementDto addTask(@RequestBody Task task) {
+        return modelMapper.map(taskService.addTask(task), TaskManagementDto.class);
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public TaskAddEditDTO editTask(@PathVariable Integer id, @RequestBody Task task) {
-        return modelMapper.map(taskService.editTask(id, task), TaskAddEditDTO.class);
+    public TaskManagementDto editTask(@PathVariable Integer id, @RequestBody Task task) {
+        return modelMapper.map(taskService.editTask(id, task), TaskManagementDto.class);
     }
 
     @DeleteMapping("/{id}")

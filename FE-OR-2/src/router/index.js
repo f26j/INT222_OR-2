@@ -1,20 +1,21 @@
-import { createRouter, createWebHistory } from "vue-router"
-import LoginView from "../views/LoginView.vue"
-import HomeView from "../views/HomeView.vue"
-import ModalDetail from "../components/ModalDetail.vue"
-import ModalAdd from "../components/ModalAdd.vue"
-import ModalEdit from "../components/ModalEdit.vue"
-import StatusView from "../views/StatusView.vue"
-import ModalAddStatus from "../components/ModalAddStatus.vue"
-import ModalEditStatus from "../components/ModalEditStatus.vue"
-import ManageStatus from "../components/ManageStatus.vue"
+import { createRouter, createWebHistory } from "vue-router";
+import { useUserStore } from "../stores/users"; // import user store
+import LoginView from "../views/LoginView.vue";
+import HomeView from "../views/HomeView.vue";
+import ModalDetail from "../components/ModalDetail.vue";
+import ModalAdd from "../components/ModalAdd.vue";
+import ModalEdit from "../components/ModalEdit.vue";
+import StatusView from "../views/StatusView.vue";
+import ModalAddStatus from "../components/ModalAddStatus.vue";
+import ModalEditStatus from "../components/ModalEditStatus.vue";
+import ManageStatus from "../components/ManageStatus.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: "/",
-      redirect: "/login",
+      redirect: "/login", // หน้าเริ่มต้น
     },
     {
       path: "/task",
@@ -45,7 +46,7 @@ const router = createRouter({
         {
           path: "manage",
           name: "statusView",
-          component: ManageStatus, 
+          component: ManageStatus,
         },
         {
           path: "add",
@@ -63,8 +64,29 @@ const router = createRouter({
       path: "/login",
       name: "login",
       component: LoginView,
-    }
+    },
   ],
-})
+});
 
-export default router
+// Navigation Guard
+router.beforeEach(async (to, from, next) => {
+  const userStore = useUserStore();
+
+  // ถ้าไม่มี token และพยายามเข้าหน้าอื่นที่ไม่ใช่ login ให้ redirect ไปหน้า login
+  if (!userStore.token) {
+    if (to.name !== 'login') {
+      return next({ name: 'login' });
+    }
+    return next(); // อนุญาตให้เข้า login ได้ถ้าไม่มี token
+  }
+
+  // ถ้ามี token แล้วและพยายามเข้าหน้า login ให้ redirect ไปที่หน้า task
+  if (userStore.token && to.name === 'login') {
+    return next({ name: 'task' });
+  }
+
+  // อนุญาตให้เข้าไปที่หน้าอื่นๆ ได้ถ้ามี token อยู่แล้ว
+  next();
+});
+
+export default router;

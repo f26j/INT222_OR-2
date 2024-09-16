@@ -7,6 +7,7 @@ USE itbkk_v2;
 -- Drop
 DROP TABLE IF EXISTS task;
 DROP TABLE IF EXISTS status;
+DROP TABLE IF EXISTS board;
 
 -- Table
 CREATE TABLE IF NOT EXISTS status

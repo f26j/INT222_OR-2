@@ -15,46 +15,63 @@ const newDescription = ref("")
 const statuses = ref([])
 
 // Function zone
+function getToken() {
+  const token = localStorage.getItem("jwtToken");
+  if (!token) {
+    console.error("No token available");
+    router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
+    return null;
+  }
+  return token;
+}
 
 const closeModal = () => {
   router.push({ name: "statusView" })
 }
 
 const addStatus = async () => {
+  const token = getToken();  // ดึง token จาก localStorage
+  if (!token) return;  // ถ้าไม่มี token ให้หยุดการทำงาน
+
   const trimmedName = newName.value.trim();
   const trimmedDescription = newDescription.value.trim();
   const newStatus = {
-    name: trimmedName  === "" ? null : trimmedName,
-    description: trimmedDescription  === "" ? null : trimmedDescription,
-  }
+    name: trimmedName === "" ? null : trimmedName,
+    description: trimmedDescription === "" ? null : trimmedDescription,
+  };
+  
   if (!newStatus.name) {
-    return
+    return;  // ถ้าไม่มีชื่อ status ให้หยุดการทำงาน
   }
+
   try {
     const response = await fetch(`${fetchURL.value}`, {
       method: "POST",
       headers: {
+        Authorization: `Bearer ${token}`,  // ส่ง JWT Token
         "Content-Type": "application/json",
       },
       body: JSON.stringify(newStatus),
-    })
-    const data = await response.json()
+    });
+
+    const data = await response.json();
     if (!response.ok) {
-      throw new Error("Failed to add new status")
+      throw new Error("Failed to add new status");
     } else {
-      store.statuses.value.push(data)
-      toastStore.handleStatusAdded()
+      store.statuses.value.push(data);  // เพิ่ม status ใหม่ใน store
+      toastStore.handleStatusAdded();  // แสดง toast ว่าเพิ่มสำเร็จ
     }
-    closeModal()
+
+    closeModal();
   } catch (error) {
-    toastStore.handleStatusAddedF()
-    console.error("Error adding new status:", error.message)
-    closeModal()
+    toastStore.handleStatusAddedF();  // แสดง toast ว่าล้มเหลว
+    console.error("Error adding new status:", error.message);
+    closeModal();
   }
-  statuses.value.push(newStatus)
-  newName.value = ""
-  newDescription.value = ""
-}
+
+  newName.value = "";  // รีเซ็ตฟิลด์
+  newDescription.value = "";
+};
 </script>
 <template>
   <div

@@ -12,8 +12,8 @@ import ToastAdd from "../components/toast/ToastAdd.vue";
 import ToastEdit from "../components/toast/ToastEdit.vue";
 import ModalDelete from "../components/ModalDelete.vue";
 import ToastDelete from "../components/toast/ToastDelete.vue";
-import Navbar from "../components/css/Nevbar.vue"
- 
+import Navbar from "../components/css/Navbar.vue";
+
 // Store,Api zone
 const fetchTask = import.meta.env.VITE_API_TASK;
 const fetchStatus = import.meta.env.VITE_API_STATUS;
@@ -22,33 +22,83 @@ const route = useRoute();
 const store = useTaskStore();
 const toastStore = useToastStore();
 const { showToastAdd, showToastEdit, closeToast } = storeToRefs(toastStore);
- 
+
 // Variable zone
 const taskId = route.params.id;
 const selectDeleteTaskId = ref("");
 const selectDeleteTaskTitle = ref("");
 const selectDeleteTaskIndex = ref("");
 const originalTasks = ref([]);
- 
+
 // Function zone
 onMounted(async () => {
-  const data = await fetchData();
-  const datastatus = await fetchDataStatus();
-  originalTasks.value = [...data];
-  store.tasks.value = [...data];
-  store.status.value = datastatus;
+  try {
+    const data = await fetchData();
+    const datastatus = await fetchDataStatus();
+    originalTasks.value = [...data];
+    store.tasks.value = [...data];
+    store.status.value = datastatus;
+  } catch (error) {
+    console.error("Error during data fetch:", error);
+  }
 });
- 
+
+function getToken() {
+  const token = localStorage.getItem("jwtToken");
+  if (!token) {
+    console.error("No token available");
+    router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
+    return null; // คืนค่า null เมื่อไม่มี token
+  }
+  return token;
+}
+
 async function fetchData() {
-  const response = await fetch(fetchTask);
+  const token = getToken(); // ดึง token จาก localStorage
+  if (!token) return; // ถ้าไม่มี token ให้ return
+
+  const response = await fetch(fetchTask, {
+    headers: {
+      Authorization: `Bearer ${token}`, // ส่ง JWT Token
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error fetching tasks: ${response.statusText}`);
+  }
+
   const data = await response.json();
+  if (!Array.isArray(data)) {
+    throw new TypeError("Fetched data is not an array");
+  }
+
   return data;
 }
+
 async function fetchDataStatus() {
-  const response = await fetch(fetchStatus);
+  const token = getToken(); // ดึง token จาก localStorage
+  if (!token) return; // ถ้าไม่มี token ให้ return
+
+  const response = await fetch(fetchStatus, {
+    headers: {
+      Authorization: `Bearer ${token}`, // ส่ง JWT Token
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error fetching status: ${response.statusText}`);
+  }
+
   const dataStatus = await response.json();
+  if (!Array.isArray(dataStatus)) {
+    throw new TypeError("Fetched status data is not an array");
+  }
+
   return dataStatus;
 }
+
 const openModalDetail = async (id) => {
   router.push({ name: "task-detail", params: { id: id } });
 };
@@ -63,7 +113,7 @@ if (window.location.pathname === `/task/${taskId}`) {
 } else if (window.location.pathname === `/task/${taskId}/edit`) {
   openModalEdit(taskId);
 }
- 
+
 const showToastDelete = ref(false);
 const deleteSuccess = ref(false);
 const showDelete = ref(false);
@@ -75,12 +125,22 @@ const openModalDelete = (taskId, title, index) => {
   selectDeleteTaskIndex.value = index;
 };
 async function deleteTask(taskId) {
+  const token = getToken();
+  if (!token) return; // ถ้าไม่มี token ให้หยุดการทำงาน
+
   try {
     const response = await fetch(`${fetchTask}/${taskId}`, {
       method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`, // ส่ง JWT Token
+        "Content-Type": "application/json",
+      },
     });
+
     if (response.ok) {
-      originalTasks.value = originalTasks.value.filter(task => task.id !== taskId);
+      originalTasks.value = originalTasks.value.filter(
+        (task) => task.id !== taskId
+      );
       store.tasks.value = [...originalTasks.value];
       deleteSuccess.value = true;
     } else {
@@ -89,11 +149,13 @@ async function deleteTask(taskId) {
     }
   } catch (error) {
     deleteSuccess.value = false;
-    console.error("Error deleting task:", error);
+    console.error("Error deleting task:", error.message);
   }
-  confirmDelete();
-  showDelete.value = false;
+
+  confirmDelete(); // เรียกใช้งานหลังจากการลบเสร็จสิ้น
+  showDelete.value = false; // ปิด modal
 }
+
 const confirmDelete = async () => {
   try {
     showToastDelete.value = true;
@@ -121,11 +183,11 @@ const closeModal = () => {
   showDelete.value = false;
   router.push({ path: "/task" });
 };
- 
+
 const openStatus = () => {
   router.push({ name: "statusView" });
 };
- 
+
 const sortAscending = ref(undefined);
 
 const toggleSortOrder = () => {
@@ -156,12 +218,15 @@ function sortTasks(tasks, ascending) {
   });
 }
 
-watch(() => sortedTasks.value, (newVal) => {
-  store.tasks.value = newVal;
-});
+watch(
+  () => sortedTasks.value,
+  (newVal) => {
+    store.tasks.value = newVal;
+  }
+);
 </script>
 <template>
-  <Navbar/>
+  <Navbar class="itbkk-fullname" />
   <div class="body">
     <header>
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
@@ -226,7 +291,10 @@ watch(() => sortedTasks.value, (newVal) => {
               <th>Title</th>
               <th>Assignees</th>
               <th class="sortstt flex justify-center">
-                Status<button class="itbkk-status-sort" @click="toggleSortOrder">
+                Status<button
+                  class="itbkk-status-sort"
+                  @click="toggleSortOrder"
+                >
                   <svg
                     v-if="sortAscending === true"
                     xmlns="http://www.w3.org/2000/svg"
@@ -390,7 +458,7 @@ watch(() => sortedTasks.value, (newVal) => {
   padding: 0;
   scroll-behavior: smooth;
 }
- 
+
 h3 {
   font-family: "Ubuntu", sans-serif;
   font-weight: 400;
@@ -400,13 +468,16 @@ h3 {
   text-align: center;
   justify-content: center;
 }
- 
-.itbkk-status-sort{
+
+.itbkk-fullname {
+  box-shadow: none;
+}
+.itbkk-status-sort {
   box-shadow: none;
   padding-left: 10px;
 }
 
-.itbkk-status-sort svg{
+.itbkk-status-sort svg {
   transition: transform 0.3s ease;
   cursor: pointer;
 }
@@ -419,10 +490,11 @@ h3 {
 .c {
   color: rgb(209, 209, 209);
 }
-.b:hover, .a:hover {
+.b:hover,
+.a:hover {
   color: rgb(214, 103, 177);
 }
- 
+
 .c:hover {
   color: rgb(216, 216, 216);
 }
@@ -532,7 +604,7 @@ h3 {
 header {
   margin-bottom: 20px;
 }
- 
+
 .addtask {
   margin-right: 45rem;
   text-align: center;
@@ -661,7 +733,7 @@ footer {
     z-index: 1;
     position: relative;
   }
- 
+
   .itbkk-button-action {
     justify-content: left;
     padding-left: 3rem;
