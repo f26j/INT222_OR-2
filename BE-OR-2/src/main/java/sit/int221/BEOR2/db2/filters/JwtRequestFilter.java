@@ -38,7 +38,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 token = authorizationHeader.substring(7);
             }
 
-            if (token != null && jwtUtil.isTokenExpired(token)) {
+            if (token != null && !jwtUtil.isTokenExpired(token)) {
                 Claims claims = jwtUtil.extractAllClaims(token);
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(claims.getSubject(), null, null);
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

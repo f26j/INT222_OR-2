@@ -1,122 +1,174 @@
 <script setup>
 // import zone
-import { onMounted, ref } from "vue"
-import { useRouter } from "vue-router"
-import { storeToRefs } from "pinia"
-import { useStatusStore } from "@/stores/api.js"
-import { useToastStore } from "@/stores/toast.js"
-import Bg_effect from "../components/css/Background.vue"
-import Copyright from "../components/css/Copyright.vue"
-import ToastAddStatus from "../components/toast/ToastAddStatus.vue"
-import ToastEditStatus from "../components/toast/ToastEditStatus.vue"
-import ToastDeleteStatus from "../components/toast/ToastDeleteStatus.vue"
-import ModalDeleteStatus from "../components/ModalDeleteStatus.vue"
+import { onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import { storeToRefs } from "pinia";
+import { useStatusStore } from "@/stores/api.js";
+import { useToastStore } from "@/stores/toast.js";
+import Bg_effect from "../components/css/Background.vue";
+import Copyright from "../components/css/Copyright.vue";
+import ToastAddStatus from "../components/toast/ToastAddStatus.vue";
+import ToastEditStatus from "../components/toast/ToastEditStatus.vue";
+import ToastDeleteStatus from "../components/toast/ToastDeleteStatus.vue";
+import ModalDeleteStatus from "../components/ModalDeleteStatus.vue";
 import Navbar from "../components/css/Navbar.vue";
 
 // Store,Api zone
-const fetchStatus = import.meta.env.VITE_API_STATUS
-const router = useRouter()
-const store = useStatusStore()
-const toastStore = useToastStore()
-const { showToastAddStatus, showToastEditStatus, showToastDeleteStatus, closeToast } =
-  storeToRefs(toastStore)
+const fetchStatus = import.meta.env.VITE_API_STATUS;
+const fetchUsers = import.meta.env.VITE_API_USERS;
+const router = useRouter();
+const store = useStatusStore();
+const toastStore = useToastStore();
+const {
+  showToastAddStatus,
+  showToastEditStatus,
+  showToastDeleteStatus,
+  closeToast,
+} = storeToRefs(toastStore);
 
 // Variable zone
-const showDelete = ref(false)
-const selectDeleteStatusId = ref("")
-const selectDeleteStatusName = ref("")
+const showDelete = ref(false);
+const selectDeleteStatusId = ref("");
+const selectDeleteStatusName = ref("");
 
-// Function zone
+function getToken() {
+  const token = localStorage.getItem("jwtToken");
+  if (!token) {
+    console.error("No token available");
+    router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
+    return null;
+  }
+  return token;
+}
+
 async function fetchData() {
-  const response = await fetch(fetchStatus)
-  const data = await response.json()
-  return data
+  const token = getToken(); // ดึง token จาก localStorage
+  if (!token) return; // ถ้าไม่มี token ให้หยุดการทำงาน
+
+  const response = await fetch(fetchStatus, {
+    headers: {
+      Authorization: `Bearer ${token}`, // ส่ง JWT Token
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error fetching status: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  if (!Array.isArray(data)) {
+    throw new TypeError("Fetched data is not an array");
+  }
+  return data;
 }
+
 onMounted(async () => {
-  const data = await fetchData()
-  store.statuses.value = data
-})
+  const data = await fetchData();
+  store.statuses.value = data;
+});
 const openHome = () => {
-  router.push({ path: "/task" })
-}
+  router.push({ path: "/task" });
+};
 const openModalAdd = async () => {
-  router.push({ name: "status-add" })
-}
+  router.push({ name: "status-add" });
+};
 const openModalEdit = (id) => {
   if (id) {
-    router.push({ name: "status-edit", params: { id: id } })
+    router.push({ name: "status-edit", params: { id: id } });
   } else {
-    console.error("ID parameter is required to open the edit modal")
+    console.error("ID parameter is required to open the edit modal");
   }
 }
 
 const openModalDelete = (id, name) => {
-  showDelete.value = true
-  selectDeleteStatusId.value = id
-  selectDeleteStatusName.value = name
-}
+  showDelete.value = true;
+  selectDeleteStatusId.value = id;
+  selectDeleteStatusName.value = name;
+};
 
 async function deleteStatus(id) {
+  const token = getToken();
+  if (!token) return;
+
   try {
     const response = await fetch(`${fetchStatus}/${id}`, {
       method: "DELETE",
-    })
+      headers: {
+        Authorization: `Bearer ${token}`, // ส่ง JWT Token
+        "Content-Type": "application/json",
+      },
+    });
+
     if (response.ok) {
-      store.statuses.value = store.statuses.value.filter((status) => status.id !== id)
-      toastStore.handleStatusDeleted()
+      store.statuses.value = store.statuses.value.filter(
+        (status) => status.id !== id
+      );
+      toastStore.handleStatusDeleted();
     } else {
-      toastStore.handleStatusDeletedF()
-      console.error("Failed to delete status")
+      toastStore.handleStatusDeletedF();
+      console.error("Failed to delete status");
     }
   } catch (error) {
-    toastStore.handleStatusDeletedF()
-    console.error("Error deleting status:", error)
+    toastStore.handleStatusDeletedF();
+    console.error("Error deleting status:", error);
   }
-  confirmDeleteStatus()
-  showDelete.value = false
+  confirmDeleteStatus();
+  showDelete.value = false;
 }
+
 async function deleteTransfer(id, newId) {
+  const token = getToken();
+  if (!token) return;  // ถ้าไม่มี token ให้หยุดการทำงาน
+
   try {
     const response = await fetch(`${fetchStatus}/${id}/${newId}`, {
       method: "DELETE",
-    })
+      headers: {
+        Authorization: `Bearer ${token}`,  // ส่ง JWT Token
+        "Content-Type": "application/json",
+      },
+    });
+
     if (response.ok) {
-      store.statuses.value = store.statuses.value.filter((status) => status.id !== id)
-      toastStore.handleStatusDeleted()
+      store.statuses.value = store.statuses.value.filter(
+        (status) => status.id !== id
+      );
+      toastStore.handleStatusDeleted();  // แสดงผลว่า status ถูกลบสำเร็จ
     } else {
-      toastStore.handleStatusDeletedF()
-      console.error("Failed to delete status")
+      toastStore.handleStatusDeletedF();  // แสดงผลว่าการลบล้มเหลว
+      console.error("Failed to delete status");
     }
   } catch (error) {
-    toastStore.handleStatusDeletedF()
-    console.error("Error deleting status:", error)
+    toastStore.handleStatusDeletedF();  // แสดงผลว่ามีข้อผิดพลาดในการลบ
+    console.error("Error deleting status:", error.message);
   }
-  confirmDeleteStatus()
-  showDelete.value = false
+
+  confirmDeleteStatus();  // เรียกใช้งานหลังจากการลบเสร็จสิ้น
+  showDelete.value = false;  // ปิด modal
 }
 
 const confirmDeleteStatus = async () => {
   try {
-    return
+    return;
   } catch (error) {
-    toastStore.handleStatusDeletedF()
-    console.error("Error deleting status:", error)
+    toastStore.handleStatusDeletedF();
+    console.error("Error deleting status:", error);
   }
   return {
     closeModal,
     confirmDeleteStatus,
-  }
-}
+  };
+};
 
 const closeModal = () => {
-  showDelete.value = false
-  router.push({ name: "statusView" })
-}
-
+  showDelete.value = false;
+  router.push({ name: "statusView" });
+};
 </script>
 
 <template>
-  <Navbar class="itbkk-fullname"/>
+  <Navbar class="itbkk-fullname" />
   <div class="body">
     <header>
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
@@ -196,9 +248,10 @@ const closeModal = () => {
               <td class="itbkk-status-name">
                 <p>{{ status.name }}</p>
               </td>
-              <td 
-                class="itbkk-status-description" 
-                :class="{'italic-gray': !status.description?.trim()}">
+              <td
+                class="itbkk-status-description"
+                :class="{ 'italic-gray': !status.description?.trim() }"
+              >
                 <p v-if="!status.description?.trim()">
                   No description is provided.
                 </p>
@@ -222,8 +275,8 @@ const closeModal = () => {
                       fill-rule="evenodd"
                       d="M17.907 4.93c.104-.105.294-.186.539-.18a.848.848 0 0 1 .572.216c.13.13.222.34.231.575c.01.234-.065.413-.167.515l-7.49 7.5l-1.273.116l.1-1.245zm2.173-1.024c-.437-.438-1.037-.643-1.6-.656c-.564-.013-1.182.167-1.635.62l-7.682 7.692a.75.75 0 0 0-.217.47l-.194 2.407a.75.75 0 0 0 .816.807l2.43-.22a.75.75 0 0 0 .463-.218l7.682-7.692c.456-.456.627-1.073.605-1.635a2.373 2.373 0 0 0-.668-1.575M5.812 4.75a2.568 2.568 0 0 0-2.563 2.562v10.875a2.568 2.568 0 0 0 2.563 2.563h10.875a2.568 2.568 0 0 0 2.563-2.562V12.75a.75.75 0 0 0-1.5 0v5.438c0 .582-.48 1.062-1.063 1.062H5.812c-.583 0-1.063-.48-1.063-1.062V7.312c0-.582.48-1.062 1.063-1.062h5.437a.75.75 0 0 0 0-1.5z"
                       clip-rule="evenodd"
-                    />
-                  </svg>Edit
+                    /></svg
+                  >Edit
                 </button>
                 <button
                   class="itbkk-button-delete flex w-24"
@@ -247,8 +300,8 @@ const closeModal = () => {
                     <path
                       fill="currentColor"
                       d="M10.22 17a.76.76 0 0 1-.75-.75v-4.53a.75.75 0 0 1 1.5 0v4.52a.75.75 0 0 1-.75.76m3.56 0a.75.75 0 0 1-.75-.75v-4.53a.75.75 0 0 1 1.5 0v4.52a.76.76 0 0 1-.75.76"
-                    />
-                  </svg>Delete
+                    /></svg
+                  >Delete
                 </button>
               </td>
             </tr>
@@ -268,7 +321,7 @@ const closeModal = () => {
         @closeModal="closeModal"
         @confirmDeleteStatus="deleteStatus"
         @deleteTransfer="deleteTransfer"
-        >
+      >
       </ModalDeleteStatus>
     </main>
     <footer>

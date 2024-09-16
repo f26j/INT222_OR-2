@@ -12,7 +12,7 @@ const store = useTaskStore();
 const toastStore = useToastStore();
 
 // Variable zone
-const newTitle = ref("");   
+const newTitle = ref("");
 const newDescription = ref("");
 const newAssignees = ref("");
 const newStatus = ref({
@@ -21,9 +21,31 @@ const newStatus = ref({
   description: "The default status",
 });
 
+function getToken() {
+  const token = localStorage.getItem("jwtToken");
+  if (!token) {
+    console.error("No token available");
+    router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
+    return null;
+  }
+  return token;
+}
+
 async function fetchDataStatus() {
-  const response = await fetch(fetchStatus);
+  const token = getToken();  // ดึง JWT Token
+  if (!token) return;  // ถ้าไม่มี Token ให้หยุดการทำงาน
+
+  const response = await fetch(fetchStatus, {
+    headers: {
+      Authorization: `Bearer ${token}`,  // ส่ง JWT Token
+      "Content-Type": "application/json",
+    },
+  });
+
   const dataStatus = await response.json();
+  if (!Array.isArray(dataStatus)) {
+    throw new TypeError("Fetched status data is not an array");
+  }
   return dataStatus;
 }
 
@@ -33,6 +55,9 @@ onMounted(async () => {
 });
 
 const addTask = async () => {
+  const token = getToken(); // ดึง token จาก localStorage
+  if (!token) return; // ถ้าไม่มี token ให้หยุดการทำงาน
+
   const trimmedTitle = newTitle.value.trim();
   const trimmedDescription = newDescription.value.trim();
   const trimmedAssignees = newAssignees.value.trim();
@@ -46,17 +71,21 @@ const addTask = async () => {
     assignees: trimmedAssignees === "" ? null : trimmedAssignees,
     status: selectedStatus,
   };
+
   if (!newTask.title) {
     return;
   }
+
   try {
     const response = await fetch(`${fetchTask}`, {
       method: "POST",
       headers: {
+        Authorization: `Bearer ${token}`, // ส่ง JWT Token
         "Content-Type": "application/json",
       },
       body: JSON.stringify(newTask),
     });
+
     const data = await response.json();
     if (!response.ok) {
       throw new Error("Failed to add new task");
@@ -64,11 +93,14 @@ const addTask = async () => {
       console.log(data);
       store.tasks.value.push(data);
     }
+
     toastStore.handleTaskAdded();
     router.push({ name: "task" }).catch(() => {});
   } catch (error) {
     console.error("Error adding new task:", error.message);
   }
+
+  // Reset fields
   newTitle.value = "";
   newDescription.value = "";
   newAssignees.value = "";
@@ -85,125 +117,124 @@ const closeModal = () => {
 </script>
 <template>
   <div class="details fixed inset-0 overflow-y-auto bg-black bg-opacity-50">
+    <div
+      class="modals rounded-lg text-center shadow-xlp-6 w-min"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div class="modal-content">
+        <form @submit.prevent="addTask">
+          <div class="modal-header">
+            <div class="itbkktitle text-left">
+              <h4>Add New Task</h4>
+            </div>
+          </div>
+          <hr />
 
-      <div
-        class="modals rounded-lg text-center shadow-xlp-6 w-min"
-        role="dialog"
-        aria-modal="true"
-      >
-        <div class="modal-content">
-          <form @submit.prevent="addTask">
-            <div class="modal-header">
-              <div class="itbkktitle text-left">
-                <h4>Add New Task</h4>
+          <div class="modal-body">
+            <div class="text-left flex-col">
+              <div class="titlee flex flex-wrap -mx-3 mb-2">
+                <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
+                  <label
+                    class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                    for="grid-city"
+                  >
+                    Title
+                  </label>
+                  <textarea
+                    class="ttitle appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
+                    id="assign"
+                    type="text"
+                    placeholder="Enter title..."
+                    v-model="newTitle"
+                  ></textarea>
+                </div>
+              </div>
+
+              <div class="itbkk-description text-left">
+                <div class="flex flex-wrap -mx-3 mb-2">
+                  <div class="desc w-full md:w-1/3 px-3 mb-6 md:mb-0">
+                    <label
+                      class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                      for="grid-city"
+                      >Description
+                    </label>
+                    <textarea
+                      class="itbkkdesc appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                      id="description"
+                      type="text"
+                      placeholder="Enter description..."
+                      v-model="newDescription"
+                    ></textarea>
+                  </div>
+                </div>
               </div>
             </div>
-            <hr />
-
-            <div class="modal-body">
-              <div class="text-left flex-col">
-                <div class="titlee flex flex-wrap -mx-3 mb-2">
+            <div class="detailright flex-col">
+              <div class="text-left">
+                <div class="assign flex flex-wrap -mx-3 mb-2">
                   <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
                     <label
                       class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
                       for="grid-city"
                     >
-                      Title
+                      Assignees
                     </label>
                     <textarea
-                      class="ttitle appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
+                      class="itbkkassignees appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
                       id="assign"
                       type="text"
-                      placeholder="Enter title..."
-                      v-model="newTitle"
+                      placeholder="Enter assignees..."
+                      v-model="newAssignees"
                     ></textarea>
                   </div>
                 </div>
-
-                <div class="itbkk-description text-left">
-                  <div class="flex flex-wrap -mx-3 mb-2">
-                    <div class="desc w-full md:w-1/3 px-3 mb-6 md:mb-0">
-                      <label
-                        class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                        for="grid-city"
-                        >Description
-                      </label>
-                      <textarea
-                        class="itbkkdesc appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                        id="description"
-                        type="text"
-                        placeholder="Enter description..."
-                        v-model="newDescription"
-                      ></textarea>
-                    </div>
-                  </div>
-                </div>
               </div>
-              <div class="detailright flex-col">
-                <div class="text-left">
-                  <div class="assign flex flex-wrap -mx-3 mb-2">
-                    <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
-                      <label
-                        class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                        for="grid-city"
-                      >
-                        Assignees
-                      </label>
-                      <textarea
-                        class="itbkkassignees appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
-                        id="assign"
-                        type="text"
-                        placeholder="Enter assignees..."
-                        v-model="newAssignees"
-                      ></textarea>
-                    </div>
-                  </div>
-                </div>
 
-                <div class="itbkk-status text-left">
-                  <div class="w-full md:w-1/3 mb-6 md:mb-0">
-                    <label
-                      class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                      for="grid-state"
+              <div class="itbkk-status text-left">
+                <div class="w-full md:w-1/3 mb-6 md:mb-0">
+                  <label
+                    class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                    for="grid-state"
+                  >
+                    Status
+                  </label>
+                  <div class="relative itbkk-status">
+                    <select
+                      class="statusbx block w-60 bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                      id="grid-state"
+                      v-model="newStatus.name"
                     >
-                      Status
-                    </label>
-                    <div class="relative itbkk-status">
-                      <select
-                        class="statusbx block w-60 bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                        id="grid-state"
-                        v-model="newStatus.name"
+                      <option
+                        v-for="(status, index) in store.status.value"
+                        :selected="status.name == newStatus.value"
                       >
-                        <option
-                          v-for="(status, index) in store.status.value"
-                          :selected="status.name == newStatus.value"
-                        >
-                          {{ status.name }}
-                        </option>
-                      </select>
-                    </div>
+                        {{ status.name }}
+                      </option>
+                    </select>
                   </div>
                 </div>
               </div>
             </div>
+          </div>
 
-            <div class="modal-footer">
-              <div class="itbkk-button">
-                <hr />
-                <button @click="closeModal" class="close border">Cancel</button>
-                <button
-                  @click="$emit('toastAdd')"
-                  class="ok border"
-                  type="submit"
-                  :disabled="newTitle.length === 0"
-                >
-                  Save
-                </button>
-              </div>
+          <div class="modal-footer">
+            <div class="itbkk-button">
+              <hr />
+              <button @click="closeModal" class="close border">Cancel</button>
+              <button
+                @click="$emit('toastAdd')"
+                class="ok border"
+                type="submit"
+                :disabled="newTitle.length === 0"
+              >
+                Save
+              </button>
             </div>
-          </form>
-        </div>
+          </div>
+        </form>
       </div>
+    </div>
   </div>
 </template>
 

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import jwtDecode from 'vue-jwt-decode';
+import { useRouter } from 'vue-router';  // Import router
 
 const fetchUsers = import.meta.env.VITE_API_USERS;
 
@@ -38,7 +39,6 @@ export const useUserStore = defineStore('user', {
       }
     },
 
-    // เพิ่มฟังก์ชัน decode token
     decodeToken() {
       try {
         if (this.token) {
@@ -51,6 +51,7 @@ export const useUserStore = defineStore('user', {
     },
 
     async checkAuth() {
+      const router = useRouter();  // เพิ่ม router เพื่อใช้งาน
       try {
         if (this.token) {
           const decodedToken = jwtDecode.decode(this.token);
@@ -66,13 +67,16 @@ export const useUserStore = defineStore('user', {
       } catch (error) {
         console.error('Error checking authentication:', error);
         this.logout();
+        router.push('/login');  // Redirect ไปยังหน้า login
       }
     },
 
     logout() {
+      const router = useRouter(); // ใช้งาน router สำหรับ redirect
       this.token = null;
       this.fullname = '';
       localStorage.removeItem('token'); // ลบ token ออกจาก localStorage
-    },
+      router.push('/login');  // Redirect ไปยังหน้า login
+    }
   },
 });
