@@ -1,12 +1,12 @@
 import { defineStore } from 'pinia';
 import jwtDecode from 'vue-jwt-decode';
+import { useRouter } from 'vue-router';  // Import router
 
-// เพิ่มการนำเข้า URL ของ API จาก environment variable
 const fetchUsers = import.meta.env.VITE_API_USERS;
 
 export const useUserStore = defineStore('user', {
   state: () => ({
-    token: null,
+    token: localStorage.getItem('token') || null, // ดึง token จาก localStorage
     fullname: '',
   }),
   actions: {
@@ -30,38 +30,53 @@ export const useUserStore = defineStore('user', {
         const data = await response.json();
         this.token = data.access_token;
 
-        // ใช้ jwtDecode โดยไม่ต้องเรียก .decode
-        const decodedToken = jwtDecode.decode(this.token);
-        this.fullname = decodedToken.name || 'Unknown'; // กรณีที่ไม่มี name ใน token
+        // เก็บ token ไว้ใน localStorage
+        localStorage.setItem('token', this.token);
 
+        this.decodeToken();
       } catch (error) {
         console.error('Error fetching user data:', error);
       }
     },
 
-    // ฟังก์ชันเพื่อตรวจสอบการยืนยันตัวตน
-    async checkAuth() {
+    decodeToken() {
       try {
         if (this.token) {
           const decodedToken = jwtDecode.decode(this.token);
+          this.fullname = decodedToken.name || 'Unknown';
+        }
+      } catch (error) {
+        console.error('Error decoding token:', error);
+      }
+    },
 
-          // ตรวจสอบว่า token หมดอายุหรือไม่
+    async checkAuth() {
+      const router = useRouter();  // เพิ่ม router เพื่อใช้งาน
+      try {
+        if (this.token) {
+          const decodedToken = jwtDecode.decode(this.token);
           const currentTime = Date.now() / 1000;
           if (decodedToken.exp < currentTime) {
-            this.token = null;
-            this.fullname = '';
+            this.logout(); // ถ้า token หมดอายุ ทำการ logout
             throw new Error('Token has expired');
           }
-
           this.fullname = decodedToken.name || 'Unknown';
         } else {
           throw new Error('No token found');
         }
       } catch (error) {
         console.error('Error checking authentication:', error);
-        this.token = null;
-        this.fullname = '';
+        this.logout();
+        router.push('/login');  // Redirect ไปยังหน้า login
       }
     },
+
+    logout() {
+      const router = useRouter(); // ใช้งาน router สำหรับ redirect
+      this.token = null;
+      this.fullname = '';
+      localStorage.removeItem('token'); // ลบ token ออกจาก localStorage
+      router.push('/login');  // Redirect ไปยังหน้า login
+    }
   },
 });

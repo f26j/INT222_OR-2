@@ -24,7 +24,7 @@ const handleSubmit = async (event) => {
   event.preventDefault();
 
   if (!isLoginValid.value) {
-    toastStore.handleLogin();
+    toastStore.handleLogin(); // แสดงข้อความเมื่อกรอกข้อมูลไม่ครบ
     return;
   }
 
@@ -32,14 +32,14 @@ const handleSubmit = async (event) => {
     await userStore.fetchUserData(username.value, password.value);
 
     if (userStore.token) {
-      localStorage.setItem("authToken", userStore.token); // เก็บ token ใน localStorage
+      localStorage.setItem("jwtToken", userStore.token); // เก็บ JWT Token ใน localStorage
       router.push("/task"); // เปลี่ยนเส้นทางไปยัง /tasks หลังจาก login สำเร็จ
     } else {
       toastStore.handleLogin(); // แสดงข้อความ error ถ้า token ไม่มีหรือ login ไม่สำเร็จ
     }
   } catch (error) {
     console.error("Error during login request:", error);
-    toastStore.handleLogin();
+    toastStore.handleLogin(); // แจ้งเตือนเมื่อเกิดข้อผิดพลาด
   }
 };
 </script>

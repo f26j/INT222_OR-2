@@ -70,27 +70,22 @@ const router = createRouter({
 
 // Navigation Guard
 router.beforeEach(async (to, from, next) => {
-  const userStore = useUserStore(); // เข้าถึง store
+  const userStore = useUserStore();
 
-  // อนุญาตให้เข้าถึงหน้า login ได้เสมอ
-  if (to.name === 'login') {
-    return next();
-  }
-
-  // ตรวจสอบ token ว่ามีอยู่หรือไม่ ถ้าไม่มีให้ redirect ไปที่ login
+  // ถ้าไม่มี token และพยายามเข้าหน้าอื่นที่ไม่ใช่ login ให้ redirect ไปหน้า login
   if (!userStore.token) {
-    try {
-      await userStore.checkAuth(); // เรียก API เพื่อตรวจสอบการยืนยันตัวตน
-    } catch (error) {
-      console.error('Error checking authentication:', error);
+    if (to.name !== 'login') {
+      return next({ name: 'login' });
     }
-
-    if (!userStore.token) {
-      return next({ name: 'login' }); // Redirect ไป login ถ้าไม่มี token หลังจาก checkAuth
-    }
+    return next(); // อนุญาตให้เข้า login ได้ถ้าไม่มี token
   }
 
-  // ถ้ามี token ให้อนุญาตไปที่หน้าอื่นๆ
+  // ถ้ามี token แล้วและพยายามเข้าหน้า login ให้ redirect ไปที่หน้า task
+  if (userStore.token && to.name === 'login') {
+    return next({ name: 'task' });
+  }
+
+  // อนุญาตให้เข้าไปที่หน้าอื่นๆ ได้ถ้ามี token อยู่แล้ว
   next();
 });
 
