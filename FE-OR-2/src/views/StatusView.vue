@@ -11,6 +11,7 @@ import ToastAddStatus from "../components/toast/ToastAddStatus.vue"
 import ToastEditStatus from "../components/toast/ToastEditStatus.vue"
 import ToastDeleteStatus from "../components/toast/ToastDeleteStatus.vue"
 import ModalDeleteStatus from "../components/ModalDeleteStatus.vue"
+import Navbar from "../components/css/Navbar.vue";
 
 // Store,Api zone
 const fetchStatus = import.meta.env.VITE_API_STATUS
@@ -115,6 +116,7 @@ const closeModal = () => {
 </script>
 
 <template>
+  <Navbar class="itbkk-fullname"/>
   <div class="body">
     <header>
       <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />

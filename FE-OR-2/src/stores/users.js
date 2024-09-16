@@ -32,10 +32,21 @@ export const useUserStore = defineStore('user', {
         // เก็บ token ไว้ใน localStorage
         localStorage.setItem('token', this.token);
 
-        const decodedToken = jwtDecode.decode(this.token);
-        this.fullname = decodedToken.name || 'Unknown';
+        this.decodeToken();
       } catch (error) {
         console.error('Error fetching user data:', error);
+      }
+    },
+
+    // เพิ่มฟังก์ชัน decode token
+    decodeToken() {
+      try {
+        if (this.token) {
+          const decodedToken = jwtDecode.decode(this.token);
+          this.fullname = decodedToken.name || 'Unknown';
+        }
+      } catch (error) {
+        console.error('Error decoding token:', error);
       }
     },
 
