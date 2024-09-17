@@ -87,7 +87,7 @@ router.beforeEach(async (to, from, next) => {
 
   // ตรวจสอบ token ว่าหมดอายุหรือไม่
   try {
-    await userStore.checkAuth(); // ตรวจสอบว่า token หมดอายุหรือไม่
+    await userStore.checkAuth(); // ตรวจสอบ token
   } catch (error) {
     userStore.logout(); // ทำการ logout ผู้ใช้
     return next({ name: 'login' });  // Redirect ไปที่ login

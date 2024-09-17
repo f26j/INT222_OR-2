@@ -15,14 +15,30 @@ const newDescription = ref("")
 const statuses = ref([])
 
 // Function zone
-function getToken() {
-  const token = localStorage.getItem("token");
+async function fetchWithToken(url, options = {}) {
+  const token = localStorage.getItem("jwtToken");
   if (!token) {
     console.error("No token available");
-    router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
+    router.push("/login"); // Redirect ไปที่หน้า Login
     return null;
   }
-  return token;
+
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${token}`,  // ส่ง JWT Token
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+
+  // ตรวจสอบสถานะ 401 Unauthorized
+  if (response.status === 401) {
+    router.push("/login"); // Redirect ไปหน้า login เมื่อสถานะเป็น 401
+    return null;
+  }
+
+  return response;
 }
 
 const closeModal = () => {
@@ -30,41 +46,31 @@ const closeModal = () => {
 }
 
 const addStatus = async () => {
-  const token = getToken();  // ดึง token จาก localStorage
-  if (!token) return;  // ถ้าไม่มี token ให้หยุดการทำงาน
-
   const trimmedName = newName.value.trim();
   const trimmedDescription = newDescription.value.trim();
   const newStatus = {
     name: trimmedName === "" ? null : trimmedName,
     description: trimmedDescription === "" ? null : trimmedDescription,
   };
-  
+
   if (!newStatus.name) {
     return;  // ถ้าไม่มีชื่อ status ให้หยุดการทำงาน
   }
 
   try {
-    const response = await fetch(`${fetchURL.value}`, {
+    const response = await fetchWithToken(`${fetchURL.value}`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,  // ส่ง JWT Token
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify(newStatus),
     });
 
-    if (response.status === 401) {
-      router.push("/login");  // Redirect ไปหน้า login เมื่อสถานะเป็น 401
-      return;
-    }
+    if (!response) return;  // ถ้า response เป็น null ให้หยุดการทำงาน
 
     const data = await response.json();
     if (!response.ok) {
       throw new Error("Failed to add new status");
     } else {
-      store.statuses.value.push(data); 
-      toastStore.handleStatusAdded(); 
+      store.statuses.value.push(data);  // เพิ่มสถานะใหม่ลงใน store
+      toastStore.handleStatusAdded();   // แสดง toast เมื่อเพิ่มสถานะสำเร็จ
     }
 
     closeModal();

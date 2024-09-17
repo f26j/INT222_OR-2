@@ -27,31 +27,31 @@ const originalAssignee = ref("");
 const originalDescription = ref("");
 const originalStatus = ref({});
 
-function getToken() {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    console.error("No token available");
-    router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
-    return null;
-  }
-  return token;
-}
+async function fetchWithToken(url, options = {}) {
+  const token = getToken();
+  if (!token) return null;  // ถ้าไม่มี token ให้ return null
 
-async function fetchDataStatus() {
-  const token = getToken(); // ดึง JWT Token จาก localStorage
-  if (!token) return; // ถ้าไม่มี Token ให้หยุดการทำงาน
-
-  const response = await fetch(fetchStatus, {
+  const response = await fetch(url, {
+    ...options,
     headers: {
       Authorization: `Bearer ${token}`, // ส่ง JWT Token
       "Content-Type": "application/json",
+      ...options.headers,
     },
   });
 
+  // ตรวจสอบสถานะ 401 Unauthorized
   if (response.status === 401) {
-      router.push("/login");  // Redirect ไปหน้า login เมื่อสถานะเป็น 401
-      return;
-    }
+    router.push("/login");  // Redirect ไปหน้า login
+    return null;
+  }
+
+  return response;
+}
+
+async function fetchDataStatus() {
+  const response = await fetchWithToken(fetchStatus);
+  if (!response) return;  // ถ้า response เป็น null ให้ return
 
   if (!response.ok) {
     throw new Error(`Failed to fetch status: ${response.statusText}`);
@@ -82,20 +82,8 @@ function formatDate(date) {
 }
 
 const openModalEdit = async () => {
-  const token = getToken(); // ดึง token จาก localStorage
-  if (!token) return;
-
-  const response = await fetch(`${fetchTask}/${id}`, {
-    headers: {
-      Authorization: `Bearer ${token}`, // ส่ง JWT Token
-      "Content-Type": "application/json",
-    },
-  });
-
-  if (response.status === 401) {
-      router.push("/login");  // Redirect ไปหน้า login เมื่อสถานะเป็น 401
-      return;
-    }
+  const response = await fetchWithToken(`${fetchTask}/${id}`);  // ใช้ fetchWithToken
+  if (!response) return;
 
   const res = await response.json();
   if (!response.ok) {
@@ -105,6 +93,7 @@ const openModalEdit = async () => {
     }, 500);
     return;
   }
+
   modalEdit.value = res;
   newTitle.value = modalEdit.value.title || "";
   newDescription.value = modalEdit.value.description || "";
@@ -124,16 +113,13 @@ onMounted(async () => {
 });
 
 const editTask = async () => {
-  const token = getToken();
-  if (!token) return;
-
   const editedTask = {
     id: id,
     title: newTitle.value.trim(),
     description: newDescription.value.trim(),
     assignees: newAssignees.value.trim(),
     status: store.status.value.find(
-      (status) => status.name == newStatus.value.name
+      (status) => status.name === newStatus.value.name
     ),
   };
 
@@ -142,20 +128,16 @@ const editTask = async () => {
   }
 
   try {
-    const response = await fetch(`${fetchTask}/${id}`, {
+    const response = await fetchWithToken(`${fetchTask}/${id}`, {
       method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`, // ส่ง JWT Token
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify(editedTask),
     });
 
     if (!response.ok) {
       throw new Error("Failed to edit task");
-    } else {
-      store.updateTask({ ...editedTask });
     }
+
+    store.updateTask({ ...editedTask });
 
     closeModal();
     toastStore.handleTaskEdited();

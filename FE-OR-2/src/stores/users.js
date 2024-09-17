@@ -6,7 +6,7 @@ const fetchUsers = import.meta.env.VITE_API_USERS;
 
 export const useUserStore = defineStore('user', {
   state: () => ({
-    token: typeof window !== "undefined" ? localStorage.getItem('token') : null,  // ตรวจสอบการเข้าถึง localStorage
+    token: typeof window !== "undefined" ? localStorage.getItem('jwtToken') : null,  // ตรวจสอบการเข้าถึง localStorage
     fullname: '',
   }),
   actions: {
@@ -32,7 +32,7 @@ export const useUserStore = defineStore('user', {
 
         // เก็บ token ไว้ใน localStorage
         if (typeof window !== "undefined") {
-          localStorage.setItem('token', this.token);
+          localStorage.setItem('jwtToken', this.token);
         }
 
         this.decodeToken();
@@ -78,7 +78,7 @@ export const useUserStore = defineStore('user', {
       this.token = null;
       this.fullname = '';
       if (typeof window !== "undefined") {
-        localStorage.removeItem('token');  // ลบ token ออกจาก localStorage
+        localStorage.removeItem('jwtToken');  // ลบ token ออกจาก localStorage
       }
       router.push('/login');  // Redirect ไปยังหน้า login
     }

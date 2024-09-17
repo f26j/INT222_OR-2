@@ -14,31 +14,31 @@ const localTimeZone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone);
 const modalDetail = ref([""]);
 const status = ref({});
 
-function getToken() {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    console.error("No token available");
-    router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
-    return null;
-  }
-  return token;
-}
-
-async function fetchDataStatus() {
+async function fetchWithToken(url, options = {}) {
   const token = getToken();
-  if (!token) return;
+  if (!token) return null;  // ถ้าไม่มี token ให้ return null
 
-  const response = await fetch(fetchStatus, {
+  const response = await fetch(url, {
+    ...options,
     headers: {
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,  // ส่ง JWT Token
       "Content-Type": "application/json",
+      ...options.headers,
     },
   });
 
+  // ตรวจสอบสถานะ 401 Unauthorized
   if (response.status === 401) {
-      router.push("/login");  // Redirect ไปหน้า login เมื่อสถานะเป็น 401
-      return;
-    }
+    router.push("/login");  // Redirect ไปหน้า login
+    return null;
+  }
+
+  return response;
+}
+
+async function fetchDataStatus() {
+  const response = await fetchWithToken(fetchStatus);  // ใช้ fetchWithToken
+  if (!response) return;  // ถ้า response เป็น null ให้ return
 
   if (!response.ok) {
     throw new Error(`Failed to fetch status: ${response.statusText}`);
@@ -74,20 +74,8 @@ onMounted(async () => {
 });
 
 const openModalDetail = async () => {
-  const token = getToken();
-  if (!token) return;
-
-  const response = await fetch(`${fetchTask}/${id}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
-
-  if (response.status === 401) {
-      router.push("/login");  // Redirect ไปหน้า login เมื่อสถานะเป็น 401
-      return;
-    }
+  const response = await fetchWithToken(`${fetchTask}/${id}`);  // ใช้ fetchWithToken
+  if (!response) return;  // ถ้า response เป็น null ให้ return
 
   const res = await response.json();
   modalDetail.value = res;
@@ -102,7 +90,11 @@ const openModalDetail = async () => {
 };
 
 onMounted(async () => {
-  openModalDetail();
+  const datastatus = await fetchDataStatus();
+  if (datastatus) {
+    store.status.value = datastatus;
+  }
+  await openModalDetail();
 });
 
 const closeModal = () => {

@@ -5,6 +5,7 @@ import { useRouter, useRoute } from "vue-router";
 import { storeToRefs } from "pinia";
 import { useTaskStore } from "@/stores/api.js";
 import { useToastStore } from "@/stores/toast.js";
+import { useUserStore } from "@/stores/users.js";
 import Bg_effect from "../components/css/Background.vue";
 import Badges from "../components/css/Badge.vue";
 import Copyright from "../components/css/Copyright.vue";
@@ -29,6 +30,7 @@ const selectDeleteTaskId = ref("");
 const selectDeleteTaskTitle = ref("");
 const selectDeleteTaskIndex = ref("");
 const originalTasks = ref([]);
+const userStore = useUserStore();
 
 // Function zone
 onMounted(async () => {
@@ -43,31 +45,36 @@ onMounted(async () => {
   }
 });
 
-function getToken() {
-  const token = localStorage.getItem("token");
+async function fetchWithToken(url, options = {}) {
+  const token = localStorage.getItem("jwtToken");
   if (!token) {
     console.error("No token available");
     router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
-    return null; // คืนค่า null เมื่อไม่มี token
+    return null;
   }
-  return token;
-}
 
-async function fetchData() {
-  const token = getToken(); // ดึง token จาก localStorage
-  if (!token) return; // ถ้าไม่มี token ให้ return
-
-  const response = await fetch(fetchTask, {
+  const response = await fetch(url, {
+    ...options,
     headers: {
       Authorization: `Bearer ${token}`, // ส่ง JWT Token
       "Content-Type": "application/json",
+      ...options.headers,
     },
   });
 
+  // ตรวจสอบสถานะ 401 Unauthorized
   if (response.status === 401) {
-      router.push("/login");  // Redirect ไปหน้า login เมื่อสถานะเป็น 401
-      return;
-    }
+    userStore.logout(); // ทำการ logout ผู้ใช้
+    router.push("/login"); // Redirect ไปหน้า login
+    return null;
+  }
+
+  return response; // ส่ง response กลับไปใช้งาน
+}
+
+async function fetchData() {
+  const response = await fetchWithToken(fetchTask); // เรียกใช้ฟังก์ชัน fetchWithToken
+  if (!response) return; // ถ้า response เป็น null (เช่นเจอ 401) ให้ return
 
   if (!response.ok) {
     throw new Error(`Error fetching tasks: ${response.statusText}`);
@@ -82,20 +89,8 @@ async function fetchData() {
 }
 
 async function fetchDataStatus() {
-  const token = getToken(); // ดึง token จาก localStorage
-  if (!token) return; // ถ้าไม่มี token ให้ return
-
-  const response = await fetch(fetchStatus, {
-    headers: {
-      Authorization: `Bearer ${token}`, // ส่ง JWT Token
-      "Content-Type": "application/json",
-    },
-  });
-
-  if (response.status === 401) {
-      router.push("/login");  // Redirect ไปหน้า login เมื่อสถานะเป็น 401
-      return;
-    }
+  const response = await fetchWithToken(fetchStatus); // เรียกใช้ fetchWithToken
+  if (!response) return; // ถ้า response เป็น null ให้ return
 
   if (!response.ok) {
     throw new Error(`Error fetching status: ${response.statusText}`);
@@ -135,40 +130,25 @@ const openModalDelete = (taskId, title, index) => {
   selectDeleteTaskIndex.value = index;
 };
 async function deleteTask(taskId) {
-  const token = getToken();
-  if (!token) return; // ถ้าไม่มี token ให้หยุดการทำงาน
+  const response = await fetchWithToken(`${fetchTask}/${taskId}`, {
+    method: "DELETE",
+  });
 
-  try {
-    const response = await fetch(`${fetchTask}/${taskId}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`, // ส่ง JWT Token
-        "Content-Type": "application/json",
-      },
-    });
+  if (!response) return; // ถ้า response เป็น null ให้ return
 
-    if (response.status === 401) {
-      router.push("/login");  // Redirect ไปหน้า login เมื่อสถานะเป็น 401
-      return;
-    }
-
-    if (response.ok) {
-      originalTasks.value = originalTasks.value.filter(
-        (task) => task.id !== taskId
-      );
-      store.tasks.value = [...originalTasks.value];
-      deleteSuccess.value = true;
-    } else {
-      deleteSuccess.value = false;
-      console.error("Failed to delete task");
-    }
-  } catch (error) {
+  if (response.ok) {
+    originalTasks.value = originalTasks.value.filter(
+      (task) => task.id !== taskId
+    );
+    store.tasks.value = [...originalTasks.value];
+    deleteSuccess.value = true;
+  } else {
     deleteSuccess.value = false;
-    console.error("Error deleting task:", error.message);
+    console.error("Failed to delete task");
   }
 
-  confirmDelete(); // เรียกใช้งานหลังจากการลบเสร็จสิ้น
-  showDelete.value = false; // ปิด modal
+  confirmDelete();
+  showDelete.value = false;
 }
 
 const confirmDelete = async () => {

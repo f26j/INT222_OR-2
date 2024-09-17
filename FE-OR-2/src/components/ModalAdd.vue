@@ -21,31 +21,34 @@ const newStatus = ref({
   description: "The default status",
 });
 
-function getToken() {
-  const token = localStorage.getItem("token");
+async function fetchWithToken(url, options = {}) {
+  const token = localStorage.getItem("jwtToken");
   if (!token) {
     console.error("No token available");
     router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
     return null;
   }
-  return token;
-}
 
-async function fetchDataStatus() {
-  const token = getToken();  // ดึง JWT Token
-  if (!token) return;  // ถ้าไม่มี Token ให้หยุดการทำงาน
-
-  const response = await fetch(fetchStatus, {
+  const response = await fetch(url, {
+    ...options,
     headers: {
-      Authorization: `Bearer ${token}`,  // ส่ง JWT Token
+      Authorization: `Bearer ${token}`, // ส่ง JWT Token
       "Content-Type": "application/json",
+      ...options.headers,
     },
   });
 
   if (response.status === 401) {
-      router.push("/login");  // Redirect ไปหน้า login เมื่อสถานะเป็น 401
-      return;
-    }
+    router.push("/login"); // Redirect ไปหน้า login เมื่อสถานะเป็น 401
+    return null;
+  }
+
+  return response;
+}
+
+async function fetchDataStatus() {
+  const response = await fetchWithToken(fetchStatus); // ใช้ fetchWithToken
+  if (!response) return; // ถ้า response เป็น null ให้ return
 
   const dataStatus = await response.json();
   if (!Array.isArray(dataStatus)) {
@@ -60,9 +63,6 @@ onMounted(async () => {
 });
 
 const addTask = async () => {
-  const token = getToken(); // ดึง token จาก localStorage
-  if (!token) return; // ถ้าไม่มี token ให้หยุดการทำงาน
-
   const trimmedTitle = newTitle.value.trim();
   const trimmedDescription = newDescription.value.trim();
   const trimmedAssignees = newAssignees.value.trim();
@@ -82,25 +82,17 @@ const addTask = async () => {
   }
 
   try {
-    const response = await fetch(`${fetchTask}`, {
+    const response = await fetchWithToken(`${fetchTask}`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`, // ส่ง JWT Token
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify(newTask),
     });
 
-    if (response.status === 401) {
-      router.push("/login");  // Redirect ไปหน้า login เมื่อสถานะเป็น 401
-      return;
-    }
+    if (!response) return; // ถ้า response เป็น null ให้ return
 
     const data = await response.json();
     if (!response.ok) {
       throw new Error("Failed to add new task");
     } else {
-      console.log(data);
       store.tasks.value.push(data);
     }
 

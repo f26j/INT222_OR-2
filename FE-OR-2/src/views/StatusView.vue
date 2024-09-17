@@ -32,7 +32,7 @@ const selectDeleteStatusId = ref("");
 const selectDeleteStatusName = ref("");
 
 function getToken() {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("jwtToken");
   if (!token) {
     console.error("No token available");
     router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
@@ -41,21 +41,36 @@ function getToken() {
   return token;
 }
 
-async function fetchData() {
-  const token = getToken(); // ดึง token จาก localStorage
-  if (!token) return; // ถ้าไม่มี token ให้หยุดการทำงาน
+async function fetchWithToken(url, options = {}) {
+  const token = localStorage.getItem("jwtToken");
+  if (!token) {
+    console.error("No token available");
+    router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
+    return null;
+  }
 
-  const response = await fetch(fetchStatus, {
+  const response = await fetch(url, {
+    ...options,
     headers: {
       Authorization: `Bearer ${token}`, // ส่ง JWT Token
       "Content-Type": "application/json",
+      ...options.headers,
     },
   });
 
+  // ตรวจสอบสถานะ 401 Unauthorized
   if (response.status === 401) {
-      router.push("/login");  // Redirect ไปหน้า login เมื่อสถานะเป็น 401
-      return;
-    }
+    userStore.logout(); // ทำการ logout ผู้ใช้
+    router.push("/login"); // Redirect ไปหน้า login
+    return null;
+  }
+
+  return response; // ส่ง response กลับไปใช้งาน
+}
+
+async function fetchData() {
+  const response = await fetchWithToken(fetchStatus); // เรียกใช้ fetchWithToken
+  if (!response) return; // ถ้า response เป็น null ให้ return
 
   if (!response.ok) {
     throw new Error(`Error fetching status: ${response.statusText}`);
@@ -84,7 +99,7 @@ const openModalEdit = (id) => {
   } else {
     console.error("ID parameter is required to open the edit modal");
   }
-}
+};
 
 const openModalDelete = (id, name) => {
   showDelete.value = true;
@@ -93,74 +108,45 @@ const openModalDelete = (id, name) => {
 };
 
 async function deleteStatus(id) {
-  const token = getToken();
-  if (!token) return;
+  const response = await fetchWithToken(`${fetchStatus}/${id}`, {
+    method: "DELETE",
+  });
 
-  try {
-    const response = await fetch(`${fetchStatus}/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`, // ส่ง JWT Token
-        "Content-Type": "application/json",
-      },
-    });
+  if (!response) return; // ถ้า response เป็น null ให้ return
 
-    if (response.status === 401) {
-      router.push("/login");  // Redirect ไปหน้า login เมื่อสถานะเป็น 401
-      return;
-    }
-
-    if (response.ok) {
-      store.statuses.value = store.statuses.value.filter(
-        (status) => status.id !== id
-      );
-      toastStore.handleStatusDeleted();
-    } else {
-      toastStore.handleStatusDeletedF();
-      console.error("Failed to delete status");
-    }
-  } catch (error) {
-    toastStore.handleStatusDeletedF();
-    console.error("Error deleting status:", error);
+  if (response.ok) {
+    store.statuses.value = store.statuses.value.filter(
+      (status) => status.id !== id
+    );
+    toastStore.handleStatusDeleted(); // แสดงผลว่า status ถูกลบสำเร็จ
+  } else {
+    toastStore.handleStatusDeletedF(); // แสดงผลว่าการลบล้มเหลว
+    console.error("Failed to delete status");
   }
-  confirmDeleteStatus();
-  showDelete.value = false;
+
+  confirmDeleteStatus(); // เรียกใช้งานหลังจากการลบเสร็จสิ้น
+  showDelete.value = false; // ปิด modal
 }
 
 async function deleteTransfer(id, newId) {
-  const token = getToken();
-  if (!token) return;  // ถ้าไม่มี token ให้หยุดการทำงาน
+  const response = await fetchWithToken(`${fetchStatus}/${id}/${newId}`, {
+    method: "DELETE",
+  });
 
-  try {
-    const response = await fetch(`${fetchStatus}/${id}/${newId}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,  // ส่ง JWT Token
-        "Content-Type": "application/json",
-      },
-    });
+  if (!response) return; // ถ้า response เป็น null ให้ return
 
-    if (response.status === 401) {
-      router.push("/login");  // Redirect ไปหน้า login เมื่อสถานะเป็น 401
-      return;
-    }
-
-    if (response.ok) {
-      store.statuses.value = store.statuses.value.filter(
-        (status) => status.id !== id
-      );
-      toastStore.handleStatusDeleted();  // แสดงผลว่า status ถูกลบสำเร็จ
-    } else {
-      toastStore.handleStatusDeletedF();  // แสดงผลว่าการลบล้มเหลว
-      console.error("Failed to delete status");
-    }
-  } catch (error) {
-    toastStore.handleStatusDeletedF();  // แสดงผลว่ามีข้อผิดพลาดในการลบ
-    console.error("Error deleting status:", error.message);
+  if (response.ok) {
+    store.statuses.value = store.statuses.value.filter(
+      (status) => status.id !== id
+    );
+    toastStore.handleStatusDeleted(); // แสดงผลว่า status ถูกลบสำเร็จ
+  } else {
+    toastStore.handleStatusDeletedF(); // แสดงผลว่าการลบล้มเหลว
+    console.error("Failed to delete status");
   }
 
-  confirmDeleteStatus();  // เรียกใช้งานหลังจากการลบเสร็จสิ้น
-  showDelete.value = false;  // ปิด modal
+  confirmDeleteStatus(); // เรียกใช้งานหลังจากการลบเสร็จสิ้น
+  showDelete.value = false; // ปิด modal
 }
 
 const confirmDeleteStatus = async () => {

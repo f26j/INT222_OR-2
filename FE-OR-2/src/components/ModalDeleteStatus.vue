@@ -1,15 +1,17 @@
 <script setup>
 import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";  // เพิ่มการใช้ router
 import { useStatusStore } from "@/stores/api.js";
 
-const fetchStatus = import.meta.env.VITE_API_STATUS
+const fetchStatus = import.meta.env.VITE_API_STATUS;
 const store = useStatusStore();
+const router = useRouter();  // ใช้ router สำหรับ redirect
 const isDeletable = ref(true);
 const currentStatus = ref({});
 const newStatusId = ref(1);
 
 function getToken() {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("jwtToken");
   if (!token) {
     console.error("No token available");
     router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
@@ -22,24 +24,32 @@ async function getStatus() {
   const token = getToken();  // ดึง token จาก localStorage
   if (!token) return;  // ถ้าไม่มี token ให้หยุดการทำงาน
 
-  const data = await fetch(`${fetchStatus}/${props.statusId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,  // ส่ง JWT Token
-      "Content-Type": "application/json",
-    },
-  });
+  try {
+    const response = await fetch(`${fetchStatus}/${props.statusId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,  // ส่ง JWT Token
+        "Content-Type": "application/json",
+      },
+    });
 
-  if (response.status === 401) {
+    // ตรวจสอบสถานะ 401 Unauthorized
+    if (response.status === 401) {
       router.push("/login");  // Redirect ไปหน้า login เมื่อสถานะเป็น 401
       return;
     }
-    
-  const res = await data.json();
-  console.log(res.count);
-  if (res.count > 0) {
-    isDeletable.value = false;
+
+    const res = await response.json();
+    console.log(res.count);
+
+    // ตรวจสอบว่า status สามารถลบได้หรือไม่
+    if (res.count > 0) {
+      isDeletable.value = false;
+    }
+    currentStatus.value = res;
+
+  } catch (error) {
+    console.error("Error fetching status:", error);
   }
-  currentStatus.value = res;
 }
 
 onMounted(() => {
