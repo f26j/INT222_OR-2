@@ -1,6 +1,7 @@
 package sit.int221.BEOR2.db2.services;
 
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,9 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.util.UriComponents;
 
-import java.nio.charset.StandardCharsets;
 import java.security.Key;
-import java.security.MessageDigest;
 import java.util.*;
 import java.util.function.Function;
 
@@ -24,8 +23,7 @@ public class JwtUtil {
 
     @SneakyThrows
     private Key getSigningKey() {
-        MessageDigest md = MessageDigest.getInstance("SHA-256");
-        byte[] keyBytes = md.digest(this.SECRET_KEY.getBytes(StandardCharsets.UTF_8));
+        byte[] keyBytes = Decoders.BASE64.decode(this.SECRET_KEY);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
