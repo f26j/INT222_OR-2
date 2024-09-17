@@ -22,7 +22,7 @@ const newStatus = ref({
 });
 
 function getToken() {
-  const token = localStorage.getItem("jwtToken");
+  const token = localStorage.getItem("token");
   if (!token) {
     console.error("No token available");
     router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
@@ -41,6 +41,11 @@ async function fetchDataStatus() {
       "Content-Type": "application/json",
     },
   });
+
+  if (response.status === 401) {
+      router.push("/login");  // Redirect ไปหน้า login เมื่อสถานะเป็น 401
+      return;
+    }
 
   const dataStatus = await response.json();
   if (!Array.isArray(dataStatus)) {
@@ -85,6 +90,11 @@ const addTask = async () => {
       },
       body: JSON.stringify(newTask),
     });
+
+    if (response.status === 401) {
+      router.push("/login");  // Redirect ไปหน้า login เมื่อสถานะเป็น 401
+      return;
+    }
 
     const data = await response.json();
     if (!response.ok) {

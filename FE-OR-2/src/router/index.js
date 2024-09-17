@@ -72,20 +72,27 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore();
 
-  // ถ้าไม่มี token และพยายามเข้าหน้าอื่นที่ไม่ใช่ login ให้ redirect ไปหน้า login
+  // ถ้าไม่มี token และไม่ใช่หน้า login ให้ redirect ไปที่ login
   if (!userStore.token) {
     if (to.name !== 'login') {
       return next({ name: 'login' });
     }
-    return next(); // อนุญาตให้เข้า login ได้ถ้าไม่มี token
+    return next();
   }
 
-  // ถ้ามี token แล้วและพยายามเข้าหน้า login ให้ redirect ไปที่หน้า task
+  // ถ้า token มีอยู่และผู้ใช้พยายามเข้าหน้า login ให้ redirect ไปที่ task
   if (userStore.token && to.name === 'login') {
     return next({ name: 'task' });
   }
 
-  // อนุญาตให้เข้าไปที่หน้าอื่นๆ ได้ถ้ามี token อยู่แล้ว
+  // ตรวจสอบ token ว่าหมดอายุหรือไม่
+  try {
+    await userStore.checkAuth(); // ตรวจสอบว่า token หมดอายุหรือไม่
+  } catch (error) {
+    userStore.logout(); // ทำการ logout ผู้ใช้
+    return next({ name: 'login' });  // Redirect ไปที่ login
+  }
+
   next();
 });
 

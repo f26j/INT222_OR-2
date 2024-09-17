@@ -16,7 +16,7 @@ const statuses = ref([])
 
 // Function zone
 function getToken() {
-  const token = localStorage.getItem("jwtToken");
+  const token = localStorage.getItem("token");
   if (!token) {
     console.error("No token available");
     router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
@@ -54,22 +54,27 @@ const addStatus = async () => {
       body: JSON.stringify(newStatus),
     });
 
+    if (response.status === 401) {
+      router.push("/login");  // Redirect ไปหน้า login เมื่อสถานะเป็น 401
+      return;
+    }
+
     const data = await response.json();
     if (!response.ok) {
       throw new Error("Failed to add new status");
     } else {
-      store.statuses.value.push(data);  // เพิ่ม status ใหม่ใน store
-      toastStore.handleStatusAdded();  // แสดง toast ว่าเพิ่มสำเร็จ
+      store.statuses.value.push(data); 
+      toastStore.handleStatusAdded(); 
     }
 
     closeModal();
   } catch (error) {
-    toastStore.handleStatusAddedF();  // แสดง toast ว่าล้มเหลว
+    toastStore.handleStatusAddedF();
     console.error("Error adding new status:", error.message);
     closeModal();
   }
 
-  newName.value = "";  // รีเซ็ตฟิลด์
+  newName.value = "";  
   newDescription.value = "";
 };
 </script>

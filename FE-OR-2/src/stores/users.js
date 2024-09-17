@@ -1,12 +1,12 @@
 import { defineStore } from 'pinia';
 import jwtDecode from 'vue-jwt-decode';
-import { useRouter } from 'vue-router';  // Import router
+import { useRouter } from 'vue-router';
 
 const fetchUsers = import.meta.env.VITE_API_USERS;
 
 export const useUserStore = defineStore('user', {
   state: () => ({
-    token: localStorage.getItem('token') || null, // ดึง token จาก localStorage
+    token: typeof window !== "undefined" ? localStorage.getItem('token') : null,  // ตรวจสอบการเข้าถึง localStorage
     fullname: '',
   }),
   actions: {
@@ -31,7 +31,9 @@ export const useUserStore = defineStore('user', {
         this.token = data.access_token;
 
         // เก็บ token ไว้ใน localStorage
-        localStorage.setItem('token', this.token);
+        if (typeof window !== "undefined") {
+          localStorage.setItem('token', this.token);
+        }
 
         this.decodeToken();
       } catch (error) {
@@ -75,7 +77,9 @@ export const useUserStore = defineStore('user', {
       const router = useRouter(); // ใช้งาน router สำหรับ redirect
       this.token = null;
       this.fullname = '';
-      localStorage.removeItem('token'); // ลบ token ออกจาก localStorage
+      if (typeof window !== "undefined") {
+        localStorage.removeItem('token');  // ลบ token ออกจาก localStorage
+      }
       router.push('/login');  // Redirect ไปยังหน้า login
     }
   },

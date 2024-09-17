@@ -44,7 +44,7 @@ onMounted(async () => {
 });
 
 function getToken() {
-  const token = localStorage.getItem("jwtToken");
+  const token = localStorage.getItem("token");
   if (!token) {
     console.error("No token available");
     router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
@@ -63,6 +63,11 @@ async function fetchData() {
       "Content-Type": "application/json",
     },
   });
+
+  if (response.status === 401) {
+      router.push("/login");  // Redirect ไปหน้า login เมื่อสถานะเป็น 401
+      return;
+    }
 
   if (!response.ok) {
     throw new Error(`Error fetching tasks: ${response.statusText}`);
@@ -86,6 +91,11 @@ async function fetchDataStatus() {
       "Content-Type": "application/json",
     },
   });
+
+  if (response.status === 401) {
+      router.push("/login");  // Redirect ไปหน้า login เมื่อสถานะเป็น 401
+      return;
+    }
 
   if (!response.ok) {
     throw new Error(`Error fetching status: ${response.statusText}`);
@@ -136,6 +146,11 @@ async function deleteTask(taskId) {
         "Content-Type": "application/json",
       },
     });
+
+    if (response.status === 401) {
+      router.push("/login");  // Redirect ไปหน้า login เมื่อสถานะเป็น 401
+      return;
+    }
 
     if (response.ok) {
       originalTasks.value = originalTasks.value.filter(

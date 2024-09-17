@@ -28,7 +28,7 @@ const originalDescription = ref("");
 const originalStatus = ref({});
 
 function getToken() {
-  const token = localStorage.getItem("jwtToken");
+  const token = localStorage.getItem("token");
   if (!token) {
     console.error("No token available");
     router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
@@ -47,6 +47,11 @@ async function fetchDataStatus() {
       "Content-Type": "application/json",
     },
   });
+
+  if (response.status === 401) {
+      router.push("/login");  // Redirect ไปหน้า login เมื่อสถานะเป็น 401
+      return;
+    }
 
   if (!response.ok) {
     throw new Error(`Failed to fetch status: ${response.statusText}`);
@@ -86,6 +91,11 @@ const openModalEdit = async () => {
       "Content-Type": "application/json",
     },
   });
+
+  if (response.status === 401) {
+      router.push("/login");  // Redirect ไปหน้า login เมื่อสถานะเป็น 401
+      return;
+    }
 
   const res = await response.json();
   if (!response.ok) {
