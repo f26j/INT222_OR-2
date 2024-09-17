@@ -28,7 +28,5 @@ services:
       - MYSQL_USER=root
       - MYSQL_PASSWORD=mysql@sit
       - MYSQL_PORT=3306
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-      - JWT_EXPIRATION_TIME=${JWT_EXPIRATION_TIME}
     depends_on:
       - mysql-db1
