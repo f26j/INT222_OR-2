@@ -16,8 +16,7 @@ CREATE TABLE IF NOT EXISTS boards
     name       VARCHAR(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
     owner_id   CHAR(36)                                                      NOT NULL,
     created_on DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_on DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_owner_id FOREIGN KEY (owner_id) REFERENCES itbkk_shared.users (oid) ON DELETE CASCADE
+    updated_on DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
