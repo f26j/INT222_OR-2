@@ -7,9 +7,19 @@ USE itbkk_v2;
 -- Drop
 DROP TABLE IF EXISTS task;
 DROP TABLE IF EXISTS status;
-DROP TABLE IF EXISTS board;
+DROP TABLE IF EXISTS boards;
 
 -- Table
+CREATE TABLE IF NOT EXISTS boards
+(
+    id         CHAR(10) PRIMARY KEY                                          NOT NULL UNIQUE,
+    name       VARCHAR(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+    owner_id   CHAR(36)                                                      NOT NULL,
+    created_on DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_on DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS status
 (
     id                INT PRIMARY KEY AUTO_INCREMENT,
