@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import sit.int221.BEOR2.db1.entities.User;
 
 @Getter
 @Setter
@@ -12,4 +13,5 @@ import lombok.Setter;
 public class BoardDto {
     private String id;
     private String name;
+    private User owner;
 }

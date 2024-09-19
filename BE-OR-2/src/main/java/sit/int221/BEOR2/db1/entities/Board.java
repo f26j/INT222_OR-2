@@ -1,5 +1,6 @@
 package sit.int221.BEOR2.db1.entities;
 
+import com.aventrix.jnanoid.jnanoid.NanoIdUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -23,8 +24,9 @@ public class Board {
     @Column(name = "name", nullable = false, length = 120)
     private String name;
 
-    @Column(name = "owner_id", nullable = false, length = 36)
-    private String owner_id;
+    @ManyToOne
+    @JoinColumn(name = "owner_id", nullable = false)
+    private User user;
 
     @Column(name = "created_on", insertable = false, updatable = false, nullable = false)
     private ZonedDateTime created_on;
@@ -32,11 +34,15 @@ public class Board {
     @Column(name = "updated_on", insertable = false, updatable = false, nullable = false)
     private ZonedDateTime updated_on;
 
-    // @JsonIgnore
-    // @OneToMany(mappedBy = "board_id")
-    // private List<Task> tasks;
+    @JsonIgnore
+    @OneToMany(mappedBy = "board")
+    private List<Task> tasks;
 
-    // @JsonIgnore
-    // @OneToMany(mappedBy = "board_id")
-    // private List<Status> statuses;
+    @JsonIgnore
+    @OneToMany(mappedBy = "board")
+    private List<Status> statuses;
+
+    public Board() {
+        this.id = NanoIdUtils.randomNanoId(NanoIdUtils.DEFAULT_NUMBER_GENERATOR, NanoIdUtils.DEFAULT_ALPHABET, 10);
+    }
 }

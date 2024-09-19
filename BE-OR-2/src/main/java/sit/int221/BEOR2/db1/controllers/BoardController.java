@@ -6,10 +6,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import sit.int221.BEOR2.BeOr2CrossOrigin;
 import sit.int221.BEOR2.db1.dtos.BoardDto;
+import sit.int221.BEOR2.db1.dtos.BoardManagementDto;
 import sit.int221.BEOR2.db1.entities.Board;
 import sit.int221.BEOR2.db1.services.BoardService;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/v3/boards")
@@ -22,26 +21,26 @@ public class BoardController {
 
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
-    public List<Board> getBoards() {
-        return boardService.getBoards();
+    public String[] getBoards() {
+        return new String[]{};
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public Board getBoardById(@PathVariable String id) {
-        return boardService.getBoardById(id);
+    public BoardDto getBoardById(@PathVariable String id) {
+        return modelMapper.map(boardService.getBoardById(id), BoardDto.class);
     }
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public BoardDto addBoard(@RequestBody Board board) {
-        return modelMapper.map(boardService.addBoard(board), BoardDto.class);
+    public BoardManagementDto addBoard(@RequestBody Board board) {
+        return modelMapper.map(boardService.addBoard(board), BoardManagementDto.class);
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public BoardDto editBoard(@PathVariable String id, @RequestBody Board board) {
-        return modelMapper.map(boardService.editBoard(id, board), BoardDto.class);
+    public BoardManagementDto editBoard(@PathVariable String id, @RequestBody Board board) {
+        return modelMapper.map(boardService.editBoard(id, board), BoardManagementDto.class);
     }
 
     @DeleteMapping("/{id}")

@@ -15,17 +15,21 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @Setter
 @Entity
 @ToString
-@Table(name = "status")
+@Table(name = "statuses")
 public class Status {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    @Column(name = "statusName", nullable = false, length = 50, unique = true)
+    @ManyToOne
+    @JoinColumn(name = "board_id", nullable = false)
+    private Board board;
+
+    @Column(name = "name", nullable = false, length = 50, unique = true)
     private String name;
 
-    @Column(name = "statusDescription", length = 200)
+    @Column(name = "description", length = 200)
     private String description;
 
     @JsonIgnore

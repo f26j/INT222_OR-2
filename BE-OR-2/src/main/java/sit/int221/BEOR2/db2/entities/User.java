@@ -1,11 +1,13 @@
 package sit.int221.BEOR2.db2.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.UuidGenerator;
 import org.springframework.util.StringUtils;
+
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -14,26 +16,23 @@ import org.springframework.util.StringUtils;
 @Table(name = "users")
 public class User {
     @Id
+    @UuidGenerator
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "oid", nullable = false, length = 36, unique = true)
-    private String oid;
+    private UUID oid;
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
-    @JsonIgnore
     @Column(name = "username", nullable = false, length = 50)
     private String username;
 
-    @JsonIgnore
     @Column(name = "email", nullable = false, length = 50)
     private String email;
 
-    @JsonIgnore
     @Column(name = "password", nullable = false, length = 100)
     private String password;
 
-    @JsonIgnore
     @Column(name = "role", nullable = false)
     private String role;
 
