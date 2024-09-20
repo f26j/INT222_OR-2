@@ -43,7 +43,7 @@ public class JwtUtil {
                 .compact();
     }
 
-    public String generateToken(String name, UUID oid, String email, String role) {
+    public String generateToken(String name, String oid, String email, String role) {
         Map<String, Object> claims = new LinkedHashMap<>();
         claims.put("name", name);
         claims.put("oid", oid);

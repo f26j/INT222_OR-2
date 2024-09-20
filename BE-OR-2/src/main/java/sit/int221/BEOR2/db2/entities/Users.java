@@ -7,8 +7,6 @@ import lombok.ToString;
 import org.hibernate.annotations.UuidGenerator;
 import org.springframework.util.StringUtils;
 
-import java.util.UUID;
-
 @Getter
 @Setter
 @Entity
@@ -19,7 +17,7 @@ public class Users {
     @UuidGenerator
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "oid", nullable = false, length = 36, unique = true)
-    private UUID oid;
+    private String oid;
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;

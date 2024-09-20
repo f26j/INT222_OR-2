@@ -10,7 +10,6 @@ import org.springframework.util.StringUtils;
 
 import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @Getter
 @Setter
@@ -22,7 +21,7 @@ public class User {
     @UuidGenerator
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "oid", nullable = false, length = 36, unique = true)
-    private UUID oid;
+    private String oid;
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;
