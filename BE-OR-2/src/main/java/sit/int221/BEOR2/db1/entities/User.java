@@ -50,6 +50,6 @@ public class User {
 
     @SuppressWarnings("deprecation")
     public void setUsername(String username) {
-        this.name = StringUtils.trimWhitespace(username);
+        this.username = StringUtils.trimWhitespace(username);
     }
 }
