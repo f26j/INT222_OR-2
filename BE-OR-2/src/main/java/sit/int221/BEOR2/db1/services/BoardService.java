@@ -16,16 +16,22 @@ public class BoardService {
     private BoardRepository boardRepository;
 
     public Board getBoardById(@PathVariable String id) {
-        return boardRepository.findById(id).orElseThrow(() -> new ApiNotFoundException("Board id '" + id + "' not found"));
+        return boardRepository.findById(id)
+                .orElseThrow(() -> new ApiNotFoundException("Board id '" + id + "' not found"));
     }
 
     @Transactional
     public Board addBoard(@RequestBody Board board) {
-        if (board.getId().equals(board.getId())) {
+        if (board.getUser() == null) {
+            throw new ApiBadRequestException("User is required to create a board");
+        }
+
+        if (boardRepository.existsById(board.getId())) {
             throw new ApiBadRequestException("Board id '" + board.getId() + "' already exists");
         }
 
-        if (board.getName() == null || board.getName().isEmpty() || board.getName().length() > 120) {
+        String boardName = board.getName();
+        if (boardName == null || boardName.trim().isEmpty() || boardName.length() > 120) {
             throw new ApiBadRequestException("Board name cannot be empty or overlength");
         }
 
@@ -34,16 +40,11 @@ public class BoardService {
 
     @Transactional
     public Board editBoard(@PathVariable String id, @RequestBody Board board) {
-        if (!boardRepository.existsById(id)) {
-            throw new ApiNotFoundException("Board id '" + id + "' not found");
-        }
+        Board existingBoard = boardRepository.findById(id)
+                .orElseThrow(() -> new ApiNotFoundException("Board id '" + id + "' not found"));
 
-        if (boardRepository.existsById(id)) {
-            board.setId(id);
-            return boardRepository.saveAndFlush(board);
-        }
-
-        return null;
+        board.setId(existingBoard.getId());
+        return boardRepository.saveAndFlush(existingBoard);
     }
 
     @Transactional
@@ -52,8 +53,6 @@ public class BoardService {
             throw new ApiNotFoundException("Board id '" + id + "' not found");
         }
 
-        if (boardRepository.existsById(id)) {
-            boardRepository.deleteById(id);
-        }
+        boardRepository.deleteById(id);
     }
 }
