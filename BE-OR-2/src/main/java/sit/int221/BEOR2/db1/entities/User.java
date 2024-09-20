@@ -49,7 +49,7 @@ public class User {
     }
 
     @SuppressWarnings("deprecation")
-    public void setUserame(String username) {
+    public void setUsername(String username) {
         this.name = StringUtils.trimWhitespace(username);
     }
 }
