@@ -12,9 +12,6 @@ import sit.int221.BEOR2.db1.repositories.BoardRepository;
 import sit.int221.BEOR2.exceptions.ApiBadRequestException;
 import sit.int221.BEOR2.exceptions.ApiNotFoundException;
 
-import java.util.Collections;
-import java.util.List;
-
 @Service
 public class BoardService {
     @Autowired
@@ -22,9 +19,9 @@ public class BoardService {
     @Autowired
     private ModelMapper modelMapper;
 
-    public List<Board> getBoardById(@PathVariable String id) {
-        return Collections.singletonList(boardRepository.findById(id)
-                .orElseThrow(() -> new ApiNotFoundException("Board id '" + id + "' not found")));
+    public Board getBoardById(@PathVariable String id) {
+        return boardRepository.findById(id)
+                .orElseThrow(() -> new ApiNotFoundException("Board id '" + id + "' not found"));
     }
 
     @Transactional

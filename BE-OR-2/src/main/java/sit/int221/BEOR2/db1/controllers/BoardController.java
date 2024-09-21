@@ -10,9 +10,6 @@ import sit.int221.BEOR2.db1.dtos.UserDto;
 import sit.int221.BEOR2.db1.entities.Board;
 import sit.int221.BEOR2.db1.services.BoardService;
 
-import java.util.Collections;
-import java.util.List;
-
 @RestController
 @RequestMapping("/v3/boards")
 @BeOr2CrossOrigin
@@ -30,30 +27,30 @@ public class BoardController {
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public List<BoardDto> getBoardById(@PathVariable String id) {
-        List<Board> boards = boardService.getBoardById(id);
-        return boards.stream().map(board -> new BoardDto(
+    public BoardDto getBoardById(@PathVariable String id) {
+        Board board = boardService.getBoardById(id);
+        return new BoardDto(
                 board.getId(),
                 board.getName(),
                 new UserDto(
                         board.getUser().getOid(),
                         board.getUser().getName()
                 )
-        )).toList();
+        );
     }
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public List<BoardDto> addBoard(@RequestBody Board board) {
+    public BoardDto addBoard(@RequestBody Board board) {
         BoardDto savedBoard = boardService.addBoard(board);
-        return Collections.singletonList(modelMapper.map(savedBoard, BoardDto.class));
+        return modelMapper.map(savedBoard, BoardDto.class);
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public List<BoardDto> editBoard(@PathVariable String id, @RequestBody Board board) {
+    public BoardDto editBoard(@PathVariable String id, @RequestBody Board board) {
         BoardDto editedBoard = boardService.editBoard(id, board);
-        return Collections.singletonList(modelMapper.map(editedBoard, BoardDto.class));
+        return modelMapper.map(editedBoard, BoardDto.class);
     }
 
     @DeleteMapping("/{id}")

@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import sit.int221.BEOR2.db1.entities.Board;
 import sit.int221.BEOR2.db1.entities.Task;
 import sit.int221.BEOR2.db1.repositories.BoardRepository;
 import sit.int221.BEOR2.exceptions.ApiNotFoundException;
@@ -37,14 +38,14 @@ public class TaskService {
 
     @Transactional
     public Task addTask(@PathVariable String boardId, @RequestBody Task task) {
-        if (!boardRepository.existsById(boardId)) {
-            throw new ApiNotFoundException("Board id '" + boardId + "' not found");
-        }
+        Board existingBoard = boardRepository.findById(boardId)
+                .orElseThrow(() -> new ApiNotFoundException("Board id '" + boardId + "' not found"));
 
         if (!statusRepository.existsById(task.getStatus().getId())) {
             throw new ApiNotFoundException("The requested status does not exist");
         }
 
+        task.setBoard(existingBoard);
         statusRepository.findById(task.getStatus().getId());
         return taskRepository.saveAndFlush(task);
     }
@@ -59,7 +60,7 @@ public class TaskService {
         }
 
         task.setId(existingTask.getId());
-        task.setId(Integer.valueOf(boardId));
+        task.setBoard(existingTask.getBoard());
         return taskRepository.saveAndFlush(task);
     }
 

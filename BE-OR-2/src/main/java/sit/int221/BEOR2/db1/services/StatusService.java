@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import sit.int221.BEOR2.db1.entities.Board;
 import sit.int221.BEOR2.db1.entities.Status;
 import sit.int221.BEOR2.db1.entities.Task;
 import sit.int221.BEOR2.db1.repositories.BoardRepository;
@@ -39,10 +40,10 @@ public class StatusService {
 
     @Transactional
     public Status addStatus(@PathVariable String boardId, @RequestBody Status status) {
-        if (!boardRepository.existsById(boardId)) {
-            throw new ApiNotFoundException("Board id '" + boardId + "' not found");
-        }
+        Board existingBoard = boardRepository.findById(boardId)
+                .orElseThrow(() -> new ApiNotFoundException("Board id '" + boardId + "' not found"));
 
+        status.setBoard(existingBoard);
         return statusRepository.saveAndFlush(status);
     }
 
@@ -58,7 +59,7 @@ public class StatusService {
                 .orElseThrow(() -> new ApiNotFoundException("Status id '" + statusId + "' in board id '" + boardId + "' not found"));
 
         status.setId(existingStatus.getId());
-        status.setId(Integer.valueOf(boardId));
+        status.setBoard(existingStatus.getBoard());
         return statusRepository.saveAndFlush(status);
     }
 
