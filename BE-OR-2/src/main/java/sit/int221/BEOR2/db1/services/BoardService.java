@@ -1,10 +1,12 @@
 package sit.int221.BEOR2.db1.services;
 
 import jakarta.transaction.Transactional;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import sit.int221.BEOR2.db1.dtos.BoardDto;
 import sit.int221.BEOR2.db1.entities.Board;
 import sit.int221.BEOR2.db1.repositories.BoardRepository;
 import sit.int221.BEOR2.exceptions.ApiBadRequestException;
@@ -17,6 +19,8 @@ import java.util.List;
 public class BoardService {
     @Autowired
     private BoardRepository boardRepository;
+    @Autowired
+    private ModelMapper modelMapper;
 
     public List<Board> getBoardById(@PathVariable String id) {
         return Collections.singletonList(boardRepository.findById(id)
@@ -24,7 +28,7 @@ public class BoardService {
     }
 
     @Transactional
-    public Board addBoard(@RequestBody Board board) {
+    public BoardDto addBoard(@RequestBody Board board) {
         if (board.getUser() == null) {
             throw new ApiBadRequestException("User is required to create a board");
         }
@@ -38,16 +42,27 @@ public class BoardService {
             throw new ApiBadRequestException("Board name cannot be empty or overlength");
         }
 
-        return boardRepository.saveAndFlush(board);
+        modelMapper.typeMap(Board.class, BoardDto.class).addMappings(mapper -> {
+            mapper.map(Board::getUser, BoardDto::setOwner);
+        });
+
+        Board savedBoard = boardRepository.saveAndFlush(board);
+        return modelMapper.map(savedBoard, BoardDto.class);
     }
 
     @Transactional
-    public Board editBoard(@PathVariable String id, @RequestBody Board board) {
+    public BoardDto editBoard(@PathVariable String id, @RequestBody Board board) {
         Board existingBoard = boardRepository.findById(id)
                 .orElseThrow(() -> new ApiNotFoundException("Board id '" + id + "' not found"));
 
+        modelMapper.typeMap(Board.class, BoardDto.class).addMappings(mapper -> {
+            mapper.map(Board::getUser, BoardDto::setOwner);
+        });
+
         board.setId(existingBoard.getId());
-        return boardRepository.saveAndFlush(existingBoard);
+        board.setUser(existingBoard.getUser());
+        Board editedBoard = boardRepository.saveAndFlush(board);
+        return modelMapper.map(editedBoard, BoardDto.class);
     }
 
     @Transactional

@@ -6,11 +6,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import sit.int221.BEOR2.BeOr2CrossOrigin;
 import sit.int221.BEOR2.db1.dtos.BoardDto;
-import sit.int221.BEOR2.db1.dtos.BoardManagementDto;
 import sit.int221.BEOR2.db1.dtos.UserDto;
 import sit.int221.BEOR2.db1.entities.Board;
 import sit.int221.BEOR2.db1.services.BoardService;
 
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -44,14 +44,16 @@ public class BoardController {
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public BoardManagementDto addBoard(@RequestBody Board board) {
-        return modelMapper.map(boardService.addBoard(board), BoardManagementDto.class);
+    public List<BoardDto> addBoard(@RequestBody Board board) {
+        BoardDto savedBoard = boardService.addBoard(board);
+        return Collections.singletonList(modelMapper.map(savedBoard, BoardDto.class));
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public BoardManagementDto editBoard(@PathVariable String id, @RequestBody Board board) {
-        return modelMapper.map(boardService.editBoard(id, board), BoardManagementDto.class);
+    public List<BoardDto> editBoard(@PathVariable String id, @RequestBody Board board) {
+        BoardDto editedBoard = boardService.editBoard(id, board);
+        return Collections.singletonList(modelMapper.map(editedBoard, BoardDto.class));
     }
 
     @DeleteMapping("/{id}")
