@@ -17,7 +17,6 @@ import java.util.List;
 @Table(name = "boards")
 public class Board {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, length = 10, unique = true)
     private String id;
 
@@ -42,7 +41,7 @@ public class Board {
     @OneToMany(mappedBy = "board")
     private List<Status> statuses;
 
-    public Board() {
-        this.id = NanoIdUtils.randomNanoId(NanoIdUtils.DEFAULT_NUMBER_GENERATOR, NanoIdUtils.DEFAULT_ALPHABET, 10);
-    }
+//    public Board() {
+//        this.id = NanoIdUtils.randomNanoId(NanoIdUtils.DEFAULT_NUMBER_GENERATOR, NanoIdUtils.DEFAULT_ALPHABET, 10);
+//    }
 }

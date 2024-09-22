@@ -52,6 +52,10 @@ public class JwtUtil {
         return createToken(claims);
     }
 
+    public String getOid(String token) {
+        return extractAllClaims(token).get("oid", String.class);
+    }
+
     public boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }

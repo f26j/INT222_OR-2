@@ -9,25 +9,31 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import sit.int221.BEOR2.db2.entities.Users;
+import sit.int221.BEOR2.db2.repositories.UsersRepository;
 import sit.int221.BEOR2.db2.services.JwtUtil;
 import sit.int221.BEOR2.exceptions.CustomAuthenticationEntryPoint;
 
 import java.io.IOException;
 
 @Component
+@Slf4j
 public class JwtRequestFilter extends OncePerRequestFilter {
     @Autowired
     private JwtUtil jwtUtil;
     @Autowired
     private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
-
+    @Autowired
+    private UsersRepository usersRepository;
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
         final String authorizationHeader = request.getHeader("Authorization");
@@ -40,7 +46,9 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
             if (token != null && !jwtUtil.isTokenExpired(token)) {
                 Claims claims = jwtUtil.extractAllClaims(token);
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(claims.getSubject(), null, null);
+                String oid = jwtUtil.getOid(token);
+                Users users = usersRepository.findByOid(oid);
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(users.getUsername(), null, null);
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }

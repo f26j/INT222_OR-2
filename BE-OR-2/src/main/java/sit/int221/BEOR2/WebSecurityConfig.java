@@ -29,7 +29,7 @@ public class WebSecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable) // No 403 error
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/login/**").permitAll()
+                        .requestMatchers("/error","/login/**").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(exceptionHandling -> exceptionHandling
                         .authenticationEntryPoint(customAuthenticationEntryPoint))

@@ -1,5 +1,6 @@
 package sit.int221.BEOR2.db1.services;
 
+import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +23,8 @@ public class TaskService {
     private StatusRepository statusRepository;
     @Autowired
     private BoardRepository boardRepository;
-
+    @Autowired
+    private EntityManager entityManager;
     public List<Task> getTasks(@PathVariable String boardId) {
         if (!boardRepository.existsById(boardId)) {
             throw new ApiNotFoundException("Board id '" + boardId + "' not found");
@@ -46,7 +48,10 @@ public class TaskService {
         }
 
         task.setBoard(existingBoard);
-        return taskRepository.saveAndFlush(task);
+//        return taskRepository.saveAndFlush(task);
+        Task addedTask = taskRepository.saveAndFlush(task);
+        entityManager.refresh(addedTask);
+        return  addedTask;
     }
 
     @Transactional
@@ -60,9 +65,11 @@ public class TaskService {
 
         task.setId(existingTask.getId());
         task.setBoard(existingTask.getBoard());
-        return taskRepository.saveAndFlush(task);
+//        return taskRepository.saveAndFlush(task);}
+        Task editedTask = taskRepository.saveAndFlush(task);
+        entityManager.refresh(editedTask);
+        return editedTask;
     }
-
     @Transactional
     public void deleteTask(@PathVariable String boardId, @PathVariable Integer taskId) {
         Task task = taskRepository.findByBoardIdAndId(boardId, taskId)
