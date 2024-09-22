@@ -3,12 +3,17 @@ package sit.int221.BEOR2.db1.services;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import sit.int221.BEOR2.db1.dtos.BoardDto;
 import sit.int221.BEOR2.db1.entities.Board;
+import sit.int221.BEOR2.db1.entities.User;
 import sit.int221.BEOR2.db1.repositories.BoardRepository;
+import sit.int221.BEOR2.db1.repositories.UserRepository;
 import sit.int221.BEOR2.exceptions.ApiBadRequestException;
 import sit.int221.BEOR2.exceptions.ApiNotFoundException;
 
@@ -16,6 +21,8 @@ import sit.int221.BEOR2.exceptions.ApiNotFoundException;
 public class BoardService {
     @Autowired
     private BoardRepository boardRepository;
+    @Autowired
+    private UserRepository userRepository;
     @Autowired
     private ModelMapper modelMapper;
 
@@ -30,6 +37,11 @@ public class BoardService {
             throw new ApiBadRequestException("User is required to create a board");
         }
 
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String oid = ((Jwt) authentication.getPrincipal()).getClaim("oid");
+        User user = userRepository.findByOid(oid)
+                .orElseThrow(() -> new ApiNotFoundException("User oid '" + oid + "' not found"));
+
         if (boardRepository.existsById(board.getId())) {
             throw new ApiBadRequestException("Board id '" + board.getId() + "' already exists");
         }
@@ -43,6 +55,7 @@ public class BoardService {
             mapper.map(Board::getUser, BoardDto::setOwner);
         });
 
+        board.setUser(user);
         return modelMapper.map(boardRepository.saveAndFlush(board), BoardDto.class);
     }
 
