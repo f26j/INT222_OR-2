@@ -6,10 +6,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import sit.int221.BEOR2.BeOr2CrossOrigin;
 import sit.int221.BEOR2.db1.dtos.BoardDto;
+import sit.int221.BEOR2.db1.dtos.UserDto;
 import sit.int221.BEOR2.db1.entities.Board;
 import sit.int221.BEOR2.db1.services.BoardService;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/v3/boards")
@@ -22,14 +21,22 @@ public class BoardController {
 
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
-    public List<Board> getBoards() {
-        return boardService.getBoards();
+    public String[] getBoards() {
+        return new String[]{};
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public Board getBoardById(@PathVariable String id) {
-        return boardService.getBoardById(id);
+    public BoardDto getBoardById(@PathVariable String id) {
+        Board board = boardService.getBoardById(id);
+        return new BoardDto(
+                board.getId(),
+                board.getName(),
+                new UserDto(
+                        board.getUser().getOid(),
+                        board.getUser().getName()
+                )
+        );
     }
 
     @PostMapping("")

@@ -3,8 +3,11 @@ package sit.int221.BEOR2.db1.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import sit.int221.BEOR2.db1.entities.Board;
 import sit.int221.BEOR2.db1.entities.Task;
+import sit.int221.BEOR2.db1.repositories.BoardRepository;
 import sit.int221.BEOR2.exceptions.ApiNotFoundException;
 import sit.int221.BEOR2.db1.repositories.StatusRepository;
 import sit.int221.BEOR2.db1.repositories.TaskRepository;
@@ -17,45 +20,54 @@ public class TaskService {
     private TaskRepository taskRepository;
     @Autowired
     private StatusRepository statusRepository;
+    @Autowired
+    private BoardRepository boardRepository;
 
-    public List<Task> getTasks() {
-        return taskRepository.findAll();
+    public List<Task> getTasks(@PathVariable String boardId) {
+        if (!boardRepository.existsById(boardId)) {
+            throw new ApiNotFoundException("Board id '" + boardId + "' not found");
+        }
+
+        return taskRepository.findByBoardId(boardId);
     }
 
-    public Task getTaskById(@PathVariable Integer id) {
-        return taskRepository.findById(id).orElseThrow(() -> new ApiNotFoundException("Task id " + id + " does not exist"));
+    public Task getTaskById(@PathVariable String boardId, Integer taskId) {
+        return taskRepository.findByBoardIdAndId(boardId, taskId)
+                .orElseThrow(() -> new ApiNotFoundException("Task id '" + taskId + "' in board id '" + boardId + "' not found"));
     }
 
     @Transactional
-    public Task addTask(@RequestBody Task task) {
+    public Task addTask(@PathVariable String boardId, @RequestBody Task task) {
+        Board existingBoard = boardRepository.findById(boardId)
+                .orElseThrow(() -> new ApiNotFoundException("Board id '" + boardId + "' not found"));
+
         if (!statusRepository.existsById(task.getStatus().getId())) {
             throw new ApiNotFoundException("The requested status does not exist");
         }
-        statusRepository.findById(task.getStatus().getId());
+
+        task.setBoard(existingBoard);
         return taskRepository.saveAndFlush(task);
     }
 
     @Transactional
-    public Task editTask(@PathVariable Integer id, @RequestBody Task task) {
-        if (!taskRepository.existsById(id)) {
-            throw new ApiNotFoundException("NOT FOUND");
+    public Task editTask(@PathVariable String boardId, @PathVariable Integer taskId, @RequestBody Task task) {
+        Task existingTask = taskRepository.findByBoardIdAndId(boardId, taskId)
+                .orElseThrow(() -> new ApiNotFoundException("Task id '" + taskId + "' in board id '" + boardId + "' not found"));
+
+        if (!statusRepository.existsById(task.getStatus().getId())) {
+            throw new ApiNotFoundException("The requested status does not exist");
         }
 
-        if (taskRepository.existsById(id)) {
-            task.setId(id);
-            return taskRepository.saveAndFlush(task);
-        }
-        return null;
+        task.setId(existingTask.getId());
+        task.setBoard(existingTask.getBoard());
+        return taskRepository.saveAndFlush(task);
     }
 
     @Transactional
-    public void deleteTask(@PathVariable Integer id) {
-        if (!taskRepository.existsById(id)) {
-            throw new ApiNotFoundException("NOT FOUND");
-        }
+    public void deleteTask(@PathVariable String boardId, @PathVariable Integer taskId) {
+        Task task = taskRepository.findByBoardIdAndId(boardId, taskId)
+                .orElseThrow(() -> new ApiNotFoundException("Task id '" + taskId + "' in board id '" + boardId + "' not found"));
 
-        if (taskRepository.existsById(id)) {
-            taskRepository.deleteById(id);
-        }
+        taskRepository.delete(task);
     }
 }

@@ -12,30 +12,34 @@ import java.time.ZonedDateTime;
 @Setter
 @Entity
 @ToString
-@Table(name = "task")
+@Table(name = "tasks")
 public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    @Column(name = "taskTitle", nullable = false, length = 100)
+    @ManyToOne
+    @JoinColumn(name = "board_id", nullable = false)
+    private Board board;
+
+    @Column(name = "title", nullable = false, length = 100)
     private String title;
 
-    @Column(name = "taskDescription", length = 500)
+    @Column(name = "description", length = 500)
     private String description;
 
-    @Column(name = "taskAssignees", length = 30)
+    @Column(name = "assignees", length = 30)
     private String assignees;
 
     @ManyToOne
-    @JoinColumn(name = "taskStatus", nullable = false)
+    @JoinColumn(name = "status_id", nullable = false)
     private Status status;
 
-    @Column(name = "createdOn", insertable = false, updatable = false, nullable = false)
+    @Column(name = "created_on", insertable = false, updatable = false, nullable = false)
     private ZonedDateTime createdOn;
 
-    @Column(name = "updatedOn", insertable = false, updatable = false, nullable = false)
+    @Column(name = "updated_on", insertable = false, updatable = false, nullable = false)
     private ZonedDateTime updatedOn;
 
     @SuppressWarnings("deprecation")
