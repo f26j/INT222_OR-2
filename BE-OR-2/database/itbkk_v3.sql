@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS statuses
     description       VARCHAR(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
     created_on        DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_on        DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_board_id_2 FOREIGN KEY (board_id) REFERENCES boards (id)
+    CONSTRAINT fk_board_id_2 FOREIGN KEY (board_id) REFERENCES boards (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS tasks
@@ -54,12 +54,12 @@ CREATE TABLE IF NOT EXISTS tasks
     status_id         INT                                                           NOT NULL DEFAULT 1,
     created_on        DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_on        DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_status_id FOREIGN KEY (status_id) REFERENCES statuses (id),
-    CONSTRAINT fk_board_id_1 FOREIGN KEY (board_id) REFERENCES boards (id)
+    CONSTRAINT fk_status_id FOREIGN KEY (status_id) REFERENCES statuses (id) ON DELETE CASCADE,
+    CONSTRAINT fk_board_id_1 FOREIGN KEY (board_id) REFERENCES boards (id) ON DELETE CASCADE
 );
 
 -- Insert
-ALTER TABLE statuses MODIFY board_id CHAR(10) NOT NULL DEFAULT '';
+ALTER TABLE statuses MODIFY board_id CHAR(10) NULL;
 
 INSERT INTO statuses (name, description)
 VALUES ('No Status', 'The default status');
@@ -70,7 +70,7 @@ VALUES ('Doing', 'Being worked on');
 INSERT INTO statuses (name, description)
 VALUES ('Done', 'Finished');
 
-ALTER TABLE tasks MODIFY board_id CHAR(10) NOT NULL DEFAULT '';
+ALTER TABLE tasks MODIFY board_id CHAR(10) NULL;
 
 INSERT INTO tasks (title, description, assignees, status_id, created_on, updated_on)
 VALUES ('TaskTitle1TaskTitle2TaskTitle3TaskTitle4TaskTitle5TaskTitle6TaskTitle7TaskTitle8TaskTitle9TaskTitle0',
@@ -84,5 +84,5 @@ VALUES ('ดาต้าเบส', 'ສ້າງຖານຂໍ້ມູນ', '
 INSERT INTO tasks (title, description, assignees, status_id, created_on, updated_on)
 VALUES ('_Infrastructure_', '_Setup containers_', 'ไก่งวง กับ เพนกวิน', 4, '2024-04-22 09:15:00+00:00',
         '2024-04-22 10:00:00+00:00');
-        
+
 SET FOREIGN_KEY_CHECKS = 1;

@@ -44,6 +44,7 @@ public class StatusService {
                 .orElseThrow(() -> new ApiNotFoundException("Board id '" + boardId + "' not found"));
 
         status.setBoard(existingBoard);
+        status.setName(boardId + status.getName());
         return statusRepository.saveAndFlush(status);
     }
 
@@ -60,6 +61,7 @@ public class StatusService {
 
         status.setId(existingStatus.getId());
         status.setBoard(existingStatus.getBoard());
+        status.setName(boardId + status.getName());
         return statusRepository.saveAndFlush(status);
     }
 
