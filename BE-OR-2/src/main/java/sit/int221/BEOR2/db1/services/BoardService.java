@@ -43,8 +43,7 @@ public class BoardService {
             mapper.map(Board::getUser, BoardDto::setOwner);
         });
 
-        Board savedBoard = boardRepository.saveAndFlush(board);
-        return modelMapper.map(savedBoard, BoardDto.class);
+        return modelMapper.map(boardRepository.saveAndFlush(board), BoardDto.class);
     }
 
     @Transactional
@@ -58,8 +57,7 @@ public class BoardService {
 
         board.setId(existingBoard.getId());
         board.setUser(existingBoard.getUser());
-        Board editedBoard = boardRepository.saveAndFlush(board);
-        return modelMapper.map(editedBoard, BoardDto.class);
+        return modelMapper.map(boardRepository.saveAndFlush(board), BoardDto.class);
     }
 
     @Transactional

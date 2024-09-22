@@ -42,15 +42,13 @@ public class BoardController {
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     public BoardDto addBoard(@RequestBody Board board) {
-        BoardDto savedBoard = boardService.addBoard(board);
-        return modelMapper.map(savedBoard, BoardDto.class);
+        return modelMapper.map(boardService.addBoard(board), BoardDto.class);
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public BoardDto editBoard(@PathVariable String id, @RequestBody Board board) {
-        BoardDto editedBoard = boardService.editBoard(id, board);
-        return modelMapper.map(editedBoard, BoardDto.class);
+        return modelMapper.map(boardService.editBoard(id, board), BoardDto.class);
     }
 
     @DeleteMapping("/{id}")
