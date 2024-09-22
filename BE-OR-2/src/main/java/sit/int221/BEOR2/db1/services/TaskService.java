@@ -46,7 +46,6 @@ public class TaskService {
         }
 
         task.setBoard(existingBoard);
-        statusRepository.findById(task.getStatus().getId());
         return taskRepository.saveAndFlush(task);
     }
 
