@@ -1,6 +1,5 @@
 package sit.int221.BEOR2.db1.entities;
 
-import com.aventrix.jnanoid.jnanoid.NanoIdUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -40,8 +39,4 @@ public class Board {
     @JsonIgnore
     @OneToMany(mappedBy = "board")
     private List<Status> statuses;
-
-//    public Board() {
-//        this.id = NanoIdUtils.randomNanoId(NanoIdUtils.DEFAULT_NUMBER_GENERATOR, NanoIdUtils.DEFAULT_ALPHABET, 10);
-//    }
 }

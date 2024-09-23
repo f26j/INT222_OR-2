@@ -52,7 +52,7 @@ public class StatusService {
     public Status editStatus(@PathVariable String boardId,
                              @PathVariable Integer statusId,
                              @RequestBody Status status) {
-        if (statusId == null || statusId == 1) {
+        if (statusId == null || statusId == 1 || statusId == 4) {
             throw new ApiBadRequestException("Status id '" + statusId + "' cannot be edited");
         }
 
@@ -67,7 +67,7 @@ public class StatusService {
 
     @Transactional
     public void deleteStatus(@PathVariable String boardId, @PathVariable Integer statusId) {
-        if (statusId == 1) {
+        if (statusId == 1 || statusId == 4) {
             throw new ApiBadRequestException("Status id '" + statusId + "' cannot be deleted");
         }
 
@@ -81,22 +81,22 @@ public class StatusService {
     public void transferStatus(@PathVariable String boardId,
                                @PathVariable Integer statusId,
                                @PathVariable Integer newStatusId) {
-        if (statusId.equals(newStatusId) || statusId == 1) {
+        if (statusId.equals(newStatusId) || statusId == 1 || statusId == 4) {
             throw new ApiBadRequestException("Status id '" + statusId + "' and new id '" + newStatusId + "' cannot be transferred");
         }
 
-        Status statusToTransferFrom = statusRepository.findByBoardIdAndId(boardId, statusId)
+        Status deleteId = statusRepository.findByBoardIdAndId(boardId, statusId)
                 .orElseThrow(() -> new ApiNotFoundException("Status id '" + statusId + "' does not exist for board id '" + boardId + "'"));
-        Status statusToTransferTo = statusRepository.findByBoardIdAndId(boardId, newStatusId)
+        Status transferId = statusRepository.findByBoardIdAndId(boardId, newStatusId)
                 .orElseThrow(() -> new ApiNotFoundException("New status id '" + newStatusId + "' does not exist for board id '" + boardId + "'"));
 
-        List<Task> tasks = taskRepository.findByStatus(statusToTransferFrom);
+        List<Task> tasks = taskRepository.findByStatus(deleteId);
 
         for (Task task : tasks) {
-            task.setStatus(statusToTransferTo);
+            task.setStatus(transferId);
         }
 
         taskRepository.saveAllAndFlush(tasks);
-        statusRepository.delete(statusToTransferFrom);
+        statusRepository.delete(deleteId);
     }
 }

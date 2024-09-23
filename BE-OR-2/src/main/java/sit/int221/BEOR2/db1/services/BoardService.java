@@ -1,14 +1,11 @@
 package sit.int221.BEOR2.db1.services;
 
-import com.aventrix.jnanoid.jnanoid.NanoIdUtils;
 import io.viascom.nanoid.NanoId;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,8 +14,6 @@ import sit.int221.BEOR2.db1.entities.Board;
 import sit.int221.BEOR2.db1.entities.User;
 import sit.int221.BEOR2.db1.repositories.BoardRepository;
 import sit.int221.BEOR2.db1.repositories.UserRepository;
-import sit.int221.BEOR2.db2.entities.Users;
-import sit.int221.BEOR2.db2.repositories.UsersRepository;
 import sit.int221.BEOR2.exceptions.ApiBadRequestException;
 import sit.int221.BEOR2.exceptions.ApiNotFoundException;
 
@@ -33,8 +28,6 @@ public class BoardService {
     private UserRepository userRepository;
     @Autowired
     private ModelMapper modelMapper;
-    @Autowired
-    private UsersRepository usersRepository;
 
     public Board getBoardById(@PathVariable String id) {
         return boardRepository.findById(id)
@@ -45,10 +38,11 @@ public class BoardService {
     public BoardDto addBoard(@RequestBody Board board) {
         String userName = SecurityContextHolder.getContext().getAuthentication().getName();
         log.info(userName);
-        Optional<User> users = userRepository.findByUsername(userName);
-        board.setUser(users.get());
+        Optional<User> user = userRepository.findByUsername(userName);
+        board.setUser(user.isPresent() ? user.get() : null);
+
         if (board.getUser() == null) {
-            throw new ApiBadRequestException("User is required to create a board");
+            throw new ApiBadRequestException("User is required to add a board");
         }
 
         String boardName = board.getName();
@@ -59,6 +53,7 @@ public class BoardService {
         modelMapper.typeMap(Board.class, BoardDto.class).addMappings(mapper -> {
             mapper.map(Board::getUser, BoardDto::setOwner);
         });
+
         board.setId(NanoId.generate(10));
         return modelMapper.map(boardRepository.saveAndFlush(board), BoardDto.class);
     }

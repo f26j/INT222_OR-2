@@ -1,6 +1,5 @@
 package sit.int221.BEOR2.db2.filters;
 
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
@@ -9,12 +8,10 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -26,7 +23,6 @@ import sit.int221.BEOR2.exceptions.CustomAuthenticationEntryPoint;
 import java.io.IOException;
 
 @Component
-@Slf4j
 public class JwtRequestFilter extends OncePerRequestFilter {
     @Autowired
     private JwtUtil jwtUtil;
@@ -45,7 +41,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             }
 
             if (token != null && !jwtUtil.isTokenExpired(token)) {
-                Claims claims = jwtUtil.extractAllClaims(token);
                 String oid = jwtUtil.getOid(token);
                 Users users = usersRepository.findByOid(oid);
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(users.getUsername(), null, null);
