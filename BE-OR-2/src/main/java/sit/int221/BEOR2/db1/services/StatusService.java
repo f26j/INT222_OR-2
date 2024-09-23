@@ -43,8 +43,12 @@ public class StatusService {
         Board existingBoard = boardRepository.findById(boardId)
                 .orElseThrow(() -> new ApiNotFoundException("Board id '" + boardId + "' not found"));
 
+        if (!boardRepository.existsById(boardId)) {
+            throw new ApiNotFoundException("Board id '" + boardId + "' not found");
+        }
+
         status.setBoard(existingBoard);
-        status.setName(boardId + status.getName());
+        status.setName(boardId.substring(10) + status.getName());
         return statusRepository.saveAndFlush(status);
     }
 
@@ -52,22 +56,26 @@ public class StatusService {
     public Status editStatus(@PathVariable String boardId,
                              @PathVariable Integer statusId,
                              @RequestBody Status status) {
-        if (statusId == null || statusId == 1 || statusId == 4) {
+        if (statusId == 1) {
             throw new ApiBadRequestException("Status id '" + statusId + "' cannot be edited");
         }
 
         Status existingStatus = statusRepository.findByBoardIdAndId(boardId, statusId)
                 .orElseThrow(() -> new ApiNotFoundException("Status id '" + statusId + "' in board id '" + boardId + "' not found"));
 
+        if (!statusRepository.existsById(statusId)) {
+            throw new ApiNotFoundException("Status id '" + statusId + "' not found");
+        }
+
         status.setId(existingStatus.getId());
         status.setBoard(existingStatus.getBoard());
-        status.setName(boardId + status.getName());
+        status.setName(status.getName());
         return statusRepository.saveAndFlush(status);
     }
 
     @Transactional
     public void deleteStatus(@PathVariable String boardId, @PathVariable Integer statusId) {
-        if (statusId == 1 || statusId == 4) {
+        if (statusId == 1) {
             throw new ApiBadRequestException("Status id '" + statusId + "' cannot be deleted");
         }
 
@@ -81,7 +89,7 @@ public class StatusService {
     public void transferStatus(@PathVariable String boardId,
                                @PathVariable Integer statusId,
                                @PathVariable Integer newStatusId) {
-        if (statusId.equals(newStatusId) || statusId == 1 || statusId == 4) {
+        if (statusId.equals(newStatusId) || statusId == 1) {
             throw new ApiBadRequestException("Status id '" + statusId + "' and new id '" + newStatusId + "' cannot be transferred");
         }
 
