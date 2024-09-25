@@ -7,7 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import sit.int221.BEOR2.db1.entities.Board;
-import sit.int221.BEOR2.db1.entities.Status;
 import sit.int221.BEOR2.db1.entities.Task;
 import sit.int221.BEOR2.db1.repositories.BoardRepository;
 import sit.int221.BEOR2.db1.repositories.StatusRepository;
