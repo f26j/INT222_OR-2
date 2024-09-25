@@ -8,7 +8,7 @@ import sit.int221.BEOR2.db1.dtos.StatusDto;
 import sit.int221.BEOR2.db1.entities.Status;
 import sit.int221.BEOR2.db1.services.StatusService;
 import sit.int221.BEOR2.BeOr2CrossOrigin;
-
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -17,6 +17,7 @@ import java.util.List;
 public class StatusController {
     @Autowired
     private StatusService statusService;
+
     @Autowired
     private ModelMapper modelMapper;
 
@@ -39,7 +40,7 @@ public class StatusController {
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public StatusDto addStatus(@PathVariable String id, @RequestBody Status status) {
+    public StatusDto addStatus(@PathVariable String id, @Valid @RequestBody Status status) {
         return modelMapper.map(statusService.addStatus(id, status), StatusDto.class);
     }
 
@@ -47,7 +48,7 @@ public class StatusController {
     @ResponseStatus(HttpStatus.OK)
     public StatusDto editStatus(@PathVariable String id,
                                 @PathVariable Integer statusId,
-                                @RequestBody Status status) {
+                                @Valid @RequestBody Status status) {
         return modelMapper.map(statusService.editStatus(id, statusId, status), StatusDto.class);
     }
 

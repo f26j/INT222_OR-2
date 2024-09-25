@@ -15,11 +15,12 @@ import java.util.function.Function;
 
 @Component
 public class JwtUtil {
+
     @Value("${jwt.secret.key}")
     private String SECRET_KEY;
 
     @Value("${jwt.expiration.time}")
-    private long EXPIRATION_TIME; // 30 mins
+    private long EXPIRATION_TIME; // 30 นาที
 
     @SneakyThrows
     private Key getSigningKey() {
@@ -64,7 +65,7 @@ public class JwtUtil {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    private <T> T extractClaim(String token , Function<Claims, T> claimResolver) {
+    private <T> T extractClaim(String token, Function<Claims, T> claimResolver) {
         final Claims claim = extractAllClaims(token);
         return claimResolver.apply(claim);
     }
@@ -74,7 +75,7 @@ public class JwtUtil {
         return Jwts.parser()
                 .setSigningKey(getSigningKey())
                 .build()
-                .parseSignedClaims(token)
-                .getPayload();
+                .parseClaimsJws(token)
+                .getBody();
     }
 }

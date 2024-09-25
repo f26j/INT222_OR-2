@@ -10,22 +10,31 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import sit.int221.BEOR2.db1.dtos.BoardDto;
+import sit.int221.BEOR2.db1.dtos.UserDto;
 import sit.int221.BEOR2.db1.entities.Board;
+import sit.int221.BEOR2.db1.entities.Status;
 import sit.int221.BEOR2.db1.entities.User;
 import sit.int221.BEOR2.db1.repositories.BoardRepository;
+import sit.int221.BEOR2.db1.repositories.StatusRepository;
 import sit.int221.BEOR2.db1.repositories.UserRepository;
 import sit.int221.BEOR2.exceptions.ApiBadRequestException;
 import sit.int221.BEOR2.exceptions.ApiNotFoundException;
-
-import java.util.Optional;
+import javax.validation.Valid;
+import java.util.Arrays;
+import java.util.List;
 
 @Service
 @Slf4j
 public class BoardService {
     @Autowired
     private BoardRepository boardRepository;
+
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private StatusRepository statusRepository;  // ประกาศ statusRepository
+
     @Autowired
     private ModelMapper modelMapper;
 
@@ -35,31 +44,55 @@ public class BoardService {
     }
 
     @Transactional
-    public BoardDto addBoard(@RequestBody Board board) {
+    public BoardDto addBoard(@RequestBody @Valid Board board) {
+        // ดึงชื่อผู้ใช้จาก SecurityContext
         String userName = SecurityContextHolder.getContext().getAuthentication().getName();
-        log.info(userName);
-        Optional<User> user = userRepository.findByUsername(userName);
-        board.setUser(user.isPresent() ? user.get() : null);
+        User user = userRepository.findByUsername(userName)
+                .orElseThrow(() -> new ApiBadRequestException("User is required to add a board"));
 
-        if (board.getUser() == null) {
-            throw new ApiBadRequestException("User is required to add a board");
-        }
+        // ตั้งค่าผู้ใช้ให้กับบอร์ด
+        board.setUser(user);
 
+        // ตรวจสอบชื่อบอร์ด
         String boardName = board.getName();
         if (boardName == null || boardName.trim().isEmpty() || boardName.length() > 120) {
             throw new ApiBadRequestException("Board name cannot be empty or overlength");
         }
 
-        modelMapper.typeMap(Board.class, BoardDto.class).addMappings(mapper -> {
-            mapper.map(Board::getUser, BoardDto::setOwner);
-        });
-
+        // สร้าง id สำหรับบอร์ด (10 ตัวอักษร)
         board.setId(NanoId.generate(10));
-        return modelMapper.map(boardRepository.saveAndFlush(board), BoardDto.class);
+
+        // บันทึกบอร์ดลงในฐานข้อมูล
+        Board savedBoard = boardRepository.saveAndFlush(board);
+
+        // สร้าง default statuses สำหรับบอร์ดใหม่
+        String uniqueSuffix = savedBoard.getId().substring(0, 5); // ตัวอย่างการใช้ ID ของบอร์ดเพื่อทำให้ไม่ซ้ำกัน
+
+        // ตรวจสอบว่ามีชื่อสถานะซ้ำกันหรือไม่
+        List<String> defaultStatusNames = Arrays.asList("No Status", "To Do", "Doing", "Done");
+        for (String statusName : defaultStatusNames) {
+            String uniqueStatusName = statusName + " " + uniqueSuffix;
+            if (!statusRepository.existsByNameAndBoardId(uniqueStatusName, savedBoard.getId())) {
+                Status status = new Status(savedBoard, uniqueStatusName, "Default status");
+                statusRepository.save(status);
+            } else {
+                log.warn("Status with name '{}' already exists for board '{}'", uniqueStatusName, savedBoard.getId());
+            }
+        }
+
+        // ตรวจสอบการตอบกลับ
+        BoardDto responseDto = new BoardDto();
+        responseDto.setId(savedBoard.getId());
+        responseDto.setName(savedBoard.getName());
+        responseDto.setOwner(new UserDto(savedBoard.getUser().getOid(), savedBoard.getUser().getName()));
+
+        return responseDto;
     }
 
+
+
     @Transactional
-    public BoardDto editBoard(@PathVariable String id, @RequestBody Board board) {
+    public BoardDto editBoard(@PathVariable String id, @RequestBody @Valid Board board) {
         Board existingBoard = boardRepository.findById(id)
                 .orElseThrow(() -> new ApiNotFoundException("Board id '" + id + "' not found"));
 

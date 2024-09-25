@@ -43,12 +43,8 @@ public class StatusService {
         Board existingBoard = boardRepository.findById(boardId)
                 .orElseThrow(() -> new ApiNotFoundException("Board id '" + boardId + "' not found"));
 
-        if (!boardRepository.existsById(boardId)) {
-            throw new ApiNotFoundException("Board id '" + boardId + "' not found");
-        }
-
         status.setBoard(existingBoard);
-        status.setName(boardId.substring(10) + status.getName());
+        status.setName(status.getName().trim()); // ตัดช่องว่างด้านหน้าและหลังชื่อ
         return statusRepository.saveAndFlush(status);
     }
 
@@ -63,13 +59,9 @@ public class StatusService {
         Status existingStatus = statusRepository.findByBoardIdAndId(boardId, statusId)
                 .orElseThrow(() -> new ApiNotFoundException("Status id '" + statusId + "' in board id '" + boardId + "' not found"));
 
-        if (!statusRepository.existsById(statusId)) {
-            throw new ApiNotFoundException("Status id '" + statusId + "' not found");
-        }
-
         status.setId(existingStatus.getId());
         status.setBoard(existingStatus.getBoard());
-        status.setName(status.getName());
+        status.setName(status.getName().trim()); // ตัดช่องว่างด้านหน้าและหลังชื่อ
         return statusRepository.saveAndFlush(status);
     }
 

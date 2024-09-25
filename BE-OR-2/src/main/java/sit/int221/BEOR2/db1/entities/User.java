@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.UuidGenerator;
-import org.springframework.util.StringUtils;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -32,23 +31,34 @@ public class User {
     @Column(name = "email", nullable = false, length = 50)
     private String email;
 
-    @Column(name = "created_on", insertable = false, updatable = false, nullable = false)
+    @Column(name = "created_on", nullable = false, updatable = false)
     private ZonedDateTime created_on;
 
-    @Column(name = "updated_on", insertable = false, updatable = false, nullable = false)
+    @Column(name = "updated_on", nullable = false)
     private ZonedDateTime updated_on;
 
     @JsonIgnore
     @OneToMany(mappedBy = "user")
     private List<Board> boards;
 
-    @SuppressWarnings("deprecation")
+    // ใช้ String.trim() แทน StringUtils.trimWhitespace() เพื่อให้สั้นลงและไม่ใช้ method ที่ deprecated
     public void setName(String name) {
-        this.name = StringUtils.trimWhitespace(name);
+        this.name = name != null ? name.trim() : null;
     }
 
-    @SuppressWarnings("deprecation")
     public void setUsername(String username) {
-        this.username = StringUtils.trimWhitespace(username);
+        this.username = username != null ? username.trim() : null;
+    }
+
+    // ใช้ @PrePersist และ @PreUpdate เพื่อให้เวลาสร้างและปรับปรุงอัตโนมัติ
+    @PrePersist
+    protected void onCreate() {
+        this.created_on = ZonedDateTime.now();
+        this.updated_on = ZonedDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updated_on = ZonedDateTime.now();
     }
 }

@@ -26,10 +26,10 @@ public class Board {
     @JoinColumn(name = "owner_id", nullable = false)
     private User user;
 
-    @Column(name = "created_on", insertable = false, updatable = false, nullable = false)
+    @Column(name = "created_on", nullable = false, updatable = false)
     private ZonedDateTime created_on;
 
-    @Column(name = "updated_on", insertable = false, updatable = false, nullable = false)
+    @Column(name = "updated_on", nullable = false)
     private ZonedDateTime updated_on;
 
     @JsonIgnore
@@ -39,4 +39,16 @@ public class Board {
     @JsonIgnore
     @OneToMany(mappedBy = "board")
     private List<Status> statuses;
+
+    // ใช้ @PrePersist และ @PreUpdate สำหรับการตั้งค่าเวลาอัตโนมัติ
+    @PrePersist
+    protected void onCreate() {
+        this.created_on = ZonedDateTime.now();
+        this.updated_on = ZonedDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updated_on = ZonedDateTime.now();
+    }
 }

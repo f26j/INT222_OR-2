@@ -26,10 +26,15 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         Map<String, Object> error = new LinkedHashMap<>();
         error.put("timestamp", DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(ZonedDateTime.ofInstant(new Date().toInstant(), ZoneOffset.UTC)) + "+00:00");
         error.put("status", HttpStatus.UNAUTHORIZED.value());
+
+        // ตรวจสอบว่ามี exception message ถูกตั้งค่าใน request หรือไม่
         String exceptionMessage = (String) request.getAttribute("exception");
         error.put("message", exceptionMessage != null ? exceptionMessage : "Token is required to access");
+
+        // แสดง URI ที่ร้องขอ
         error.put("instance", request.getRequestURI());
 
+        // ส่ง error response ในรูปแบบ JSON
         response.getOutputStream().println(new ObjectMapper().writeValueAsString(error));
     }
 }

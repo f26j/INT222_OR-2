@@ -37,7 +37,7 @@ public class Db1Config {
             @Qualifier("db1DataSource") DataSource dataSource
     ) {
         return builder
-                .dataSource(dataSource())
+                .dataSource(dataSource)
                 .packages("sit.int221.BEOR2.db1.entities")
                 .persistenceUnit("db1")
                 .build();

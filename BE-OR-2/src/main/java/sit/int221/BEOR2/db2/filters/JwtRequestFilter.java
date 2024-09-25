@@ -30,19 +30,24 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     @Autowired
     private UsersRepository usersRepository;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
         final String authorizationHeader = request.getHeader("Authorization");
         String token = null;
 
         try {
+            // ตรวจสอบว่า header มี Bearer token หรือไม่
             if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
                 token = authorizationHeader.substring(7);
             }
 
+            // ตรวจสอบว่า token ถูกต้องและไม่หมดอายุ
             if (token != null && !jwtUtil.isTokenExpired(token)) {
                 String oid = jwtUtil.getOid(token);
                 Users users = usersRepository.findByOid(oid);
+
+                // ตั้งค่าการรับรองสิทธิ์ใน SecurityContext
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(users.getUsername(), null, null);
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
@@ -58,14 +63,17 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             return;
         }
 
+        // ดำเนินการกรองตามปกติ
         chain.doFilter(request, response);
     }
 
+    // จัดการข้อผิดพลาดเกี่ยวกับการรับรองสิทธิ์
     private void handleAuthenticationException(HttpServletRequest request, HttpServletResponse response, String message) throws IOException {
         request.setAttribute("exception", message);
         customAuthenticationEntryPoint.commence(request, response, new InsufficientAuthenticationException(null));
     }
 
+    // ตรวจสอบเส้นทางที่จะไม่ต้องกรอง เช่น เส้นทาง "/login"
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         return request.getServletPath().equals("/login");

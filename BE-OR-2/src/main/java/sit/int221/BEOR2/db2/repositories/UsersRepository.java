@@ -8,6 +8,9 @@ import java.util.Optional;
 
 @Repository
 public interface UsersRepository extends JpaRepository<Users, String> {
+    // ค้นหา Users โดยใช้ username
     Optional<Users> findByUsername(String username);
+
+    // ค้นหา Users โดยใช้ oid
     Users findByOid(String oid);
 }

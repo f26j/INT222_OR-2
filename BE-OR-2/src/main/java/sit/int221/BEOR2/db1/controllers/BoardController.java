@@ -9,13 +9,18 @@ import sit.int221.BEOR2.db1.dtos.BoardDto;
 import sit.int221.BEOR2.db1.dtos.UserDto;
 import sit.int221.BEOR2.db1.entities.Board;
 import sit.int221.BEOR2.db1.services.BoardService;
+import org.springframework.validation.annotation.Validated;
+import javax.validation.Valid;
 
+@Validated
 @RestController
 @RequestMapping("/v3/boards")
 @BeOr2CrossOrigin
 public class BoardController {
+
     @Autowired
     private BoardService boardService;
+
     @Autowired
     private ModelMapper modelMapper;
 
@@ -41,13 +46,13 @@ public class BoardController {
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public BoardDto addBoard(@RequestBody Board board) {
+    public BoardDto addBoard(@Valid @RequestBody Board board) {
         return modelMapper.map(boardService.addBoard(board), BoardDto.class);
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public BoardDto editBoard(@PathVariable String id, @RequestBody Board board) {
+    public BoardDto editBoard(@PathVariable String id, @Valid @RequestBody Board board) {
         return modelMapper.map(boardService.editBoard(id, board), BoardDto.class);
     }
 

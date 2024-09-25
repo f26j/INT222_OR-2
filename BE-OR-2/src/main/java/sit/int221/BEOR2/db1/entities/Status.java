@@ -7,8 +7,6 @@ import lombok.ToString;
 
 import java.util.List;
 
-import org.springframework.util.StringUtils;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Getter
@@ -39,17 +37,34 @@ public class Status {
     @Transient
     private Integer count;
 
+    // Getter สำหรับ count ที่แสดงจำนวน task ที่เชื่อมโยงกับสถานะนี้
     public Integer getCount() {
         return tasks == null ? 0 : tasks.size();
     }
 
-    @SuppressWarnings("deprecation")
+    // ใช้ String.trim() เพื่อทำให้ชื่อและคำอธิบายไม่มีช่องว่างเกิน
     public void setName(String name) {
-        this.name = StringUtils.trimWhitespace(name);
+        this.name = name != null ? name.trim() : null;
     }
 
-    @SuppressWarnings("deprecation")
     public void setDescription(String description) {
-        this.description = StringUtils.trimWhitespace(description);
+        this.description = description != null ? description.trim() : null;
+    }
+
+    // Constructor แบบไม่มี argument (default constructor)
+    public Status() {
+        // default constructor
+    }
+
+    // Constructor ใหม่สำหรับการรับ Board, name, description
+    public Status(Board board, String name, String description) {
+        this.board = board;
+        this.name = name;
+        this.description = description;
+    }
+
+    // Constructor สำหรับรับ id โดยตรง (เพื่อให้สามารถ deserialize ได้จาก JSON)
+    public Status(int id) {
+        this.id = id;
     }
 }

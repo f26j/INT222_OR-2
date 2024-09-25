@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.springframework.util.StringUtils;
 
 import java.time.ZonedDateTime;
 
@@ -36,32 +35,34 @@ public class Task {
     @JoinColumn(name = "status_id", nullable = false)
     private Status status;
 
-    @Column(name = "created_on", insertable = false, updatable = false, nullable = false)
+    @Column(name = "created_on", nullable = false, updatable = false)
     private ZonedDateTime createdOn;
 
-    @Column(name = "updated_on", insertable = false, updatable = false, nullable = false)
+    @Column(name = "updated_on", nullable = false)
     private ZonedDateTime updatedOn;
 
-    @SuppressWarnings("deprecation")
+    // ใช้ String.trim() เพื่อ trim ช่องว่างของ title, description, และ assignees
     public void setTitle(String title) {
-        this.title = StringUtils.trimWhitespace(title);
+        this.title = title != null ? title.trim() : null;
     }
 
-    @SuppressWarnings("deprecation")
     public void setDescription(String description) {
-        if (description == null || description.isEmpty()) {
-            this.description = null;
-        } else {
-            this.description = StringUtils.trimWhitespace(description);
-        }
+        this.description = description != null ? description.trim() : null;
     }
 
-    @SuppressWarnings("deprecation")
     public void setAssignees(String assignees) {
-        if (assignees == null || assignees.isEmpty()) {
-            this.assignees = null;
-        } else {
-            this.assignees = StringUtils.trimWhitespace(assignees);
-        }
+        this.assignees = assignees != null ? assignees.trim() : null;
+    }
+
+    // ตั้งค่าเวลาสร้างและปรับปรุง
+    @PrePersist
+    protected void onCreate() {
+        this.createdOn = ZonedDateTime.now();
+        this.updatedOn = ZonedDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedOn = ZonedDateTime.now();
     }
 }
