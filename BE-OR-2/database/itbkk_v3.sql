@@ -58,16 +58,4 @@ CREATE TABLE IF NOT EXISTS tasks
     CONSTRAINT fk_board_id_1 FOREIGN KEY (board_id) REFERENCES boards (id) ON DELETE CASCADE
 );
 
--- Insert
-ALTER TABLE statuses MODIFY board_id CHAR(10) NULL;
-
-INSERT INTO statuses (name, description)
-VALUES ('No Status', 'The default status');
-INSERT INTO statuses (name, description)
-VALUES ('To Do', null);
-INSERT INTO statuses (name, description)
-VALUES ('Doing', 'Being worked on');
-INSERT INTO statuses (name, description)
-VALUES ('Done', 'Finished');
-
 SET FOREIGN_KEY_CHECKS = 1;
