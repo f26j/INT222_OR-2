@@ -12,7 +12,6 @@ import sit.int221.BEOR2.db2.services.UsersService;
 @RequestMapping("")
 @BeOr2CrossOrigin
 public class UsersController {
-
     @Autowired
     private UsersService usersService;
 

@@ -8,7 +8,6 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, String> {
-
     // ค้นหา User โดยใช้ username
     Optional<User> findByUsername(String username);
 }

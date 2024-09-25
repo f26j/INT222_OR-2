@@ -19,6 +19,7 @@ import sit.int221.BEOR2.db1.repositories.StatusRepository;
 import sit.int221.BEOR2.db1.repositories.UserRepository;
 import sit.int221.BEOR2.exceptions.ApiBadRequestException;
 import sit.int221.BEOR2.exceptions.ApiNotFoundException;
+
 import javax.validation.Valid;
 import java.util.Arrays;
 import java.util.List;
@@ -28,13 +29,10 @@ import java.util.List;
 public class BoardService {
     @Autowired
     private BoardRepository boardRepository;
-
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private StatusRepository statusRepository;  // ประกาศ statusRepository
-
     @Autowired
     private ModelMapper modelMapper;
 
@@ -85,11 +83,8 @@ public class BoardService {
         responseDto.setId(savedBoard.getId());
         responseDto.setName(savedBoard.getName());
         responseDto.setOwner(new UserDto(savedBoard.getUser().getOid(), savedBoard.getUser().getName()));
-
         return responseDto;
     }
-
-
 
     @Transactional
     public BoardDto editBoard(@PathVariable String id, @RequestBody @Valid Board board) {

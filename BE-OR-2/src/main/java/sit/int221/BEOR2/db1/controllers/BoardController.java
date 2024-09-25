@@ -17,10 +17,8 @@ import javax.validation.Valid;
 @RequestMapping("/v3/boards")
 @BeOr2CrossOrigin
 public class BoardController {
-
     @Autowired
     private BoardService boardService;
-
     @Autowired
     private ModelMapper modelMapper;
 

@@ -22,13 +22,10 @@ import java.util.List;
 public class TaskService {
     @Autowired
     private TaskRepository taskRepository;
-
     @Autowired
     private StatusRepository statusRepository;
-
     @Autowired
     private BoardRepository boardRepository;
-
     @Autowired
     private EntityManager entityManager;
 

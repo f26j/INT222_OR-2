@@ -10,7 +10,6 @@ import java.util.Optional;
 
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Integer> {
-
     // ค้นหา Task ทั้งหมดโดยใช้ boardId
     List<Task> findByBoardId(String boardId);
 
