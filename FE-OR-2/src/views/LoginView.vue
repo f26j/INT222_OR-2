@@ -42,6 +42,8 @@ const handleSubmit = async (event) => {
     toastStore.handleLogin(); // แจ้งเตือนเมื่อเกิดข้อผิดพลาด
   }
 };
+
+console.log()
 </script>
 
 <template>
