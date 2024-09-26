@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS boards
 (
     id                CHAR(10) PRIMARY KEY                                          NOT NULL UNIQUE,
     name              VARCHAR(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+    visibility        ENUM('PRIVATE', 'PUBLIC')                                     NOT NULL DEFAULT 'PRIVATE',
     owner_id          CHAR(36)                                                      NOT NULL,
     created_on        DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_on        DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -51,7 +52,7 @@ CREATE TABLE IF NOT EXISTS tasks
     title             VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
     description       VARCHAR(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
     assignees         VARCHAR(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci  NULL,
-    status_id         INT                                                           NOT NULL DEFAULT 1,
+    status_id         INT                                                           NOT NULL,
     created_on        DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_on        DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_status_id FOREIGN KEY (status_id) REFERENCES statuses (id),

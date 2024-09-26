@@ -10,7 +10,6 @@ import java.time.ZonedDateTime;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
     @ExceptionHandler(ApiBadRequestException.class)
     protected ResponseEntity<ErrorResponse> handleApiBadRequestException(ApiBadRequestException exception, HttpServletRequest request) {
         ErrorResponse errorResponse = new ErrorResponse();
@@ -29,6 +28,16 @@ public class GlobalExceptionHandler {
         errorResponse.setMessage(exception.getMessage());
         errorResponse.setInstance(request.getRequestURI());
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(ApiForbiddenException.class)
+    protected ResponseEntity<ErrorResponse> handleApiForbiddenException(ApiForbiddenException exception, HttpServletRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setTimestamp(ZonedDateTime.now());  // ใช้ ZonedDateTime
+        errorResponse.setStatus(HttpStatus.FORBIDDEN.value());
+        errorResponse.setMessage(exception.getMessage());
+        errorResponse.setInstance(request.getRequestURI());
+        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(ApiNotFoundException.class)

@@ -22,6 +22,9 @@ public class Board {
     @Column(name = "name", nullable = false, length = 120)
     private String name;
 
+    @Column(name = "visibility", nullable = false)
+    private String visibility;
+
     @ManyToOne
     @JoinColumn(name = "owner_id", nullable = false)
     private User user;

@@ -18,6 +18,7 @@ import sit.int221.BEOR2.db1.repositories.BoardRepository;
 import sit.int221.BEOR2.db1.repositories.StatusRepository;
 import sit.int221.BEOR2.db1.repositories.UserRepository;
 import sit.int221.BEOR2.exceptions.ApiBadRequestException;
+import sit.int221.BEOR2.exceptions.ApiForbiddenException;
 import sit.int221.BEOR2.exceptions.ApiNotFoundException;
 
 import javax.validation.Valid;
@@ -36,9 +37,20 @@ public class BoardService {
     @Autowired
     private ModelMapper modelMapper;
 
-    public Board getBoardById(@PathVariable String id) {
-        return boardRepository.findById(id)
+    public BoardDto getBoardById(@PathVariable String id) {
+        Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new ApiNotFoundException("Board id '" + id + "' not found"));
+
+        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+        boolean isOwner = board.getUser().getUsername().equals(userName);
+        boolean isPublic = "PUBLIC".equalsIgnoreCase(board.getVisibility());
+
+        if (!isOwner && !isPublic) {
+            throw new ApiForbiddenException("Access denied");
+        }
+
+        return new BoardDto(board.getId(), board.getName(), board.getVisibility(),
+                new UserDto(board.getUser().getOid(), board.getUser().getUsername()));
     }
 
     @Transactional
@@ -57,6 +69,11 @@ public class BoardService {
             throw new ApiBadRequestException("Board name cannot be empty or overlength");
         }
 
+        // ตั้งค่า visibility ให้เป็น PRIVATE ถ้าไม่ได้ระบุ
+        if (board.getVisibility() == null || board.getVisibility().isEmpty()) {
+            board.setVisibility("PRIVATE".toUpperCase().trim());
+        }
+
         // สร้าง id สำหรับบอร์ด (10 ตัวอักษร)
         board.setId(NanoId.generate(10));
 
@@ -72,7 +89,7 @@ public class BoardService {
             String uniqueStatusName = statusName + " " + uniqueSuffix;
             if (!statusRepository.existsByNameAndBoardId(uniqueStatusName, savedBoard.getId())) {
                 Status status = new Status(savedBoard, uniqueStatusName, "Default status");
-                statusRepository.save(status);
+                statusRepository.saveAndFlush(status);
             } else {
                 log.warn("Status with name '{}' already exists for board '{}'", uniqueStatusName, savedBoard.getId());
             }
@@ -82,7 +99,8 @@ public class BoardService {
         BoardDto responseDto = new BoardDto();
         responseDto.setId(savedBoard.getId());
         responseDto.setName(savedBoard.getName());
-        responseDto.setOwner(new UserDto(savedBoard.getUser().getOid(), savedBoard.getUser().getName()));
+        responseDto.setVisibility(savedBoard.getVisibility());
+        responseDto.setOwner(new UserDto(savedBoard.getUser().getOid(), savedBoard.getUser().getUsername()));
         return responseDto;
     }
 
@@ -98,6 +116,26 @@ public class BoardService {
         board.setId(existingBoard.getId());
         board.setUser(existingBoard.getUser());
         return modelMapper.map(boardRepository.saveAndFlush(board), BoardDto.class);
+    }
+
+    @Transactional
+    public BoardDto editBoardVisibility(@PathVariable String id, @RequestBody @Valid String visibility) {
+        Board board = boardRepository.findById(id)
+                .orElseThrow(() -> new ApiNotFoundException("Board id '" + id + "' not found"));
+
+        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!board.getUser().getUsername().equals(userName)) {
+            throw new ApiForbiddenException("Only board owner can update visibility");
+        }
+
+        if (!"PRIVATE".equalsIgnoreCase(visibility) && !"PUBLIC".equalsIgnoreCase(visibility)) {
+            throw new ApiBadRequestException("Visibility must be 'PRIVATE' or 'PUBLIC'");
+        }
+
+        board.setVisibility(visibility.toUpperCase().trim());
+        boardRepository.saveAndFlush(board);
+        return new BoardDto(board.getId(), board.getName(), board.getVisibility(),
+                new UserDto(board.getUser().getOid(), board.getUser().getUsername()));
     }
 
     @Transactional

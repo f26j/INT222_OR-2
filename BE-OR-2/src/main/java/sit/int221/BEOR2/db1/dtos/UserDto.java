@@ -11,5 +11,5 @@ import lombok.Setter;
 @AllArgsConstructor
 public class UserDto {
     private String oid;
-    private String name;
+    private String username;
 }
