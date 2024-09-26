@@ -45,7 +45,7 @@ public class BoardService {
         boolean isOwner = board.getUser().getUsername().equals(userName);
         boolean isPublic = "PUBLIC".equalsIgnoreCase(board.getVisibility());
 
-        if (!isOwner && !isPublic) {
+        if (!isOwner || !isPublic) {
             throw new ApiForbiddenException("Access denied");
         }
 
@@ -125,7 +125,7 @@ public class BoardService {
 
         String userName = SecurityContextHolder.getContext().getAuthentication().getName();
         if (!board.getUser().getUsername().equals(userName)) {
-            throw new ApiForbiddenException("Only board owner can update visibility");
+            throw new ApiForbiddenException("User is not board owner");
         }
 
         if (!"PRIVATE".equalsIgnoreCase(visibility) && !"PUBLIC".equalsIgnoreCase(visibility)) {
