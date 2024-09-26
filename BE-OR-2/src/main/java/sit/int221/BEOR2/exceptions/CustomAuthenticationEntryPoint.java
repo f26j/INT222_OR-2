@@ -9,10 +9,10 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -24,7 +24,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         response.setContentType("application/json");
 
         Map<String, Object> error = new LinkedHashMap<>();
-        error.put("timestamp", DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(ZonedDateTime.ofInstant(new Date().toInstant(), ZoneOffset.UTC)) + "+00:00");
+        error.put("timestamp", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC)));
         error.put("status", HttpStatus.UNAUTHORIZED.value());
 
         // ตรวจสอบว่ามี exception message ถูกตั้งค่าใน request หรือไม่
