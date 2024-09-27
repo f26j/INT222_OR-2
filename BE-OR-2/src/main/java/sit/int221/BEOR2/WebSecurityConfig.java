@@ -30,6 +30,7 @@ public class WebSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable) // ปิด CSRF
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/error", "/login/**").permitAll()  // อนุญาตการเข้าถึง /error และ /login โดยไม่ต้อง authenticate
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()  // อนุญาตการเข้าถึง Swagger UI โดยไม่ต้อง authenticate
                         .anyRequest().authenticated())  // ต้อง authenticate สำหรับ request อื่นๆ
                 .exceptionHandling(exceptionHandling -> exceptionHandling
                         .authenticationEntryPoint(customAuthenticationEntryPoint))  // จัดการข้อผิดพลาดในการ authentication
