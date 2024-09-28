@@ -1,31 +1,36 @@
 <script setup>
 import { useToastStore } from "@/stores/toast.js";
+import { storeToRefs } from "pinia";
 const toastStore = useToastStore();
+const { showToastAdd } = storeToRefs(toastStore);
 </script>
+
 <template>
-  <div class="toast active">
-    <div class="toast-content">
-      <i class="icon">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="2em"
-          height="2em"
-          viewBox="0 0 16 16"
-        >
-          <path
-            fill="currentColor"
-            d="M8 16A8 8 0 1 1 8 0a8 8 0 0 1 0 16m3.78-9.72a.75.75 0 0 0-.018-1.042a.75.75 0 0 0-1.042-.018L6.75 9.19L5.28 7.72a.75.75 0 0 0-1.042.018a.75.75 0 0 0-.018 1.042l2 2a.75.75 0 0 0 1.06 0Z"
-          ></path>
-        </svg>
-      </i>
-      <div class="message">
-        <span class="text text-1">Success</span>
-        <span class="text text-2">The task has been successfully added</span>
+  <transition name="fade">
+    <div v-if="showToastAdd" class="toast active">
+      <div class="toast-content">
+        <i class="icon">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="2em"
+            height="2em"
+            viewBox="0 0 16 16"
+          >
+            <path
+              fill="currentColor"
+              d="M8 16A8 8 0 1 1 8 0a8 8 0 0 1 0 16m3.78-9.72a.75.75 0 0 0-.018-1.042a.75.75 0 0 0-1.042-.018L6.75 9.19L5.28 7.72a.75.75 0 0 0-1.042.018a.75.75 0 0 0-.018 1.042l2 2a.75.75 0 0 0 1.06 0Z"
+            ></path>
+          </svg>
+        </i>
+        <div class="message">
+          <span class="text text-1">Success</span>
+          <span class="text text-2">The task has been successfully added</span>
+        </div>
       </div>
+      <i @click="toastStore.closeToast" class="close"></i>
+      <div class="progress active"></div>
     </div>
-    <i @click="toastStore.closeToast" class="close"></i>
-    <div class="progress active"></div>
-  </div>
+  </transition>
 </template>
 
 <style>
@@ -40,9 +45,9 @@ const toastStore = useToastStore();
   padding: 20px 35px 20px 25px;
   box-shadow: 0 6px 20px -5px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  transform: translateX(calc(100% + 30px));
-  transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.35);
   z-index: 4;
+  transform: translateX(calc(100% + 30px));
+  transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.35);
 }
 
 .toast.active {
@@ -135,7 +140,11 @@ const toastStore = useToastStore();
   }
 }
 
-.toast.active ~ button {
-  pointer-events: none;
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.5s ease-in-out;
+}
+
+.fade-enter, .fade-leave-to {
+  opacity: 0;
 }
 </style>

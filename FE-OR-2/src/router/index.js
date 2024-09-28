@@ -1,7 +1,8 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useUserStore } from "../stores/users"; // import user store
+import BoardView from "@/views/BoardView.vue";
 import LoginView from "../views/LoginView.vue";
-import HomeView from "../views/HomeView.vue";
+import TaskView from "../views/TaskView.vue";
 import ModalDetail from "../components/ModalDetail.vue";
 import ModalAdd from "../components/ModalAdd.vue";
 import ModalEdit from "../components/ModalEdit.vue";
@@ -18,9 +19,14 @@ const router = createRouter({
       redirect: "/login", // หน้าเริ่มต้น
     },
     {
+      path: "/board",
+      name: "board",
+      component: BoardView,
+    },
+    {
       path: "/task",
       name: "task",
-      component: HomeView,
+      component: TaskView,
       children: [
         {
           path: ":id",
@@ -68,10 +74,9 @@ const router = createRouter({
   ],
 });
 
-// Navigation Guard
 router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore();
-
+  
   // ถ้าไม่มี token และไม่ใช่หน้า login ให้ redirect ไปที่ login
   if (!userStore.token) {
     if (to.name !== 'login') {
@@ -80,9 +85,9 @@ router.beforeEach(async (to, from, next) => {
     return next();
   }
 
-  // ถ้า token มีอยู่และผู้ใช้พยายามเข้าหน้า login ให้ redirect ไปที่ task
+  // ถ้า token มีอยู่และผู้ใช้พยายามเข้าหน้า login ให้ redirect ไปที่ board
   if (userStore.token && to.name === 'login') {
-    return next({ name: 'task' });
+    return next({ name: 'board' });
   }
 
   // ตรวจสอบ token ว่าหมดอายุหรือไม่
@@ -93,7 +98,7 @@ router.beforeEach(async (to, from, next) => {
     return next({ name: 'login' });  // Redirect ไปที่ login
   }
 
-  next();
+  next(); // ถ้าผ่านการตรวจสอบทั้งหมด
 });
 
 export default router;

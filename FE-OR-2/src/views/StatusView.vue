@@ -261,7 +261,7 @@ const closeModal = () => {
               <td class="itbkk-button-action flex">
                 <div class="h-[30px]"></div>
                 <button
-                  class="itbkk-button-edit flex w-20"
+                  class="itbkk-button-edit flex items-center space-x-2 w-20"
                   @click="openModalEdit(status.id)"
                   v-if="status.name !== 'No Status' && status.name !== 'Done'"
                 >
@@ -276,11 +276,13 @@ const closeModal = () => {
                       fill-rule="evenodd"
                       d="M17.907 4.93c.104-.105.294-.186.539-.18a.848.848 0 0 1 .572.216c.13.13.222.34.231.575c.01.234-.065.413-.167.515l-7.49 7.5l-1.273.116l.1-1.245zm2.173-1.024c-.437-.438-1.037-.643-1.6-.656c-.564-.013-1.182.167-1.635.62l-7.682 7.692a.75.75 0 0 0-.217.47l-.194 2.407a.75.75 0 0 0 .816.807l2.43-.22a.75.75 0 0 0 .463-.218l7.682-7.692c.456-.456.627-1.073.605-1.635a2.373 2.373 0 0 0-.668-1.575M5.812 4.75a2.568 2.568 0 0 0-2.563 2.562v10.875a2.568 2.568 0 0 0 2.563 2.563h10.875a2.568 2.568 0 0 0 2.563-2.562V12.75a.75.75 0 0 0-1.5 0v5.438c0 .582-.48 1.062-1.063 1.062H5.812c-.583 0-1.063-.48-1.063-1.062V7.312c0-.582.48-1.062 1.063-1.062h5.437a.75.75 0 0 0 0-1.5z"
                       clip-rule="evenodd"
-                    /></svg
-                  >Edit
+                    />
+                  </svg>
+                  <span>Edit</span>
                 </button>
+
                 <button
-                  class="itbkk-button-delete flex w-24"
+                  class="itbkk-button-delete flex items-center space-x-2 w-24"
                   @click="openModalDelete(status.id, status.name)"
                   v-if="status.name !== 'No Status' && status.name !== 'Done'"
                 >
@@ -301,8 +303,9 @@ const closeModal = () => {
                     <path
                       fill="currentColor"
                       d="M10.22 17a.76.76 0 0 1-.75-.75v-4.53a.75.75 0 0 1 1.5 0v4.52a.75.75 0 0 1-.75.76m3.56 0a.75.75 0 0 1-.75-.75v-4.53a.75.75 0 0 1 1.5 0v4.52a.76.76 0 0 1-.75.76"
-                    /></svg
-                  >Delete
+                    />
+                  </svg>
+                  <span>Delete</span>
                 </button>
               </td>
             </tr>

@@ -253,194 +253,81 @@ watch(
         </button>
       </div>
 
-      <div class="btn-a" v-for="task in store.tasks.value">
-        <div
-          class="itbkk-button-add button iconbutton"
-          @click="openModalAdd(task)"
+      <div class="btn-a">
+        <button
+          class="flex items-center bg-white text-gray-800 px-4 py-2 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
+          @click="openModalAdd"
         >
-          <i class="plus">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="1em"
-              height="1em"
-              viewBox="0 0 24 24"
-            >
-              <g fill="none">
-                <path
-                  d="M24 0v24H0V0zM12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035c-.01-.004-.019-.001-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427c-.002-.01-.009-.017-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093c.012.004.023 0 .029-.008l.004-.014l-.034-.614c-.003-.012-.01-.02-.02-.022m-.715.002a.023.023 0 0 0-.027.006l-.006.014l-.034.614c0 .012.007.02.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"
-                ></path>
-                <path
-                  fill="currentColor"
-                  d="M10.5 20a1.5 1.5 0 0 0 3 0v-6.5H20a1.5 1.5 0 0 0 0-3h-6.5V4a1.5 1.5 0 0 0-3 0v6.5H4a1.5 1.5 0 0 0 0 3h6.5z"
-                ></path>
-              </g>
-            </svg>
-          </i>
-        </div>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            fill="currentColor"
+            class="mr-2"
+            viewBox="0 0 16 16"
+          >
+            <path
+              d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0Zm3.5 7.5H8.5v-3a.5.5 0 1 0-1 0v3h-3a.5.5 0 1 0 0 1h3v3a.5.5 0 1 0 1 0v-3h3a.5.5 0 1 0 0-1Z"
+            />
+          </svg>
+          Add Task
+        </button>
       </div>
+
       <div class="tb">
         <table>
           <thead>
             <tr>
-              <th></th>
+              <th>#</th>
               <th>Title</th>
               <th>Assignees</th>
               <th class="sortstt flex justify-center">
-                Status<button
-                  class="itbkk-status-sort"
-                  @click="toggleSortOrder"
-                >
-                  <svg
-                    v-if="sortAscending === true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="1.3em"
-                    height="1.3em"
-                    viewBox="0 0 24 24"
-                    class="a"
-                  >
-                    <path
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="m3 16l4 4l4-4m-4 4V4m13 4h-5m0 2V6.5a2.5 2.5 0 0 1 5 0V10m-5 4h5l-5 6h5"
-                    ></path>
+                Status
+                <button class="itbkk-status-sort" @click="toggleSortOrder">
+                  <svg v-if="sortAscending" xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24">
+                    <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="m3 16l4 4l4-4m-4 4V4m13 4h-5m0 2V6.5a2.5 2.5 0 0 1 5 0V10m-5 4h5l-5 6h5">
+                    </path>
                   </svg>
-                  <svg
-                    v-else-if="sortAscending === false"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="1.3em"
-                    height="1.3em"
-                    viewBox="0 0 24 24"
-                    class="b"
-                  >
-                    <path
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="m3 8l4-4l4 4M7 4v16M20 8h-5m0 2V6.5a2.5 2.5 0 0 1 5 0V10m-5 4h5l-5 6h5"
-                    ></path>
-                  </svg>
-                  <svg
-                    v-else
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="1.3em"
-                    height="1.3em"
-                    viewBox="0 0 24 24"
-                    class="c"
-                  >
-                    <path
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="m3 16l4 4l4-4m-4 4V4m13 4h-5m0 2V6.5a2.5 2.5 0 0 1 5 0V10m-5 4h5l-5 6h5"
-                    ></path>
+                  <svg v-else xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24">
+                    <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="m3 8l4-4l4 4M7 4v16M20 8h-5m0 2V6.5a2.5 2.5 0 0 1 5 0V10m-5 4h5l-5 6h5">
+                    </path>
                   </svg>
                 </button>
               </th>
-              <th></th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr
-              v-for="(task, index) in store.tasks.value"
-              :key="task.id"
-              class="itbkk-item"
-              :data-task-id="task.id"
-            >
-              <td class="bgd">
-                <span class="bgi">id : </span>
-                <div class="idkb flex-">
-                  {{ index + 1 }}
-                </div>
-              </td>
-              <td class="itbkk-title">
-                <p @click="openModalDetail(task.id)" value="id">
-                  {{ task.title }}
-                </p>
-              </td>
-              <td class="itbkk-assignees">
-                <span
-                  v-if="!task.assignees?.trim()"
-                  class="itbkk-assignees unassigned"
-                >
-                  Unassigned
-                </span>
-                <span v-else>{{ task.assignees }}</span>
-              </td>
-              <td class="itbkk-status"><Badges :status="task.status" /></td>
-              <td class="itbkk-button-action">
-                <svg
-                  class="itbkk-button-edit"
-                  @click="openModalEdit(task.id)"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="30"
-                  height="30"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    fill="currentColor"
-                    fill-rule="evenodd"
-                    d="M17.907 4.93c.104-.105.294-.186.539-.18a.848.848 0 0 1 .572.216c.13.13.222.34.231.575c.01.234-.065.413-.167.515l-7.49 7.5l-1.273.116l.1-1.245zm2.173-1.024c-.437-.438-1.037-.643-1.6-.656c-.564-.013-1.182.167-1.635.62l-7.682 7.692a.75.75 0 0 0-.217.47l-.194 2.407a.75.75 0 0 0 .816.807l2.43-.22a.75.75 0 0 0 .463-.218l7.682-7.692c.456-.456.627-1.073.605-1.635a2.373 2.373 0 0 0-.668-1.575M5.812 4.75a2.568 2.568 0 0 0-2.563 2.562v10.875a2.568 2.568 0 0 0 2.563 2.563h10.875a2.568 2.568 0 0 0 2.563-2.562V12.75a.75.75 0 0 0-1.5 0v5.438c0 .582-.48 1.062-1.063 1.062H5.812c-.583 0-1.063-.48-1.063-1.062V7.312c0-.582.48-1.062 1.063-1.062h5.437a.75.75 0 0 0 0-1.5z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-                <svg
-                  class="itbkk-button-delete"
-                  @click="openModalDelete(task.id, task.title, index + 1)"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="30"
-                  height="30"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    fill="currentColor"
-                    d="M20 8.7H4a.75.75 0 1 1 0-1.5h16a.75.75 0 0 1 0 1.5"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M16.44 20.75H7.56A2.4 2.4 0 0 1 5 18.49V8a.75.75 0 0 1 1.5 0v10.49c0 .41.47.76 1 .76h8.88c.56 0 1-.35 1-.76V8A.75.75 0 1 1 19 8v10.49a2.4 2.4 0 0 1-2.56 2.26m.12-13a.74.74 0 0 1-.75-.75V5.51c0-.41-.48-.76-1-.76H9.22c-.55 0-1 .35-1 .76V7a.75.75 0 1 1-1.5 0V5.51a2.41 2.41 0 0 1 2.5-2.26h5.56a2.41 2.41 0 0 1 2.53 2.26V7a.75.75 0 0 1-.75.76Z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M10.22 17a.76.76 0 0 1-.75-.75v-4.53a.75.75 0 0 1 1.5 0v4.52a.75.75 0 0 1-.75.76m3.56 0a.75.75 0 0 1-.75-.75v-4.53a.75.75 0 0 1 1.5 0v4.52a.76.76 0 0 1-.75.76"
-                  />
-                </svg>
+            <tr v-for="(task, index) in sortedTasks" :key="task.id">
+              <td>{{ index + 1 }}</td>
+              <td @click="openModalDetail(task.id)">{{ task.title }}</td>
+              <td>{{ task.assignees || 'Unassigned' }}</td>
+              <td><Badges :status="task.status" /></td>
+              <td>
+                <button @click="openModalEdit(task.id)">Edit</button>
+                <button @click="openModalDelete(task.id, task.title, index)">Delete</button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
-      <ModalDelete
-        v-if="showDelete"
-        :taskId="selectDeleteTaskId"
-        :title="selectDeleteTaskTitle"
-        :indexs="selectDeleteTaskIndex"
-        @closeModal="closeModal"
-        @confirmDeleteModal="deleteTask"
-      >
-      </ModalDelete>
+
+      <ModalDelete v-if="showDelete" :taskId="selectDeleteTaskId" :title="selectDeleteTaskTitle"
+        :indexs="selectDeleteTaskIndex" @closeModal="closeModal" @confirmDeleteModal="deleteTask" />
       <ToastAdd v-if="showToastAdd" @close="closeToast" />
-      <ToastEdit v-if="showToastEdit" @close="closeToast"></ToastEdit>
-      <ToastDelete
-        v-if="showToastDelete"
-        :isDeleteSuccess="deleteSuccess"
-        @close="closeToastDelete"
-      >
-      </ToastDelete>
+      <ToastEdit v-if="showToastEdit" @close="closeToast" />
+      <ToastDelete v-if="showToastDelete" :isDeleteSuccess="deleteSuccess" @close="closeToastDelete" />
     </main>
     <footer>
       <Copyright />
     </footer>
     <Bg_effect />
   </div>
-  <router-view></router-view>
+  <router-view />
 </template>
+
 <style scoped>
 @import url("https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono");
 @import url("https://fonts.googleapis.com");
@@ -464,9 +351,9 @@ h3 {
   justify-content: center;
 }
 
-.itbkk-fullname {
+/* .itbkk-fullname {
   box-shadow: none;
-}
+} */
 .itbkk-status-sort {
   box-shadow: none;
   padding-left: 10px;
