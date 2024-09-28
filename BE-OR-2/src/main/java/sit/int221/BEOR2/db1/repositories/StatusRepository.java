@@ -9,7 +9,6 @@ import java.util.Optional;
 
 @Repository
 public interface StatusRepository extends JpaRepository<Status, Integer> {
-
     // ค้นหา Status ทั้งหมดโดยใช้ boardId
     List<Status> findByBoardId(String boardId);
 

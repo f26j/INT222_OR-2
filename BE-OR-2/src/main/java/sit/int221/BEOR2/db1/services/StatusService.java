@@ -29,7 +29,6 @@ public class StatusService {
         if (!boardRepository.existsById(boardId)) {
             throw new ApiNotFoundException("Board id '" + boardId + "' not found");
         }
-
         return statusRepository.findByBoardId(boardId);
     }
 

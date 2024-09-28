@@ -24,7 +24,11 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         response.setContentType("application/json");
 
         Map<String, Object> error = new LinkedHashMap<>();
+
+        // Date format ควรเป็นในรูปแบบ 2024-09-27T00:00:00.000+00:00
         error.put("timestamp", DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(ZonedDateTime.ofInstant(new Date().toInstant(), ZoneOffset.UTC)) + "+00:00");
+
+        // ส่งเลขสถานะข้อผิดพลาด
         error.put("status", HttpStatus.UNAUTHORIZED.value());
 
         // ตรวจสอบว่ามี exception message ถูกตั้งค่าใน request หรือไม่

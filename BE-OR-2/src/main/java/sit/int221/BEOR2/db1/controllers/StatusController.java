@@ -17,7 +17,6 @@ import java.util.List;
 public class StatusController {
     @Autowired
     private StatusService statusService;
-
     @Autowired
     private ModelMapper modelMapper;
 
