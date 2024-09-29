@@ -3,7 +3,6 @@ package sit.int221.BEOR2.db1.services;
 import io.viascom.nanoid.NanoId;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -34,8 +33,6 @@ public class BoardService {
     private UserRepository userRepository;
     @Autowired
     private StatusRepository statusRepository;  // ประกาศ statusRepository
-    @Autowired
-    private ModelMapper modelMapper;
 
     public BoardDto getBoardById(@PathVariable String id) {
         Board board = boardRepository.findById(id)
@@ -109,13 +106,11 @@ public class BoardService {
         Board existingBoard = boardRepository.findById(id)
                 .orElseThrow(() -> new ApiNotFoundException("Board id '" + id + "' not found"));
 
-        modelMapper.typeMap(Board.class, BoardDto.class).addMappings(mapper -> {
-            mapper.map(Board::getUser, BoardDto::setOwner);
-        });
-
         board.setId(existingBoard.getId());
         board.setUser(existingBoard.getUser());
-        return modelMapper.map(boardRepository.saveAndFlush(board), BoardDto.class);
+        boardRepository.saveAndFlush(board);
+        return new BoardDto(board.getId(), board.getName(), board.getVisibility(),
+                new UserDto(board.getUser().getOid(), board.getUser().getUsername()));
     }
 
     @Transactional
