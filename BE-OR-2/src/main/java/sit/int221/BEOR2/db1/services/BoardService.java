@@ -45,7 +45,7 @@ public class BoardService {
         boolean isOwner = board.getUser().getUsername().equals(userName);
         boolean isPublic = "PUBLIC".equalsIgnoreCase(board.getVisibility());
 
-        if (!isOwner || !isPublic) {
+        if (!isOwner && !isPublic) {
             throw new ApiForbiddenException("Access denied");
         }
 
