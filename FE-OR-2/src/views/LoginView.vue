@@ -45,7 +45,7 @@ const handleSubmit = async (event) => {
 };
 
 const togglePassword = () => {
-  showPassword.value = !showPassword.value; // สลับค่าของ showPassword เพื่อแสดงหรือซ่อนรหัสผ่าน
+  showPassword.value = !showPassword.value;
 };
 </script>
 

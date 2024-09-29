@@ -1,15 +1,17 @@
 <script setup>
 import { ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { useToastStore } from "@/stores/toast.js";
 import { useTaskStore } from "@/stores/api.js";
 
-// Store,Api zone
-const fetchTask = import.meta.env.VITE_API_TASK;
-const fetchStatus = import.meta.env.VITE_API_STATUS;
+// Store, API zone
+const fetchTask = import.meta.env.VITE_API_BOARD_TASK || "";
+const fetchStatus = import.meta.env.VITE_API_STATUS || "";
 const router = useRouter();
 const store = useTaskStore();
 const toastStore = useToastStore();
+const route = useRoute();
+const boardId = route.params.boardId; // ดึงค่า boardId จาก URL
 
 // Variable zone
 const newTitle = ref("");
@@ -21,6 +23,7 @@ const newStatus = ref({
   description: "The default status",
 });
 
+// ฟังก์ชันสำหรับดึง Token และเรียก API พร้อม Token
 async function fetchWithToken(url, options = {}) {
   const token = localStorage.getItem("jwtToken");
   if (!token) {
@@ -46,8 +49,16 @@ async function fetchWithToken(url, options = {}) {
   return response;
 }
 
+// ดึงข้อมูล Status ของ Board
 async function fetchDataStatus() {
-  const response = await fetchWithToken(fetchStatus); // ใช้ fetchWithToken
+  if (!fetchStatus) {
+    console.error("fetchStatus URL is not defined");
+    return;
+  }
+
+  const response = await fetchWithToken(
+    fetchStatus.replace("{board}", boardId)
+  ); // ใช้ fetchWithToken
   if (!response) return; // ถ้า response เป็น null ให้ return
 
   const dataStatus = await response.json();
@@ -57,24 +68,33 @@ async function fetchDataStatus() {
   return dataStatus;
 }
 
+// OnMounted ดึงข้อมูล Status เมื่อ component ถูก mount
 onMounted(async () => {
   const datastatus = await fetchDataStatus();
   store.status.value = datastatus;
 });
 
+// ฟังก์ชันสำหรับเพิ่ม Task ใหม่
 const addTask = async () => {
   const trimmedTitle = newTitle.value.trim();
   const trimmedDescription = newDescription.value.trim();
   const trimmedAssignees = newAssignees.value.trim();
+
   const selectedStatus = store.status.value.find(
     (status) => status.name === newStatus.value.name
   );
+
+  // ตรวจสอบให้แน่ใจว่า status ถูกต้อง
+  if (!selectedStatus || !selectedStatus.id) {
+    console.error("Task status cannot be null");
+    return;
+  }
 
   const newTask = {
     title: trimmedTitle,
     description: trimmedDescription === "" ? null : trimmedDescription,
     assignees: trimmedAssignees === "" ? null : trimmedAssignees,
-    status: selectedStatus,
+    status: { id: selectedStatus.id }, // ส่ง id ของ status
   };
 
   if (!newTask.title) {
@@ -82,7 +102,8 @@ const addTask = async () => {
   }
 
   try {
-    const response = await fetchWithToken(`${fetchTask}`, {
+    const response = await fetchWithToken(`${fetchTask}/${boardId}/tasks`, {
+      // ใช้ URL ที่รวม boardId
       method: "POST",
       body: JSON.stringify(newTask),
     });
@@ -91,13 +112,15 @@ const addTask = async () => {
 
     const data = await response.json();
     if (!response.ok) {
+      console.error("Server Error:", data); // ตรวจสอบข้อผิดพลาดจากเซิร์ฟเวอร์
       throw new Error("Failed to add new task");
     } else {
       store.tasks.value.push(data);
     }
 
     toastStore.handleTaskAdded();
-    router.push({ name: "task" }).catch(() => {});
+    // เปลี่ยนจาก name: "task" เป็น name: "board-tasks"
+    router.push({ name: "board-tasks", params: { boardId } }).catch(() => {});
   } catch (error) {
     console.error("Error adding new task:", error.message);
   }
@@ -114,9 +137,12 @@ const addTask = async () => {
 };
 
 const closeModal = () => {
-  router.push({ name: "task" });
+  router
+    .push({ name: "board-tasks", params: { boardId: boardId } })
+    .catch(() => {});
 };
 </script>
+
 <template>
   <div class="details fixed inset-0 overflow-y-auto bg-black bg-opacity-50">
     <div
@@ -209,7 +235,7 @@ const closeModal = () => {
                     >
                       <option
                         v-for="(status, index) in store.status.value"
-                        :selected="status.name == newStatus.value"
+                        :key="index"
                       >
                         {{ status.name }}
                       </option>

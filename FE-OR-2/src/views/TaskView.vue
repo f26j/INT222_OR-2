@@ -16,8 +16,8 @@ import ToastDelete from "../components/toast/ToastDelete.vue";
 import Navbar from "../components/css/Navbar.vue";
 
 // Store,Api zone
-const fetchTask = import.meta.env.VITE_API_TASK;
-const fetchStatus = import.meta.env.VITE_API_STATUS;
+const fetchTask = import.meta.env.VITE_API_BOARD_TASK; // http://localhost:8080/api/v3/boards
+const fetchStatus = import.meta.env.VITE_API_STATUS; // http://localhost:8080/api/v3/boards/{board}/statuses
 const router = useRouter();
 const route = useRoute();
 const store = useTaskStore();
@@ -25,6 +25,7 @@ const toastStore = useToastStore();
 const { showToastAdd, showToastEdit, closeToast } = storeToRefs(toastStore);
 
 // Variable zone
+const boardId = route.params.boardId; // Get boardId from the URL
 const taskId = route.params.id;
 const selectDeleteTaskId = ref("");
 const selectDeleteTaskTitle = ref("");
@@ -35,8 +36,8 @@ const userStore = useUserStore();
 // Function zone
 onMounted(async () => {
   try {
-    const data = await fetchData();
-    const datastatus = await fetchDataStatus();
+    const data = await fetchData(); // Fetch task data
+    const datastatus = await fetchDataStatus(); // Fetch status data
     originalTasks.value = [...data];
     store.tasks.value = [...data];
     store.status.value = datastatus;
@@ -49,32 +50,33 @@ async function fetchWithToken(url, options = {}) {
   const token = localStorage.getItem("jwtToken");
   if (!token) {
     console.error("No token available");
-    router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
+    router.push("/login"); // Redirect to login if no token
     return null;
   }
 
   const response = await fetch(url, {
     ...options,
     headers: {
-      Authorization: `Bearer ${token}`, // ส่ง JWT Token
+      Authorization: `Bearer ${token}`, // Add JWT token
       "Content-Type": "application/json",
       ...options.headers,
     },
   });
 
-  // ตรวจสอบสถานะ 401 Unauthorized
+  // Check for 401 Unauthorized
   if (response.status === 401) {
-    userStore.logout(); // ทำการ logout ผู้ใช้
-    router.push("/login"); // Redirect ไปหน้า login
+    userStore.logout(); // Log out user
+    router.push("/login"); // Redirect to login
     return null;
   }
 
-  return response; // ส่ง response กลับไปใช้งาน
+  return response; // Return the response
 }
 
 async function fetchData() {
-  const response = await fetchWithToken(fetchTask); // เรียกใช้ฟังก์ชัน fetchWithToken
-  if (!response) return; // ถ้า response เป็น null (เช่นเจอ 401) ให้ return
+  // Fetch tasks for the specified board
+  const response = await fetchWithToken(`${fetchTask}/${boardId}/tasks`);
+  if (!response) return; // If response is null, return
 
   if (!response.ok) {
     throw new Error(`Error fetching tasks: ${response.statusText}`);
@@ -89,8 +91,11 @@ async function fetchData() {
 }
 
 async function fetchDataStatus() {
-  const response = await fetchWithToken(fetchStatus); // เรียกใช้ fetchWithToken
-  if (!response) return; // ถ้า response เป็น null ให้ return
+  // Fetch statuses for the specified board
+  const response = await fetchWithToken(
+    `${fetchStatus.replace("{board}", boardId)}`
+  );
+  if (!response) return; // If response is null, return
 
   if (!response.ok) {
     throw new Error(`Error fetching status: ${response.statusText}`);
@@ -104,14 +109,24 @@ async function fetchDataStatus() {
   return dataStatus;
 }
 
-const openModalDetail = async (id) => {
-  router.push({ name: "task-detail", params: { id: id } });
-};
+// Functions for managing tasks
 const openModalAdd = async () => {
   router.push({ name: "task-add" });
 };
+const openModalDetail = async (id) => {
+  if (id) {
+    router.push({ name: "task-detail", params: { taskId: id, boardId } });
+  } else {
+    console.error("Task ID is missing");
+  }
+};
+
 const openModalEdit = async (id) => {
-  router.push({ name: "task-edit", params: { id: id } });
+  if (id) {
+    router.push({ name: "task-edit", params: { taskId: id, boardId } });
+  } else {
+    console.error("Task ID is missing");
+  }
 };
 if (window.location.pathname === `/task/${taskId}`) {
   openModalDetail(taskId);
@@ -123,18 +138,23 @@ const showToastDelete = ref(false);
 const deleteSuccess = ref(false);
 const showDelete = ref(false);
 const toastSuccess = ref(false);
+
 const openModalDelete = (taskId, title, index) => {
   showDelete.value = true;
   selectDeleteTaskId.value = taskId;
   selectDeleteTaskTitle.value = title;
   selectDeleteTaskIndex.value = index;
 };
-async function deleteTask(taskId) {
-  const response = await fetchWithToken(`${fetchTask}/${taskId}`, {
-    method: "DELETE",
-  });
 
-  if (!response) return; // ถ้า response เป็น null ให้ return
+async function deleteTask(taskId) {
+  const response = await fetchWithToken(
+    `${fetchTask}/${boardId}/tasks/${taskId}`,
+    {
+      method: "DELETE",
+    }
+  );
+
+  if (!response) return; // If response is null, return
 
   if (response.ok) {
     originalTasks.value = originalTasks.value.filter(
@@ -176,13 +196,10 @@ const closeToastDelete = () => {
 };
 const closeModal = () => {
   showDelete.value = false;
-  router.push({ path: "/task" });
+  router.push({ path: `/board/${boardId}` });
 };
 
-const openStatus = () => {
-  router.push({ name: "statusView" });
-};
-
+// Sorting function
 const sortAscending = ref(undefined);
 
 const toggleSortOrder = () => {
@@ -220,6 +237,7 @@ watch(
   }
 );
 </script>
+
 <template>
   <Navbar class="itbkk-fullname" />
   <div class="body">
@@ -284,15 +302,37 @@ watch(
               <th class="sortstt flex justify-center">
                 Status
                 <button class="itbkk-status-sort" @click="toggleSortOrder">
-                  <svg v-if="sortAscending" xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24">
-                    <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="m3 16l4 4l4-4m-4 4V4m13 4h-5m0 2V6.5a2.5 2.5 0 0 1 5 0V10m-5 4h5l-5 6h5">
-                    </path>
+                  <svg
+                    v-if="sortAscending"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="1.3em"
+                    height="1.3em"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="m3 16l4 4l4-4m-4 4V4m13 4h-5m0 2V6.5a2.5 2.5 0 0 1 5 0V10m-5 4h5l-5 6h5"
+                    ></path>
                   </svg>
-                  <svg v-else xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24">
-                    <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="m3 8l4-4l4 4M7 4v16M20 8h-5m0 2V6.5a2.5 2.5 0 0 1 5 0V10m-5 4h5l-5 6h5">
-                    </path>
+                  <svg
+                    v-else
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="1.3em"
+                    height="1.3em"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="m3 8l4-4l4 4M7 4v16M20 8h-5m0 2V6.5a2.5 2.5 0 0 1 5 0V10m-5 4h5l-5 6h5"
+                    ></path>
                   </svg>
                 </button>
               </th>
@@ -303,22 +343,34 @@ watch(
             <tr v-for="(task, index) in sortedTasks" :key="task.id">
               <td>{{ index + 1 }}</td>
               <td @click="openModalDetail(task.id)">{{ task.title }}</td>
-              <td>{{ task.assignees || 'Unassigned' }}</td>
+              <td>{{ task.assignees || "Unassigned" }}</td>
               <td><Badges :status="task.status" /></td>
               <td>
                 <button @click="openModalEdit(task.id)">Edit</button>
-                <button @click="openModalDelete(task.id, task.title, index)">Delete</button>
+                <button @click="openModalDelete(task.id, task.title, index)">
+                  Delete
+                </button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <ModalDelete v-if="showDelete" :taskId="selectDeleteTaskId" :title="selectDeleteTaskTitle"
-        :indexs="selectDeleteTaskIndex" @closeModal="closeModal" @confirmDeleteModal="deleteTask" />
+      <ModalDelete
+        v-if="showDelete"
+        :taskId="selectDeleteTaskId"
+        :title="selectDeleteTaskTitle"
+        :indexs="selectDeleteTaskIndex"
+        @closeModal="closeModal"
+        @confirmDeleteModal="deleteTask"
+      />
       <ToastAdd v-if="showToastAdd" @close="closeToast" />
       <ToastEdit v-if="showToastEdit" @close="closeToast" />
-      <ToastDelete v-if="showToastDelete" :isDeleteSuccess="deleteSuccess" @close="closeToastDelete" />
+      <ToastDelete
+        v-if="showToastDelete"
+        :isDeleteSuccess="deleteSuccess"
+        @close="closeToastDelete"
+      />
     </main>
     <footer>
       <Copyright />

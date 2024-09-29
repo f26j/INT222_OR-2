@@ -13,9 +13,11 @@ import ToastDeleteStatus from "../components/toast/ToastDeleteStatus.vue";
 import ModalDeleteStatus from "../components/ModalDeleteStatus.vue";
 import Navbar from "../components/css/Navbar.vue";
 
-// Store,Api zone
-const fetchStatus = import.meta.env.VITE_API_STATUS;
-const fetchUsers = import.meta.env.VITE_API_USERS;
+// Store, API zone
+const fetchStatus =
+  import.meta.env.VITE_API_STATUS || "http://localhost:8080/api/status"; // ใช้ fallback URL
+const fetchUsers =
+  import.meta.env.VITE_API_USERS || "http://localhost:8080/api/users"; // ใช้ fallback URL
 const router = useRouter();
 const store = useStatusStore();
 const toastStore = useToastStore();
@@ -31,6 +33,7 @@ const showDelete = ref(false);
 const selectDeleteStatusId = ref("");
 const selectDeleteStatusName = ref("");
 
+// ฟังก์ชันสำหรับดึง Token
 function getToken() {
   const token = localStorage.getItem("jwtToken");
   if (!token) {
@@ -41,33 +44,36 @@ function getToken() {
   return token;
 }
 
+// ฟังก์ชันสำหรับดึงข้อมูลพร้อม Token
 async function fetchWithToken(url, options = {}) {
-  const token = localStorage.getItem("jwtToken");
-  if (!token) {
-    console.error("No token available");
-    router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
+  const token = getToken();
+  if (!token) return null; // ถ้าไม่มี token ให้ return null
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        Authorization: `Bearer ${token}`, // ส่ง JWT Token
+        "Content-Type": "application/json",
+        ...options.headers,
+      },
+    });
+
+    // ตรวจสอบสถานะ 401 Unauthorized
+    if (response.status === 401) {
+      console.error("Unauthorized access - Redirecting to login");
+      router.push("/login");
+      return null;
+    }
+
+    return response;
+  } catch (error) {
+    console.error("Error fetching data:", error);
     return null;
   }
-
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${token}`, // ส่ง JWT Token
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-  });
-
-  // ตรวจสอบสถานะ 401 Unauthorized
-  if (response.status === 401) {
-    userStore.logout(); // ทำการ logout ผู้ใช้
-    router.push("/login"); // Redirect ไปหน้า login
-    return null;
-  }
-
-  return response; // ส่ง response กลับไปใช้งาน
 }
 
+// ดึงข้อมูล Status ของ Board
 async function fetchData() {
   const response = await fetchWithToken(fetchStatus); // เรียกใช้ fetchWithToken
   if (!response) return; // ถ้า response เป็น null ให้ return
@@ -83,16 +89,23 @@ async function fetchData() {
   return data;
 }
 
+// เมื่อ component ถูก mounted ให้ดึงข้อมูล Status
 onMounted(async () => {
   const data = await fetchData();
   store.statuses.value = data;
 });
+
+// เปิดหน้า Home
 const openHome = () => {
   router.push({ path: "/task" });
 };
+
+// เปิด Modal สำหรับการเพิ่ม Status
 const openModalAdd = async () => {
   router.push({ name: "status-add" });
 };
+
+// เปิด Modal สำหรับการแก้ไข Status
 const openModalEdit = (id) => {
   if (id) {
     router.push({ name: "status-edit", params: { id: id } });
@@ -101,12 +114,14 @@ const openModalEdit = (id) => {
   }
 };
 
+// เปิด Modal สำหรับการลบ Status
 const openModalDelete = (id, name) => {
   showDelete.value = true;
   selectDeleteStatusId.value = id;
   selectDeleteStatusName.value = name;
 };
 
+// ฟังก์ชันสำหรับการลบ Status
 async function deleteStatus(id) {
   const response = await fetchWithToken(`${fetchStatus}/${id}`, {
     method: "DELETE",
@@ -128,27 +143,7 @@ async function deleteStatus(id) {
   showDelete.value = false; // ปิด modal
 }
 
-async function deleteTransfer(id, newId) {
-  const response = await fetchWithToken(`${fetchStatus}/${id}/${newId}`, {
-    method: "DELETE",
-  });
-
-  if (!response) return; // ถ้า response เป็น null ให้ return
-
-  if (response.ok) {
-    store.statuses.value = store.statuses.value.filter(
-      (status) => status.id !== id
-    );
-    toastStore.handleStatusDeleted(); // แสดงผลว่า status ถูกลบสำเร็จ
-  } else {
-    toastStore.handleStatusDeletedF(); // แสดงผลว่าการลบล้มเหลว
-    console.error("Failed to delete status");
-  }
-
-  confirmDeleteStatus(); // เรียกใช้งานหลังจากการลบเสร็จสิ้น
-  showDelete.value = false; // ปิด modal
-}
-
+// ฟังก์ชันสำหรับยืนยันการลบ Status
 const confirmDeleteStatus = async () => {
   try {
     return;
@@ -162,6 +157,7 @@ const confirmDeleteStatus = async () => {
   };
 };
 
+// ปิด Modal
 const closeModal = () => {
   showDelete.value = false;
   router.push({ name: "statusView" });
