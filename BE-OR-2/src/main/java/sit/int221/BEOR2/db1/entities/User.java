@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.hibernate.annotations.UuidGenerator;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -17,8 +16,6 @@ import java.util.List;
 @Table(name = "users")
 public class User {
     @Id
-    @UuidGenerator
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "oid", nullable = false, length = 36, unique = true)
     private String oid;
 
