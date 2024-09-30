@@ -49,7 +49,7 @@ async function fetchBoardApi() {
     // ตรวจสอบ user และ user.oid ก่อนการกรอง
     const filteredBoards = data.filter(
       (board) =>
-        (board.user && board.user.oid === userStore.oid) ||
+        (board.owner && board.owner.oid === userStore.oid) ||
         board.visibility === "PUBLIC"
     );
 
