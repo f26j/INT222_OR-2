@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import sit.int221.BEOR2.BeOr2CrossOrigin;
 import sit.int221.BEOR2.db1.dtos.BoardDto;
+import sit.int221.BEOR2.db1.dtos.UserDto;
 import sit.int221.BEOR2.db1.entities.Board;
 import sit.int221.BEOR2.db1.services.BoardService;
 import org.springframework.validation.annotation.Validated;
@@ -25,8 +26,17 @@ public class BoardController {
 
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
-    public List<Board> getBoards() {
-        return boardService.getBoards();
+    public List<BoardDto> getBoards() {
+        List<Board> boards = boardService.getBoards();
+        return boards.stream().map(board -> new BoardDto(
+                board.getId(),
+                board.getName(),
+                board.getVisibility(),
+                new UserDto(
+                        board.getUser().getOid(),
+                        board.getUser().getUsername()
+                )
+        )).toList();
     }
 
     @GetMapping("/{id}")
