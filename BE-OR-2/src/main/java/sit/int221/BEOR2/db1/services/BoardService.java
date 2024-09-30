@@ -34,6 +34,10 @@ public class BoardService {
     @Autowired
     private StatusRepository statusRepository;  // ประกาศ statusRepository
 
+    public List<Board> getBoards() {
+        return boardRepository.findAll();
+    }
+
     public BoardDto getBoardById(@PathVariable String id) {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new ApiNotFoundException("Board id '" + id + "' not found"));
