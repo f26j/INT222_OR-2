@@ -1,61 +1,56 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { useUserStore } from "@/stores/users.js"; // ใช้ userStore สำหรับ token
-import { useBoardStore } from "@/stores/api.js"; // นำเข้า useBoardStore จาก api.js
+import { useUserStore } from "@/stores/users.js";
+import { useBoardStore } from "@/stores/api.js";
+import { storeToRefs } from "pinia";
 import Navbar from "../components/css/Navbar.vue";
 import Bg_effect from "../components/css/Background.vue";
 import Copyright from "../components/css/Copyright.vue";
 
 // API URL จาก environment
-const Board_API = import.meta.env.VITE_API_BOARDS;
+const fetchBoards = import.meta.env.VITE_API_BOARDS;
 
 // ใช้ `ref` สำหรับเก็บข้อมูลบอร์ดและสถานะการโหลด
-const boards = ref([]);
+const store = useBoardStore();
+const { boards } = storeToRefs(store);
 const loading = ref(true);
 const error = ref(false);
 const router = useRouter();
 
 // เรียกใช้ userStore เพื่อดึง token
 const userStore = useUserStore();
-const { token } = userStore;
+const { token } = storeToRefs(userStore); // ตรวจสอบให้แน่ใจว่าใช้ storeToRefs ในการดึง token
 
-// เรียกใช้ boardStore เพื่อดึงและเก็บข้อมูลบอร์ด
-const boardStore = useBoardStore();
-const { boards: storeBoards } = boardStore;
+// เปลี่ยนจาก store.setBoards(data) เป็น boards.value = data
+async function fetchBoardApi() {
+  if (!token.value) {
+    // ตรวจสอบว่ามี token หรือไม่
+    console.error("Token is missing, redirecting to login");
+    router.push("/login");
+    return;
+  }
 
-// ฟังก์ชันเพื่อดึงข้อมูลบอร์ดทั้งหมดจาก API
-async function fetchBoards() {
   try {
-    if (!token) {
-      router.push("/login");
-      return;
-    }
-
-    console.log("Fetching all boards");
-
-    const response = await fetch(`${Board_API}`, {
+    loading.value = true;
+    const response = await fetch(fetchBoards, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${token.value}`, // ใช้ token ที่ถูกต้องใน Authorization header
         "Content-Type": "application/json",
       },
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        console.error("Unauthorized - redirecting to login");
+        router.push("/login");
+      }
       throw new Error("Error fetching boards");
     }
 
     const data = await response.json();
-    console.log("Received boards data:", data);
-
-    // แสดงบอร์ดทั้งหมดที่ได้จาก API โดยไม่กรอง
-    if (data.length > 0) {
-      storeBoards.value = data; // บันทึกข้อมูลบอร์ดลงใน store
-    } else {
-      console.log("No boards found.");
-      storeBoards.value = []; // ถ้าไม่มีบอร์ด ก็ให้เป็น array ว่าง
-    }
+    boards.value = data; // ตั้งค่า boards.value โดยตรง
   } catch (err) {
     console.error("Error fetching boards:", err);
     error.value = true;
@@ -64,8 +59,9 @@ async function fetchBoards() {
   }
 }
 
+// เมื่อโหลด component ให้ดึงบอร์ดจาก backend
 onMounted(() => {
-  fetchBoards();
+  fetchBoardApi();
 });
 </script>
 
@@ -122,13 +118,13 @@ onMounted(() => {
           </tr>
 
           <!-- แสดงข้อความหากไม่มีบอร์ด -->
-          <tr v-if="storeBoards.length === 0 && !loading && !error">
+          <tr v-if="boards.length === 0 && !loading && !error">
             <td colspan="4" class="px-6 py-4 text-center">No Board Added</td>
           </tr>
 
           <!-- แสดงข้อมูลบอร์ด -->
           <tr
-            v-for="(board, index) in storeBoards"
+            v-for="(board, index) in boards"
             :key="board.id"
             class="border-b last:border-0"
           >
@@ -148,7 +144,7 @@ onMounted(() => {
                   <path
                     fill="currentColor"
                     fill-rule="evenodd"
-                    d="M17.907 4.93c.104-.105.294-.186.539-.18a.848.848 0 0 1 .572.216c.13.13.222.34.231.575c.01.234-.065.413-.167.515l-7.49 7.5l-1.273.116l.1-1.245zm2.173-1.024c-.437-.438-1.037-.643-1.6-.656c-.564-.013-1.182.167-1.635.62l-7.682 7.692a.75.75 0 0 0-.217.47l-.194 2.407a.75.75 0 0 0 .816.807l2.43-.22a.75.75 0 0 0 .463-.218l7.682-7.692c.456-.456.627-1.073.605-1.635a2.373 2.373 0 0 0-.668-1.575M5.812 4.75a2.568 2.568 0 0 0-2.563 2.562v10.875a2.568 2.568 0 0 0 2.563 2.563h10.875a2.568 2.568 0 0 0 2.563-2.562V12.75a.75.75 0 0 0-1.5 0v5.438c0 .582-.48 1.062-1.063 1.062H5.812c-.583 0-1.063-.48-1.063-1.062V7.312c0-.582.48-1.062 1.063-1.062h5.437a.75.75 0 0 0 0-1.5z"
+                    d="M17.907 4.93c.104-.105.294-.186.539-.18a.848.848 0 0 1 .572.216c.13.13.222.34.231.575c.01.234-.065.413-.167.515l-7.49 7.5l-1.273.116l.1-1.245zm2.173-1.024c-.437-.438-1.037-.643-1.6-.656c-.564-.013-1.182.167-1.635.62l-7.682 7.692a.75.75 0 0 0-.217.47l-.194 2.407a.75.75 0 0 0 .816.807l2.43-.22a.75.75 0 0 0 .463-.218l7.682-7.692c.456-.456.627-1.073.605-1.635a2.373 2.373 0 0 0-.668-1.575M5.812 4.75a2.568 2.568 0 0 0-2.563 2.562v10.875a2.568 2.568 0 0 0 2.563 2.563h10.875a2.568 2.568 0 0 0 2.563-2.562V12.75a.75.75 0 0 0-1.5 0v5.438c0 .41-.48 1.062-1.063 1.062H5.812c-.583 0-1.063-.48-1.063-1.062V7.312c0-.582.48-1.062 1.063-1.062h5.437a.75.75 0 0 0 0-1.5z"
                     clip-rule="evenodd"
                   />
                 </svg>

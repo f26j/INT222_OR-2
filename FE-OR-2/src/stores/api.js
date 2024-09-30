@@ -1,4 +1,4 @@
-import { ref, toRaw } from "vue";
+import { ref } from "vue";
 import { defineStore } from "pinia";
 
 // Task Store
@@ -7,9 +7,7 @@ export const useTaskStore = defineStore("apiTask", () => {
   const status = ref([]);
 
   const updateTask = (updatedTask) => {
-    console.log(updatedTask);
-    console.log(toRaw(tasks.value));
-    const index = toRaw(tasks.value).findIndex(
+    const index = tasks.value.findIndex(
       (task) => parseInt(task.id) === parseInt(updatedTask.id)
     );
     if (index !== -1) {
@@ -31,9 +29,7 @@ export const useStatusStore = defineStore("apiStatus", () => {
   const statuses = ref([]);
 
   const updateStatus = (updatedStatus) => {
-    console.log(updatedStatus);
-    console.log(toRaw(statuses.value));
-    const index = toRaw(statuses.value).findIndex(
+    const index = statuses.value.findIndex(
       (status) => parseInt(status.id) === parseInt(updatedStatus.id)
     );
     if (index !== -1) {
@@ -47,18 +43,15 @@ export const useStatusStore = defineStore("apiStatus", () => {
 });
 
 // Board Store
+// Board Store
 export const useBoardStore = defineStore("apiBoard", () => {
   const boards = ref([]);
 
-  // ฟังก์ชันสร้างบอร์ดใหม่
   const createBoard = async (newBoard) => {
     try {
-      // ตรวจสอบว่ามีข้อมูลบอร์ดที่จำเป็นหรือไม่
       if (!newBoard || !newBoard.name || !newBoard.owner) {
         throw new Error("Invalid board data");
       }
-
-      // สมมติว่า newBoard คือข้อมูลที่ได้รับจาก API
       boards.value.push(newBoard);
       console.log("Board created successfully:", newBoard);
     } catch (error) {
@@ -66,7 +59,6 @@ export const useBoardStore = defineStore("apiBoard", () => {
     }
   };
 
-  // ฟังก์ชันอัปเดตบอร์ด
   const updateBoard = (updatedBoard) => {
     const index = boards.value.findIndex(
       (board) => parseInt(board.id) === parseInt(updatedBoard.id)
@@ -79,7 +71,6 @@ export const useBoardStore = defineStore("apiBoard", () => {
     }
   };
 
-  // ฟังก์ชันเพิ่มบอร์ดเข้าใน store
   const addBoard = (board) => {
     if (board && board.id) {
       boards.value.push(board);

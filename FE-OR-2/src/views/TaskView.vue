@@ -11,13 +11,13 @@ import Badges from "../components/css/Badge.vue";
 import Copyright from "../components/css/Copyright.vue";
 import ToastAdd from "../components/toast/ToastAdd.vue";
 import ToastEdit from "../components/toast/ToastEdit.vue";
-import ModalDelete from "../components/ModalDelete.vue";
+import ModalDelete from "../components/ModalDeleteTask.vue";
 import ToastDelete from "../components/toast/ToastDelete.vue";
 import Navbar from "../components/css/Navbar.vue";
 
 // Store,Api zone
 const fetchTask = import.meta.env.VITE_API_BOARD_TASK; // http://localhost:8080/api/v3/boards
-const fetchStatus = import.meta.env.VITE_API_STATUS; // http://localhost:8080/api/v3/boards/{board}/statuses
+const fetchStatus = import.meta.env.VITE_API_BOARD_STATUS; // http://localhost:8080/api/v3/boards/{board}/statuses
 const router = useRouter();
 const route = useRoute();
 const store = useTaskStore();
@@ -75,7 +75,7 @@ async function fetchWithToken(url, options = {}) {
 
 async function fetchData() {
   // Fetch tasks for the specified board
-  const response = await fetchWithToken(`${fetchTask}/${boardId}/tasks`);
+  const response = await fetchWithToken(fetchTask);
   if (!response) return; // If response is null, return
 
   if (!response.ok) {

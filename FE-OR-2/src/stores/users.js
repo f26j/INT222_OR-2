@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import jwtDecode from 'vue-jwt-decode';
 
-const fetchUsers = import.meta.env.VITE_API_USERS;
+const fetchUsers = import.meta.env.VITE_API_LOGIN;
 
 export const useUserStore = defineStore('user', {
   state: () => ({
