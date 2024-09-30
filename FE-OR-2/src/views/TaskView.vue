@@ -16,7 +16,8 @@ import ToastDelete from "../components/toast/ToastDelete.vue";
 import Navbar from "../components/css/Navbar.vue";
 
 // Store,Api zone
-const fetchTask = import.meta.env.VITE_API_BOARD_TASK; // http://localhost:8080/api/v3/boards
+const fetchBoard = import.meta.env.VITE_API_BOARD;
+const fetchTask = import.meta.env.VITE_API_BOARD_STATUS; // http://localhost:8080/api/v3/boards
 const fetchStatus = import.meta.env.VITE_API_BOARD_STATUS; // http://localhost:8080/api/v3/boards/{board}/statuses
 const router = useRouter();
 const route = useRoute();

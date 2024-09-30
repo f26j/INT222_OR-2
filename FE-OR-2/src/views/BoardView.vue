@@ -22,11 +22,9 @@ const router = useRouter();
 const userStore = useUserStore();
 const { token } = storeToRefs(userStore); // ตรวจสอบให้แน่ใจว่าใช้ storeToRefs ในการดึง token
 
-// เปลี่ยนจาก store.setBoards(data) เป็น boards.value = data
+// เปลี่ยนฟังก์ชัน fetchBoardApi และปรับ logic ของการกรองบอร์ด
 async function fetchBoardApi() {
   if (!token.value) {
-    // ตรวจสอบว่ามี token หรือไม่
-    console.error("Token is missing, redirecting to login");
     router.push("/login");
     return;
   }
@@ -36,21 +34,28 @@ async function fetchBoardApi() {
     const response = await fetch(fetchBoards, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${token.value}`, // ใช้ token ที่ถูกต้องใน Authorization header
+        Authorization: `Bearer ${token.value}`,
         "Content-Type": "application/json",
       },
     });
 
     if (!response.ok) {
-      if (response.status === 401) {
-        console.error("Unauthorized - redirecting to login");
-        router.push("/login");
-      }
       throw new Error("Error fetching boards");
     }
 
     const data = await response.json();
-    boards.value = data; // ตั้งค่า boards.value โดยตรง
+    console.log(data);
+
+    // ตรวจสอบ user และ user.oid ก่อนการกรอง
+    const filteredBoards = data.filter(
+      (board) =>
+        (board.user && board.user.oid === userStore.oid) ||
+        board.visibility === "PUBLIC"
+    );
+
+    boards.value = filteredBoards;
+    console.log(userStore.oid);
+    console.log(filteredBoards);
   } catch (err) {
     console.error("Error fetching boards:", err);
     error.value = true;
@@ -129,7 +134,9 @@ onMounted(() => {
             class="border-b last:border-0"
           >
             <td class="px-6 py-4">{{ index + 1 }}</td>
-            <td class="px-6 py-4">{{ board.name }}</td>
+            <td class="px-6 py-4" @click="router.push(`/board/${board.id}`)">
+              {{ board.name }}
+            </td>
             <td class="px-6 py-4 flex items-center space-x-4">
               <button
                 class="itbkk-button-edit flex items-center space-x-2 w-20"
