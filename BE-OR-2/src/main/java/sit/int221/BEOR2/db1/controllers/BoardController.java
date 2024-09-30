@@ -10,6 +10,7 @@ import sit.int221.BEOR2.db1.entities.Board;
 import sit.int221.BEOR2.db1.services.BoardService;
 import org.springframework.validation.annotation.Validated;
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Map;
 
 @Validated
@@ -24,8 +25,8 @@ public class BoardController {
 
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
-    public String[] getBoards() {
-        return new String[]{};
+    public List<Board> getBoards() {
+        return boardService.getBoards();
     }
 
     @GetMapping("/{id}")
