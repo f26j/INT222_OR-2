@@ -31,7 +31,9 @@ const selectDeleteTaskTitle = ref("");
 const selectDeleteTaskIndex = ref("");
 const originalTasks = ref([]);
 const userStore = useUserStore();
+const boardStore = useBoardStore();
 const boardName = ref("");
+const boardOwnerOid = ref("");
 
 // Function zone
 onMounted(async () => {
@@ -76,14 +78,16 @@ async function fetchWithToken(url, options = {}) {
 
 async function fetchData() {
   // Fetch tasks for the specified board
-  const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}/tasks`);
+  const response = await fetchWithToken(
+    `${baseUrl}/v3/boards/${boardId}/tasks`
+  );
   if (!response) return; // If response is null, return
 
   if (response.status === 404) {
     router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
     return;
   }
-  
+
   if (!response.ok) {
     throw new Error(`Error fetching tasks: ${response.statusText}`);
   }
@@ -102,7 +106,7 @@ async function fetchDataStatus() {
     `${baseUrl}/v3/boards/${boardId}/statuses`
   );
   if (!response) return; // If response is null, return
-  
+
   if (response.status === 404) {
     router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
     return;
@@ -135,6 +139,7 @@ async function fetchBoard() {
 
   const data = await response.json();
   boardName.value = data.name; // เก็บชื่อบอร์ดใน boardName
+  boardOwnerOid.value = data.owner.oid;
 }
 
 // Functions for managing tasks
@@ -269,70 +274,92 @@ watch(
     store.tasks.value = newVal;
   }
 );
-
-
 </script>
 
 <template>
   <Navbar class="itbkk-fullname" />
   <div class="pt-24">
-  <header class="mb-2 max-w-6xl mx-auto">
-    <!-- ชื่อหัวข้อบอร์ด -->
-    <h1 class="text-left text-3xl font-bold">IT-Bangmod Kradan Kanban</h1>
-    
-    <!-- Board List และปุ่มจัดการ -->
-    <div class="flex justify-between items-center mt-2">
-      <!-- แสดงชื่อบอร์ด -->
-      <h2 class="text-lg font-semibold text-gray-800"><span class="cursor-pointer" @click="router.push({ name: 'board' })">Board ></span> <span class="b">{{ boardName }}</span> </h2>
-      
-      <!-- ปุ่ม Manage Status และ Add Task -->
-      <div class="flex space-x-4">
-        <!-- ปุ่ม Manage Status -->
-        <button
-          @click="router.push({ name: 'status-manage' })"
-          class="flex items-center bg-white text-gray-800 px-4 py-2 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            fill="currentColor"
-            class="mr-2"
-            viewBox="0 0 16 16"
+    <header class="mb-2 max-w-6xl mx-auto">
+      <!-- ชื่อหัวข้อบอร์ด -->
+      <h1 class="text-left text-3xl font-bold">IT-Bangmod Kradan Kanban</h1>
+
+      <!-- Board List และปุ่มจัดการ -->
+      <div class="flex justify-between items-center mt-2">
+        <!-- แสดงชื่อบอร์ด -->
+        <h2 class="text-lg font-semibold text-gray-800">
+          <span class="cursor-pointer" @click="router.push({ name: 'board' })"
+            >Board ></span
           >
-            <path
-              d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0Zm3.5 7.5H8.5v-3a.5.5 0 1 0-1 0v3h-3a.5.5 0 1 0 0 1h3v3a.5.5 0 1 0 1 0v-3h3a.5.5 0 1 0 0-1Z"
-            />
-          </svg>
-          Manage Status
-        </button>
-        
-        <!-- ปุ่ม Add Task -->
-        <button
-          @click="openModalAdd"
-          class="flex items-center bg-white text-gray-800 px-4 py-2 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            fill="currentColor"
-            class="mr-2"
-            viewBox="0 0 16 16"
+          <span class="b">{{ boardName }}</span>
+        </h2>
+
+        <!-- ปุ่ม Manage Status และ Add Task -->
+        <div class="flex space-x-4">
+          <!-- ปุ่ม Manage Status -->
+          <button
+            @click="router.push({ name: 'status-manage' })"
+            class="flex items-center bg-white text-gray-800 px-4 py-2 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
           >
-            <path
-              d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0Zm3.5 7.5H8.5v-3a.5.5 0 1 0-1 0v3h-3a.5.5 0 1 0 0 1h3v3a.5.5 0 1 0 1 0v-3h3a.5.5 0 1 0 0-1Z"
-            />
-          </svg>
-          Add Task
-        </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="currentColor"
+              class="mr-2"
+              viewBox="0 0 16 16"
+            >
+              <path
+                d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0Zm3.5 7.5H8.5v-3a.5.5 0 1 0-1 0v3h-3a.5.5 0 1 0 0 1h3v3a.5.5 0 1 0 1 0v-3h3a.5.5 0 1 0 0-1Z"
+              />
+            </svg>
+            Manage Status
+          </button>
+
+          <!-- ปุ่ม Add Task -->
+          <button
+            @click="openModalAdd"
+            class="flex items-center bg-white text-gray-800 px-4 py-2 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="currentColor"
+              class="mr-2"
+              viewBox="0 0 16 16"
+            >
+              <path
+                d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0Zm3.5 7.5H8.5v-3a.5.5 0 1 0-1 0v3h-3a.5.5 0 1 0 0 1h3v3a.5.5 0 1 0 1 0v-3h3a.5.5 0 1 0 0-1Z"
+              />
+            </svg>
+            Add Task
+          </button>
+          <!-- ปุ่ม Toggle Visibility -->
+          <button
+            @click="openModal"
+            v-if="boardOwnerOid === userStore.oid"
+            class="flex items-center bg-white text-gray-800 px-4 py-2 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="currentColor"
+              class="mr-2"
+              viewBox="0 0 16 16"
+            >
+              <path
+                d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0Zm3.5 7.5H8.5v-3a.5.5 0 1 0-1 0v3h-3a.5.5.5 0 1 0 0 1h3v3a.5.5.5 0 1 0 1 0v-3h3a.5.5.5 0 1 0 0-1Z"
+              />
+            </svg>
+            Toggle Visibility
+          </button>
+        </div>
       </div>
-    </div>
-  </header>
-</div>
+    </header>
+  </div>
 
   <div class="body">
-
     <main class="flex flex-col items-center">
       <div class="tb">
         <table>
@@ -428,7 +455,6 @@ watch(
 @import url("https://fonts.gstatic.com");
 @import url("https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
 
-
 h1 {
   font-family: "Ubuntu", sans-serif;
   /* font-weight: 500; */
@@ -452,7 +478,7 @@ h3 {
 /* .itbkk-fullname {
   box-shadow: none;
 } */
- 
+
 .itbkk-status-sort {
   box-shadow: none;
   padding-left: 10px;
@@ -536,7 +562,6 @@ h3 {
   background-color: #ad386f;
   color: #f5e2ff;
   transition: transform 0.3s ease;
-  
 }
 .iconbutton i {
   display: flex;

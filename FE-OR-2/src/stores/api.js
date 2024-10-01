@@ -94,6 +94,8 @@ export const useBoardStore = defineStore("apiBoard", () => {
     }
   };
 
+  
+
   const addBoard = (board) => {
     if (board && board.id) {
       boards.value.push(board);
@@ -148,5 +150,6 @@ export const useBoardStore = defineStore("apiBoard", () => {
     addBoard,
     fetchBoards,
     deleteBoard,
+    updateVisibility,
   };
 });
