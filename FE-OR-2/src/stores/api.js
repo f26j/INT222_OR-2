@@ -49,6 +49,7 @@ export const useBoardStore = defineStore("apiBoard", () => {
   const baseUrl = import.meta.env.VITE_API_BOARDS;
   const userStore = useUserStore();
 
+  // Fetch all boards
   const fetchBoards = async () => {
     try {
       const token = localStorage.getItem("jwtToken");
@@ -63,25 +64,28 @@ export const useBoardStore = defineStore("apiBoard", () => {
       if (!response.ok) {
         throw new Error("Failed to fetch boards");
       }
+
       const data = await response.json();
-      boards.value = data; // Save the fetched boards
+      boards.value = data; // Save fetched boards into the store
     } catch (error) {
       console.error("Error fetching boards:", error.message);
     }
   };
 
+  // Create a new board
   const createBoard = async (newBoard) => {
     try {
       if (!newBoard || !newBoard.name || !newBoard.owner) {
         throw new Error("Invalid board data");
       }
-      boards.value.push(newBoard);
+      boards.value.push(newBoard); // Add the new board to the store
       console.log("Board created successfully:", newBoard);
     } catch (error) {
       console.error("Error creating board:", error.message);
     }
   };
 
+  // Update existing board data
   const updateBoard = (updatedBoard) => {
     const index = boards.value.findIndex(
       (board) => parseInt(board.id) === parseInt(updatedBoard.id)
@@ -94,29 +98,59 @@ export const useBoardStore = defineStore("apiBoard", () => {
     }
   };
 
-  
+  // Update the visibility of a specific board
+  const updateVisibility = async (boardId, newVisibility) => {
+    try {
+      const token = localStorage.getItem("jwtToken");
 
+      const response = await fetch(`${baseUrl}/v3/boards/${boardId}`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ visibility: newVisibility }), // Sending the visibility update
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update visibility");
+      }
+      console.log("Visibility updated successfully:", newVisibility);
+
+      // Update the visibility in the store
+      const boardIndex = boards.value.findIndex(
+        (board) => board.id === boardId
+      );
+      if (boardIndex !== -1) {
+        boards.value[boardIndex].visibility = newVisibility;
+      }
+    } catch (error) {
+      console.error("Error updating visibility:", error.message);
+    }
+  };
+
+  // Add a new board to the store
   const addBoard = (board) => {
     if (board && board.id) {
-      boards.value.push(board);
+      boards.value.push(board); // Add the board to the store
       console.log("Board added successfully:", board);
     } else {
       console.error("Invalid board data");
     }
   };
 
-  // ฟังก์ชันลบ Board พร้อมตรวจสอบ oid
+  // Delete a board with OID verification
   const deleteBoard = async (boardId) => {
     try {
       const token = localStorage.getItem("jwtToken");
       const board = boards.value.find((board) => board.id === boardId);
 
-      // ตรวจสอบว่าเจอ board หรือไม่
+      // Check if the board exists
       if (!board) {
         throw new Error("Board not found");
       }
 
-      // ตรวจสอบว่า oid ของบอร์ดตรงกับ oid ของผู้ใช้หรือไม่
+      // Check if the current user is the owner of the board
       if (board.owner.oid !== userStore.oid) {
         throw new Error(
           "Permission denied: You are not the owner of this board"
@@ -135,7 +169,7 @@ export const useBoardStore = defineStore("apiBoard", () => {
         throw new Error("Failed to delete board");
       }
 
-      // ลบ board จาก store
+      // Remove the deleted board from the store
       boards.value = boards.value.filter((b) => b.id !== boardId);
       console.log("Board deleted successfully:", boardId);
     } catch (error) {

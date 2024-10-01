@@ -14,6 +14,7 @@ import ToastEdit from "../components/toast/ToastEdit.vue";
 import ModalDelete from "../components/ModalDeleteTask.vue";
 import ToastDelete from "../components/toast/ToastDelete.vue";
 import Navbar from "../components/css/Navbar.vue";
+import ModalVisibilityBoard from "../components/ModalVisibilityBoard.vue";
 
 // Store,Api zone
 const baseUrl = import.meta.env.VITE_API_BOARDS;
@@ -34,6 +35,28 @@ const userStore = useUserStore();
 const boardStore = useBoardStore();
 const boardName = ref("");
 const boardOwnerOid = ref("");
+
+const visibility = ref("PRIVATE");
+const isModalOpen = ref(false);
+const modalTitle = ref("Board Visibility Changed!");
+const modalMessage = ref(
+  "Do you want to change the board visibility to public?"
+);
+
+const openModal = () => {
+  modalMessage.value =
+    visibility.value === "PRIVATE"
+      ? "Do you want to change the board visibility to public?"
+      : "Do you want to change the board visibility to private?";
+  isModalOpen.value = true;
+};
+
+const confirmChange = async () => {
+  const newVisibility = visibility.value === "PRIVATE" ? "PUBLIC" : "PRIVATE";
+  await boardStore.updateVisibility(boardId, newVisibility);
+  visibility.value = newVisibility;
+  isModalOpen.value = false;
+};
 
 // Function zone
 onMounted(async () => {
@@ -140,6 +163,7 @@ async function fetchBoard() {
   const data = await response.json();
   boardName.value = data.name; // เก็บชื่อบอร์ดใน boardName
   boardOwnerOid.value = data.owner.oid;
+  visibility.value = data.visibility;
 }
 
 // Functions for managing tasks
@@ -234,6 +258,7 @@ const closeToastDelete = () => {
 };
 const closeModal = () => {
   showDelete.value = false;
+  isModalOpen.value = false;
   router.push({ path: `/board/${boardId}` });
 };
 
@@ -280,36 +305,33 @@ watch(
   <Navbar class="itbkk-fullname" />
   <div class="pt-24">
     <header class="mb-2 max-w-6xl mx-auto">
-      <!-- ชื่อหัวข้อบอร์ด -->
       <h1 class="text-left text-3xl font-bold">IT-Bangmod Kradan Kanban</h1>
-
-      <!-- Board List และปุ่มจัดการ -->
       <div class="flex justify-between items-center mt-2">
-        <!-- แสดงชื่อบอร์ด -->
         <h2 class="text-lg font-semibold text-gray-800">
           <span class="cursor-pointer" @click="router.push({ name: 'board' })"
             >Board ></span
           >
-          <span class="b">{{ boardName }}</span>
+          <span class="b cursor-pointer">{{ boardName }}</span>
         </h2>
-
-        <!-- ปุ่ม Manage Status และ Add Task -->
         <div class="flex space-x-4">
           <!-- ปุ่ม Manage Status -->
           <button
             @click="router.push({ name: 'status-manage' })"
-            class="flex items-center bg-white text-gray-800 px-4 py-2 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
+            class="itbkk-manage-status flex items-center bg-white text-gray-800 px-4 py-2 rounded-full shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
               fill="currentColor"
               class="mr-2"
-              viewBox="0 0 16 16"
+              width="32"
+              height="32"
+              viewBox="0 0 512 512"
             >
+              >
+
               <path
-                d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0Zm3.5 7.5H8.5v-3a.5.5 0 1 0-1 0v3h-3a.5.5 0 1 0 0 1h3v3a.5.5 0 1 0 1 0v-3h3a.5.5 0 1 0 0-1Z"
+                fill="currentColor"
+                d="M256 176a80 80 0 1 0 80 80a80.24 80.24 0 0 0-80-80m172.72 80a165.53 165.53 0 0 1-1.64 22.34l48.69 38.12a11.59 11.59 0 0 1 2.63 14.78l-46.06 79.52a11.64 11.64 0 0 1-14.14 4.93l-57.25-23a176.56 176.56 0 0 1-38.82 22.67l-8.56 60.78a11.93 11.93 0 0 1-11.51 9.86h-92.12a12 12 0 0 1-11.51-9.53l-8.56-60.78A169.3 169.3 0 0 1 151.05 393L93.8 416a11.64 11.64 0 0 1-14.14-4.92L33.6 331.57a11.59 11.59 0 0 1 2.63-14.78l48.69-38.12A174.58 174.58 0 0 1 83.28 256a165.53 165.53 0 0 1 1.64-22.34l-48.69-38.12a11.59 11.59 0 0 1-2.63-14.78l46.06-79.52a11.64 11.64 0 0 1 14.14-4.93l57.25 23a176.56 176.56 0 0 1 38.82-22.67l8.56-60.78A11.93 11.93 0 0 1 209.94 26h92.12a12 12 0 0 1 11.51 9.53l8.56 60.78A169.3 169.3 0 0 1 361 119l57.2-23a11.64 11.64 0 0 1 14.14 4.92l46.06 79.52a11.59 11.59 0 0 1-2.63 14.78l-48.69 38.12a174.58 174.58 0 0 1 1.64 22.66"
               />
             </svg>
             Manage Status
@@ -318,7 +340,7 @@ watch(
           <!-- ปุ่ม Add Task -->
           <button
             @click="openModalAdd"
-            class="flex items-center bg-white text-gray-800 px-4 py-2 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
+            class="itbkk-button-add flex items-center bg-white text-gray-800 px-4 py-2 rounded-full shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -329,30 +351,63 @@ watch(
               viewBox="0 0 16 16"
             >
               <path
-                d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0Zm3.5 7.5H8.5v-3a.5.5 0 1 0-1 0v3h-3a.5.5 0 1 0 0 1h3v3a.5.5 0 1 0 1 0v-3h3a.5.5 0 1 0 0-1Z"
+                fill="currentColor"
+                fillRule="evenodd"
+                d="M8 1a1 1 0 0 0-2 0v5H1a1 1 0 0 0 0 2h5v5a1 1 0 1 0 2 0V8h5a1 1 0 1 0 0-2H8z"
+                clipRule="evenodd"
               />
             </svg>
             Add Task
           </button>
-          <!-- ปุ่ม Toggle Visibility -->
+
           <button
-            @click="openModal"
             v-if="boardOwnerOid === userStore.oid"
-            class="flex items-center bg-white text-gray-800 px-4 py-2 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
+            @click="openModal"
+            v-bind:class="{
+              'px-4 py-2 flex items-center bg-red-500 text-white rounded-full':
+                visibility === 'PRIVATE',
+              'px-4 py-2 flex items-center bg-green-500 text-white rounded-full':
+                visibility === 'PUBLIC',
+            }"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              fill="currentColor"
-              class="mr-2"
-              viewBox="0 0 16 16"
-            >
-              <path
-                d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0Zm3.5 7.5H8.5v-3a.5.5 0 1 0-1 0v3h-3a.5.5.5 0 1 0 0 1h3v3a.5.5.5 0 1 0 1 0v-3h3a.5.5.5 0 1 0 0-1Z"
-              />
-            </svg>
-            Toggle Visibility
+            <template v-if="visibility === 'PRIVATE'">
+              <!-- Lock Icon for Private -->
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 mr-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  d="M7 10.0288C7.47142 10 8.05259 10 8.8 10H15.2C15.9474 10 16.5286 10 17 10.0288M7 10.0288C6.41168 10.0647 5.99429 10.1455 5.63803 10.327C5.07354 10.6146 4.6146 11.0735 4.32698 11.638C4 12.2798 4 13.1198 4 14.8V16.2C4 17.8802 4 18.7202 4.32698 19.362C4.6146 19.9265 5.07354 20.3854 5.63803 20.673C6.27976 21 7.11984 21 8.8 21H15.2C16.8802 21 17.7202 21 18.362 20.673C18.9265 20.3854 19.3854 19.9265 19.673 19.362C20 18.7202 20 17.8802 20 16.2V14.8C20 13.1198 20 12.2798 19.673 11.638C19.3854 11.0735 18.9265 10.6146 18.362 10.327C18.0057 10.1455 17.5883 10.0647 17 10.0288M7 10.0288V8C7 5.23858 9.23858 3 12 3C14.7614 3 17 5.23858 17 8V10.0288"
+                  stroke="#000000"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              Private
+            </template>
+
+            <template v-if="visibility === 'PUBLIC'">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 mr-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  d="M3 12H21M3 12C3 16.9706 7.02944 21 12 21M3 12C3 7.02944 7.02944 3 12 3M21 12C21 16.9706 16.9706 21 12 21M21 12C21 7.02944 16.9706 3 12 3M12 21C4.75561 13.08 8.98151 5.7 12 3M12 21C19.2444 13.08 15.0185 5.7 12 3"
+                  stroke="#000000"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              Public
+            </template>
           </button>
         </div>
       </div>
@@ -365,10 +420,10 @@ watch(
         <table>
           <thead>
             <tr>
-              <th>#</th>
+              <th></th>
               <th>Title</th>
               <th>Assignees</th>
-              <th class="sortstt flex justify-center">
+              <th class="sortstt flex justify-left">
                 Status
                 <button class="itbkk-status-sort" @click="toggleSortOrder">
                   <svg
@@ -405,7 +460,7 @@ watch(
                   </svg>
                 </button>
               </th>
-              <th>Actions</th>
+              <th class="text-center" style="text-align: center;">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -413,11 +468,60 @@ watch(
               <td>{{ index + 1 }}</td>
               <td @click="openModalDetail(task.id)">{{ task.title }}</td>
               <td>{{ task.assignees || "Unassigned" }}</td>
-              <td><Badges :status="task.status" /></td>
-              <td>
-                <button @click="openModalEdit(task.id)">Edit</button>
-                <button @click="openModalDelete(task.id, task.title, index)">
-                  Delete
+              <td class="center-td"><Badges style="justify-content: center;"  :status="task.status" /></td>
+
+
+              <td class="px-4 py-3 flex justify-center space-x-2">
+                <!-- จัดปุ่มให้ดูสมส่วน -->
+                <button
+                  class="flex items-center bg-white text-color-purple px-3 py-1.5 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
+                  @click="openModalEdit(task.id)"
+                  :disabled="!task.canEdit"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    fill="currentColor"
+                    class="mr-2"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      fill="currentColor"
+                      fill-rule="evenodd"
+                      d="M17.907 4.93c.104-.105.294-.186.539-.18a.848.848 0 0 1 .572.216c.13.13.222.34.231.575c.01.234-.065.413-.167.515l-7.49 7.5l-1.273.116l.1-1.245zm2.173-1.024c-.437-.438-1.037-.643-1.6-.656c-.564-.013-1.182.167-1.635.62l-7.682 7.692a.75.75 0 0 0-.217.47l-.194 2.407a.75.75 0 0 0 .816.807l2.43-.22a.75.75 0 0 0 .463-.218l7.682-7.692c.456-.456.627-1.073.605-1.635a2.373 2.373 0 0 0-.668-1.575M5.812 4.75a2.568 2.568 0 0 0-2.563 2.562v10.875a2.568 2.568 0 0 0 2.563 2.563h10.875a2.568 2.568 0 0 0 2.563-2.562V12.75a.75.75 0 0 0-1.5 0v5.438c0 .41-.48 1.062-1.063 1.062H5.812c-.583 0-1.063-.48-1.063-1.062V7.312c0-.582.48-1.062 1.063-1.062h5.437a.75.75 0 0 0 0-1.5z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                  <span>Edit</span>
+                </button>
+
+                <button
+                  class="flex items-center bg-white text-color-purple px-3 py-1.5 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
+                  @click="openModalDelete(task.id, task.title, index)"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    fill="currentColor"
+                    class="mr-2"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      fill="currentColor"
+                      d="M20 8.7H4a.75.75 0 1 1 0-1.5h16a.75.75 0 0 1 0 1.5"
+                    />
+                    <path
+                      fill="currentColor"
+                      d="M16.44 20.75H7.56A2.4 2.4 0 0 1 5 18.49V8a.75.75 0 0 1 1.5 0v10.49c0 .41.47.76 1 .76h8.88c.56 0 1-.35 1-.76V8A.75.75 0 1 1 19 8v10.49a2.4 2.4 0 0 1-2.56 2.26m.12-13a.74.74 0 0 1-.75-.75V5.51c0-.41-.48-.76-1-.76H9.22c-.55 0-1 .35-1 .76V7a.75.75 0 1 1-1.5 0V5.51a2.41 2.41 0 0 1 2.5-2.26h5.56a2.41 2.41 0 0 1 2.53 2.26V7a.75.75 0 0 1-.75.76Z"
+                    />
+                    <path
+                      fill="currentColor"
+                      d="M10.22 17a.76.76 0 0 1-.75-.75v-4.53a.75.75 0 0 1 1.5 0v4.52a.75.75 0 0 1-.75.76m3.56 0a.75.75 0 0 1-.75-.75v-4.53a.75.75 0 0 1 1.5 0v4.52a.76.76 0 0 1-.75.76"
+                    />
+                  </svg>
+                  <span>Delete</span>
                 </button>
               </td>
             </tr>
@@ -441,6 +545,13 @@ watch(
         @close="closeToastDelete"
       />
     </main>
+    <ModalVisibilityBoard
+      :isOpen="isModalOpen"
+      :title="modalTitle"
+      :message="modalMessage"
+      @confirm="confirmChange"
+      @close="closeModal"
+    />
     <footer>
       <Copyright />
     </footer>
@@ -457,12 +568,7 @@ watch(
 
 h1 {
   font-family: "Ubuntu", sans-serif;
-  /* font-weight: 500; */
-  /* font-style: normal; */
-  /* font-size: 40px; */
   color: #47467b;
-  /* font-weight: 800; */
-  /* margin: 4rem 0 2rem; */
 }
 
 h3 {
@@ -473,6 +579,24 @@ h3 {
   color: #737292;
   text-align: center;
   justify-content: center;
+}
+
+.itbkk-manage-status {
+  font-style: italic;
+  background-color: #6f418f;
+  color: #f5e2ff;
+  transition: transform 0.3s ease;
+}
+.itbkk-manage-status:hover {
+  background-color: #6a4581;
+  background-color: #8e5bb1;
+}
+
+.itbkk-button-add {
+  font-style: italic;
+  background-color: #ad386f;
+  color: #f5e2ff;
+  transition: transform 0.3s ease;
 }
 
 /* .itbkk-fullname {
@@ -511,16 +635,6 @@ h3 {
   padding-right: 5px;
 }
 
-.itbkk-manage-status {
-  font-style: italic;
-  background-color: #6f418f;
-  color: #f5e2ff;
-  transition: transform 0.3s ease;
-}
-.itbkk-manage-status:hover {
-  background-color: #6a4581;
-  background-color: #8e5bb1;
-}
 .unassigned {
   font-style: italic;
   color: gray;
@@ -544,25 +658,14 @@ h3 {
   transition: transform 0.3s ease;
   color: #ad386f;
 }
-/* .btn-a {
-  position: fixed;
-  bottom: 50px;
-  right: 50px;
-  cursor: pointer;
-  z-index: 2;
-} */
+
 .iconbutton {
   width: 50px;
   height: 50px;
   border-radius: 100%;
   box-shadow: 5px 5px 5px #49494946;
 }
-.itbkk-button-add {
-  font-style: italic;
-  background-color: #ad386f;
-  color: #f5e2ff;
-  transition: transform 0.3s ease;
-}
+
 .iconbutton i {
   display: flex;
   align-items: center;
@@ -630,6 +733,7 @@ td {
   font-family: "Ubuntu", sans-serif;
   font-weight: 600;
   font-style: normal;
+  text-align: left
 }
 td.bgd {
   padding-left: 30px;

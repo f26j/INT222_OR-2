@@ -232,11 +232,11 @@ const closeModal = () => {
   <header class="mb-2 max-w-6xl mx-auto">
     <h1 class="text-left text-3xl font-bold">IT-Bangmod Kradan Kanban</h1>
     <div class="flex justify-between items-center mt-2">
-      <h2 class="text-lg font-semibold text-gray-800"><span class="cursor-pointer" @click="router.push({ name: 'board' })">Board ></span> <span class="a"  @click="router.push({ name: 'board-tasks' })">{{ boardName }}</span> > Status</h2>
+      <h2 class="text-lg font-semibold text-gray-800"><span class="cursor-pointer" @click="router.push({ name: 'board' })">Board ></span> <span class="a cursor-pointer"  @click="router.push({ name: 'board-tasks' })">{{ boardName }}</span> > Status</h2>
       <div class="flex space-x-4">
         <button
           @click="openHome"
-          class="itbkk-button-home flex items-center bg-white text-gray-800 px-4 py-2 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
+          class="itbkk-button-home flex items-center bg-white text-gray-800 px-4 py-2 rounded-full shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -256,7 +256,7 @@ const closeModal = () => {
         
         <button
           @click="openModalAdd"
-          class="itbkk-button-add flex items-center bg-white text-gray-800 px-4 py-2 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
+          class="itbkk-button-add flex items-center bg-white text-gray-800 px-4 py-2 rounded-full shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -271,7 +271,7 @@ const closeModal = () => {
               fillRule="evenodd"
               d="M8 1a1 1 0 0 0-2 0v5H1a1 1 0 0 0 0 2h5v5a1 1 0 1 0 2 0V8h5a1 1 0 1 0 0-2H8z"
               clipRule="evenodd"
-            ></path>
+            />
           </svg>
           Add Status
         </button>

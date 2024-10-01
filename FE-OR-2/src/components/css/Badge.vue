@@ -4,23 +4,25 @@ const props = defineProps({
   status: Object,
 });
 const className = computed(() => {
-  switch (props.status.id) {
-    case 1:
+  switch (props.status.name) {
+    case "No Status":
       return "status-No";
-    case 2:
+    case "To Do":
       return "status-To";
-    case 3:
+    case "Doing":
       return "status-Doing";
-    case 4:
+    case "Done":
       return "status-Done";
     default:
       return "status-New";
   }
 });
+
+console.log(props.status.name);
 </script>
 <template>
   <div :class="{ 'status-badge': true, [className]: status }">
-    <span v-if="status.id === 1" class="a flex-align-items">
+    <span v-if="status.name === 'No Status'" class="a flex-align-items">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="1em"
@@ -34,7 +36,8 @@ const className = computed(() => {
       </svg>
       <p>No Status</p>
     </span>
-    <span v-if="status.id === 2" class="a flex-align-items">
+
+    <span v-else-if="status.name === 'To Do'" class="a flex-align-items">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="1em"
@@ -48,7 +51,8 @@ const className = computed(() => {
       </svg>
       <p>To Do</p>
     </span>
-    <span v-if="status.id === 3" class="a flex-align-items">
+
+    <span v-else-if="status.name === 'Doing'" class="a flex-align-items">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="1em"
@@ -62,7 +66,8 @@ const className = computed(() => {
       </svg>
       <p>Doing</p>
     </span>
-    <span v-if="status.id === 4" class="a flex-align-items">
+
+    <span v-else-if="status.name === 'Done'" class="a flex-align-items">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="1em"
@@ -77,7 +82,8 @@ const className = computed(() => {
       <p>Done</p>
     </span>
 
-    <span v-if="status.id >= 5" class="a flex-align-items">
+    <!-- กรณีที่ชื่อสถานะไม่ตรงกับเงื่อนไขที่กำหนด -->
+    <span v-else class="a flex-align-items">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="1em"
@@ -89,7 +95,7 @@ const className = computed(() => {
           d="m9.89 17.514l-4.21 2.257l-.099.044c-.715.27-1.39.216-1.903-.242c-.482-.43-.657-1.046-.557-1.755l.704-4.86l-3.18-3.342c-.55-.56-.765-1.248-.58-1.968c.205-.799.88-1.258 1.851-1.412l4.227-.638l2.213-4.585C8.7.366 9.236-.017 9.911.001c.66.017 1.183.422 1.593 1.143l2.14 4.486l4.74.658c.753.13 1.308.522 1.53 1.176c.22.653.01 1.313-.557 1.987l-3.44 3.51l.772 4.856c.122.84-.025 1.505-.586 1.9c-.506.357-1.139.357-1.867.107l-.12-.053z"
         ></path>
       </svg>
-      <p>{{ props.status.name }}</p>
+      <p>{{ status.name || "Unknown Status" }}</p>
     </span>
   </div>
 </template>
