@@ -3,20 +3,20 @@
 import { onMounted, ref, watch, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { storeToRefs } from "pinia";
-import { useTaskStore } from "@/stores/api.js";
+import { useBoardStore, useTaskStore } from "@/stores/api.js";
 import { useToastStore } from "@/stores/toast.js";
+import { useUserStore } from "@/stores/users.js";
 import Bg_effect from "../components/css/Background.vue";
 import Badges from "../components/css/Badge.vue";
 import Copyright from "../components/css/Copyright.vue";
 import ToastAdd from "../components/toast/ToastAdd.vue";
 import ToastEdit from "../components/toast/ToastEdit.vue";
-import ModalDelete from "../components/ModalDelete.vue";
+import ModalDelete from "../components/ModalDeleteTask.vue";
 import ToastDelete from "../components/toast/ToastDelete.vue";
 import Navbar from "../components/css/Navbar.vue";
 
 // Store,Api zone
-const fetchTask = import.meta.env.VITE_API_TASK;
-const fetchStatus = import.meta.env.VITE_API_STATUS;
+const baseUrl = import.meta.env.VITE_API_BOARDS;
 const router = useRouter();
 const route = useRoute();
 const store = useTaskStore();
@@ -24,17 +24,21 @@ const toastStore = useToastStore();
 const { showToastAdd, showToastEdit, closeToast } = storeToRefs(toastStore);
 
 // Variable zone
+const boardId = route.params.boardId; // Get boardId from the URL
 const taskId = route.params.id;
 const selectDeleteTaskId = ref("");
 const selectDeleteTaskTitle = ref("");
 const selectDeleteTaskIndex = ref("");
 const originalTasks = ref([]);
+const userStore = useUserStore();
+const boardName = ref("");
 
 // Function zone
 onMounted(async () => {
   try {
+    await fetchBoard();
     const data = await fetchData();
-    const datastatus = await fetchDataStatus();
+    const datastatus = await fetchDataStatus(); // Fetch status data
     originalTasks.value = [...data];
     store.tasks.value = [...data];
     store.status.value = datastatus;
@@ -43,27 +47,43 @@ onMounted(async () => {
   }
 });
 
-function getToken() {
+async function fetchWithToken(url, options = {}) {
   const token = localStorage.getItem("jwtToken");
   if (!token) {
     console.error("No token available");
-    router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
-    return null; // คืนค่า null เมื่อไม่มี token
+    router.push("/login"); // Redirect to login if no token
+    return null;
   }
-  return token;
-}
 
-async function fetchData() {
-  const token = getToken(); // ดึง token จาก localStorage
-  if (!token) return; // ถ้าไม่มี token ให้ return
-
-  const response = await fetch(fetchTask, {
+  const response = await fetch(url, {
+    ...options,
     headers: {
-      Authorization: `Bearer ${token}`, // ส่ง JWT Token
+      Authorization: `Bearer ${token}`, // Add JWT token
       "Content-Type": "application/json",
+      ...options.headers,
     },
   });
 
+  // Check for 401 Unauthorized
+  if (response.status === 401) {
+    userStore.logout(); // Log out user
+    router.push("/login"); // Redirect to login
+    return null;
+  }
+
+  return response; // Return the response
+}
+
+async function fetchData() {
+  // Fetch tasks for the specified board
+  const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}/tasks`);
+  if (!response) return; // If response is null, return
+
+  if (response.status === 404) {
+    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    return;
+  }
+  
   if (!response.ok) {
     throw new Error(`Error fetching tasks: ${response.statusText}`);
   }
@@ -77,15 +97,16 @@ async function fetchData() {
 }
 
 async function fetchDataStatus() {
-  const token = getToken(); // ดึง token จาก localStorage
-  if (!token) return; // ถ้าไม่มี token ให้ return
-
-  const response = await fetch(fetchStatus, {
-    headers: {
-      Authorization: `Bearer ${token}`, // ส่ง JWT Token
-      "Content-Type": "application/json",
-    },
-  });
+  // Fetch statuses for the specified board
+  const response = await fetchWithToken(
+    `${baseUrl}/v3/boards/${boardId}/statuses`
+  );
+  if (!response) return; // If response is null, return
+  
+  if (response.status === 404) {
+    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    return;
+  }
 
   if (!response.ok) {
     throw new Error(`Error fetching status: ${response.statusText}`);
@@ -99,14 +120,41 @@ async function fetchDataStatus() {
   return dataStatus;
 }
 
-const openModalDetail = async (id) => {
-  router.push({ name: "task-detail", params: { id: id } });
-};
+async function fetchBoard() {
+  const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}`);
+  if (!response) return; // ถ้าไม่มี response ให้ return
+
+  if (response.status === 404) {
+    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    return;
+  }
+
+  if (!response.ok) {
+    throw new Error(`Error fetching board: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  boardName.value = data.name; // เก็บชื่อบอร์ดใน boardName
+}
+
+// Functions for managing tasks
 const openModalAdd = async () => {
   router.push({ name: "task-add" });
 };
+const openModalDetail = async (id) => {
+  if (id) {
+    router.push({ name: "task-detail", params: { taskId: id, boardId } });
+  } else {
+    console.error("Task ID is missing");
+  }
+};
+
 const openModalEdit = async (id) => {
-  router.push({ name: "task-edit", params: { id: id } });
+  if (id) {
+    router.push({ name: "task-edit", params: { taskId: id, boardId } });
+  } else {
+    console.error("Task ID is missing");
+  }
 };
 if (window.location.pathname === `/task/${taskId}`) {
   openModalDetail(taskId);
@@ -118,42 +166,42 @@ const showToastDelete = ref(false);
 const deleteSuccess = ref(false);
 const showDelete = ref(false);
 const toastSuccess = ref(false);
+
 const openModalDelete = (taskId, title, index) => {
   showDelete.value = true;
   selectDeleteTaskId.value = taskId;
   selectDeleteTaskTitle.value = title;
   selectDeleteTaskIndex.value = index;
 };
+
 async function deleteTask(taskId) {
-  const token = getToken();
-  if (!token) return; // ถ้าไม่มี token ให้หยุดการทำงาน
-
-  try {
-    const response = await fetch(`${fetchTask}/${taskId}`, {
+  const response = await fetchWithToken(
+    `${baseUrl}/v3/boards/${boardId}/tasks/${taskId}`,
+    {
       method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`, // ส่ง JWT Token
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (response.ok) {
-      originalTasks.value = originalTasks.value.filter(
-        (task) => task.id !== taskId
-      );
-      store.tasks.value = [...originalTasks.value];
-      deleteSuccess.value = true;
-    } else {
-      deleteSuccess.value = false;
-      console.error("Failed to delete task");
     }
-  } catch (error) {
-    deleteSuccess.value = false;
-    console.error("Error deleting task:", error.message);
+  );
+
+  if (!response) return; // If response is null, return
+
+  if (response.status === 404) {
+    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    return;
   }
 
-  confirmDelete(); // เรียกใช้งานหลังจากการลบเสร็จสิ้น
-  showDelete.value = false; // ปิด modal
+  if (response.ok) {
+    originalTasks.value = originalTasks.value.filter(
+      (task) => task.id !== taskId
+    );
+    store.tasks.value = [...originalTasks.value];
+    deleteSuccess.value = true;
+  } else {
+    deleteSuccess.value = false;
+    console.error("Failed to delete task");
+  }
+
+  confirmDelete();
+  showDelete.value = false;
 }
 
 const confirmDelete = async () => {
@@ -181,13 +229,10 @@ const closeToastDelete = () => {
 };
 const closeModal = () => {
   showDelete.value = false;
-  router.push({ path: "/task" });
+  router.push({ path: `/board/${boardId}` });
 };
 
-const openStatus = () => {
-  router.push({ name: "statusView" });
-};
-
+// Sorting function
 const sortAscending = ref(undefined);
 
 const toggleSortOrder = () => {
@@ -224,84 +269,87 @@ watch(
     store.tasks.value = newVal;
   }
 );
+
+
 </script>
+
 <template>
   <Navbar class="itbkk-fullname" />
-  <div class="body">
-    <header>
-      <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
-      <h1 class="text-center">
-        IT-Bangmod Kradan Kanban
-        <h3>Home</h3>
-      </h1>
-      <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
-    </header>
-    <main class="flex flex-col items-center">
-      <div class="manageStatus">
+  <div class="pt-24">
+  <header class="mb-2 max-w-6xl mx-auto">
+    <!-- ชื่อหัวข้อบอร์ด -->
+    <h1 class="text-left text-3xl font-bold">IT-Bangmod Kradan Kanban</h1>
+    
+    <!-- Board List และปุ่มจัดการ -->
+    <div class="flex justify-between items-center mt-2">
+      <!-- แสดงชื่อบอร์ด -->
+      <h2 class="text-lg font-semibold text-gray-800"><span class="cursor-pointer" @click="router.push({ name: 'board' })">Board ></span> <span class="b">{{ boardName }}</span> </h2>
+      
+      <!-- ปุ่ม Manage Status และ Add Task -->
+      <div class="flex space-x-4">
+        <!-- ปุ่ม Manage Status -->
         <button
-          type="button"
-          class="itbkk-manage-status flex"
-          @click="openStatus"
+          @click="router.push({ name: 'status-manage' })"
+          class="flex items-center bg-white text-gray-800 px-4 py-2 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="32"
-            height="32"
-            viewBox="0 0 512 512"
+            width="20"
+            height="20"
+            fill="currentColor"
+            class="mr-2"
+            viewBox="0 0 16 16"
           >
             <path
-              fill="currentColor"
-              d="M256 176a80 80 0 1 0 80 80a80.24 80.24 0 0 0-80-80m172.72 80a165.53 165.53 0 0 1-1.64 22.34l48.69 38.12a11.59 11.59 0 0 1 2.63 14.78l-46.06 79.52a11.64 11.64 0 0 1-14.14 4.93l-57.25-23a176.56 176.56 0 0 1-38.82 22.67l-8.56 60.78a11.93 11.93 0 0 1-11.51 9.86h-92.12a12 12 0 0 1-11.51-9.53l-8.56-60.78A169.3 169.3 0 0 1 151.05 393L93.8 416a11.64 11.64 0 0 1-14.14-4.92L33.6 331.57a11.59 11.59 0 0 1 2.63-14.78l48.69-38.12A174.58 174.58 0 0 1 83.28 256a165.53 165.53 0 0 1 1.64-22.34l-48.69-38.12a11.59 11.59 0 0 1-2.63-14.78l46.06-79.52a11.64 11.64 0 0 1 14.14-4.93l57.25 23a176.56 176.56 0 0 1 38.82-22.67l8.56-60.78A11.93 11.93 0 0 1 209.94 26h92.12a12 12 0 0 1 11.51 9.53l8.56 60.78A169.3 169.3 0 0 1 361 119l57.2-23a11.64 11.64 0 0 1 14.14 4.92l46.06 79.52a11.59 11.59 0 0 1-2.63 14.78l-48.69 38.12a174.58 174.58 0 0 1 1.64 22.66"
+              d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0Zm3.5 7.5H8.5v-3a.5.5 0 1 0-1 0v3h-3a.5.5 0 1 0 0 1h3v3a.5.5 0 1 0 1 0v-3h3a.5.5 0 1 0 0-1Z"
             />
           </svg>
-          <span class="mntext">Manage Status</span>
+          Manage Status
+        </button>
+        
+        <!-- ปุ่ม Add Task -->
+        <button
+          @click="openModalAdd"
+          class="flex items-center bg-white text-gray-800 px-4 py-2 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            fill="currentColor"
+            class="mr-2"
+            viewBox="0 0 16 16"
+          >
+            <path
+              d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0Zm3.5 7.5H8.5v-3a.5.5 0 1 0-1 0v3h-3a.5.5 0 1 0 0 1h3v3a.5.5 0 1 0 1 0v-3h3a.5.5 0 1 0 0-1Z"
+            />
+          </svg>
+          Add Task
         </button>
       </div>
+    </div>
+  </header>
+</div>
 
-      <div class="btn-a" v-for="task in store.tasks.value">
-        <div
-          class="itbkk-button-add button iconbutton"
-          @click="openModalAdd(task)"
-        >
-          <i class="plus">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="1em"
-              height="1em"
-              viewBox="0 0 24 24"
-            >
-              <g fill="none">
-                <path
-                  d="M24 0v24H0V0zM12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035c-.01-.004-.019-.001-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427c-.002-.01-.009-.017-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093c.012.004.023 0 .029-.008l.004-.014l-.034-.614c-.003-.012-.01-.02-.02-.022m-.715.002a.023.023 0 0 0-.027.006l-.006.014l-.034.614c0 .012.007.02.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"
-                ></path>
-                <path
-                  fill="currentColor"
-                  d="M10.5 20a1.5 1.5 0 0 0 3 0v-6.5H20a1.5 1.5 0 0 0 0-3h-6.5V4a1.5 1.5 0 0 0-3 0v6.5H4a1.5 1.5 0 0 0 0 3h6.5z"
-                ></path>
-              </g>
-            </svg>
-          </i>
-        </div>
-      </div>
+  <div class="body">
+
+    <main class="flex flex-col items-center">
       <div class="tb">
         <table>
           <thead>
             <tr>
-              <th></th>
+              <th>#</th>
               <th>Title</th>
               <th>Assignees</th>
               <th class="sortstt flex justify-center">
-                Status<button
-                  class="itbkk-status-sort"
-                  @click="toggleSortOrder"
-                >
+                Status
+                <button class="itbkk-status-sort" @click="toggleSortOrder">
                   <svg
-                    v-if="sortAscending === true"
+                    v-if="sortAscending"
                     xmlns="http://www.w3.org/2000/svg"
                     width="1.3em"
                     height="1.3em"
                     viewBox="0 0 24 24"
-                    class="a"
                   >
                     <path
                       fill="none"
@@ -313,12 +361,11 @@ watch(
                     ></path>
                   </svg>
                   <svg
-                    v-else-if="sortAscending === false"
+                    v-else
                     xmlns="http://www.w3.org/2000/svg"
                     width="1.3em"
                     height="1.3em"
                     viewBox="0 0 24 24"
-                    class="b"
                   >
                     <path
                       fill="none"
@@ -329,98 +376,28 @@ watch(
                       d="m3 8l4-4l4 4M7 4v16M20 8h-5m0 2V6.5a2.5 2.5 0 0 1 5 0V10m-5 4h5l-5 6h5"
                     ></path>
                   </svg>
-                  <svg
-                    v-else
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="1.3em"
-                    height="1.3em"
-                    viewBox="0 0 24 24"
-                    class="c"
-                  >
-                    <path
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="m3 16l4 4l4-4m-4 4V4m13 4h-5m0 2V6.5a2.5 2.5 0 0 1 5 0V10m-5 4h5l-5 6h5"
-                    ></path>
-                  </svg>
                 </button>
               </th>
-              <th></th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr
-              v-for="(task, index) in store.tasks.value"
-              :key="task.id"
-              class="itbkk-item"
-              :data-task-id="task.id"
-            >
-              <td class="bgd">
-                <span class="bgi">id : </span>
-                <div class="idkb flex-">
-                  {{ index + 1 }}
-                </div>
-              </td>
-              <td class="itbkk-title">
-                <p @click="openModalDetail(task.id)" value="id">
-                  {{ task.title }}
-                </p>
-              </td>
-              <td class="itbkk-assignees">
-                <span
-                  v-if="!task.assignees?.trim()"
-                  class="itbkk-assignees unassigned"
-                >
-                  Unassigned
-                </span>
-                <span v-else>{{ task.assignees }}</span>
-              </td>
-              <td class="itbkk-status"><Badges :status="task.status" /></td>
-              <td class="itbkk-button-action">
-                <svg
-                  class="itbkk-button-edit"
-                  @click="openModalEdit(task.id)"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="30"
-                  height="30"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    fill="currentColor"
-                    fill-rule="evenodd"
-                    d="M17.907 4.93c.104-.105.294-.186.539-.18a.848.848 0 0 1 .572.216c.13.13.222.34.231.575c.01.234-.065.413-.167.515l-7.49 7.5l-1.273.116l.1-1.245zm2.173-1.024c-.437-.438-1.037-.643-1.6-.656c-.564-.013-1.182.167-1.635.62l-7.682 7.692a.75.75 0 0 0-.217.47l-.194 2.407a.75.75 0 0 0 .816.807l2.43-.22a.75.75 0 0 0 .463-.218l7.682-7.692c.456-.456.627-1.073.605-1.635a2.373 2.373 0 0 0-.668-1.575M5.812 4.75a2.568 2.568 0 0 0-2.563 2.562v10.875a2.568 2.568 0 0 0 2.563 2.563h10.875a2.568 2.568 0 0 0 2.563-2.562V12.75a.75.75 0 0 0-1.5 0v5.438c0 .582-.48 1.062-1.063 1.062H5.812c-.583 0-1.063-.48-1.063-1.062V7.312c0-.582.48-1.062 1.063-1.062h5.437a.75.75 0 0 0 0-1.5z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-                <svg
-                  class="itbkk-button-delete"
-                  @click="openModalDelete(task.id, task.title, index + 1)"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="30"
-                  height="30"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    fill="currentColor"
-                    d="M20 8.7H4a.75.75 0 1 1 0-1.5h16a.75.75 0 0 1 0 1.5"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M16.44 20.75H7.56A2.4 2.4 0 0 1 5 18.49V8a.75.75 0 0 1 1.5 0v10.49c0 .41.47.76 1 .76h8.88c.56 0 1-.35 1-.76V8A.75.75 0 1 1 19 8v10.49a2.4 2.4 0 0 1-2.56 2.26m.12-13a.74.74 0 0 1-.75-.75V5.51c0-.41-.48-.76-1-.76H9.22c-.55 0-1 .35-1 .76V7a.75.75 0 1 1-1.5 0V5.51a2.41 2.41 0 0 1 2.5-2.26h5.56a2.41 2.41 0 0 1 2.53 2.26V7a.75.75 0 0 1-.75.76Z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M10.22 17a.76.76 0 0 1-.75-.75v-4.53a.75.75 0 0 1 1.5 0v4.52a.75.75 0 0 1-.75.76m3.56 0a.75.75 0 0 1-.75-.75v-4.53a.75.75 0 0 1 1.5 0v4.52a.76.76 0 0 1-.75.76"
-                  />
-                </svg>
+            <tr v-for="(task, index) in sortedTasks" :key="task.id">
+              <td>{{ index + 1 }}</td>
+              <td @click="openModalDetail(task.id)">{{ task.title }}</td>
+              <td>{{ task.assignees || "Unassigned" }}</td>
+              <td><Badges :status="task.status" /></td>
+              <td>
+                <button @click="openModalEdit(task.id)">Edit</button>
+                <button @click="openModalDelete(task.id, task.title, index)">
+                  Delete
+                </button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
+
       <ModalDelete
         v-if="showDelete"
         :taskId="selectDeleteTaskId"
@@ -428,35 +405,38 @@ watch(
         :indexs="selectDeleteTaskIndex"
         @closeModal="closeModal"
         @confirmDeleteModal="deleteTask"
-      >
-      </ModalDelete>
+      />
       <ToastAdd v-if="showToastAdd" @close="closeToast" />
-      <ToastEdit v-if="showToastEdit" @close="closeToast"></ToastEdit>
+      <ToastEdit v-if="showToastEdit" @close="closeToast" />
       <ToastDelete
         v-if="showToastDelete"
         :isDeleteSuccess="deleteSuccess"
         @close="closeToastDelete"
-      >
-      </ToastDelete>
+      />
     </main>
     <footer>
       <Copyright />
     </footer>
     <Bg_effect />
   </div>
-  <router-view></router-view>
+  <router-view />
 </template>
+
 <style scoped>
 @import url("https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono");
 @import url("https://fonts.googleapis.com");
 @import url("https://fonts.gstatic.com");
 @import url("https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
-* {
-  user-select: none;
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  scroll-behavior: smooth;
+
+
+h1 {
+  font-family: "Ubuntu", sans-serif;
+  /* font-weight: 500; */
+  /* font-style: normal; */
+  /* font-size: 40px; */
+  color: #47467b;
+  /* font-weight: 800; */
+  /* margin: 4rem 0 2rem; */
 }
 
 h3 {
@@ -469,9 +449,10 @@ h3 {
   justify-content: center;
 }
 
-.itbkk-fullname {
+/* .itbkk-fullname {
   box-shadow: none;
-}
+} */
+ 
 .itbkk-status-sort {
   box-shadow: none;
   padding-left: 10px;
@@ -503,20 +484,11 @@ h3 {
   padding-left: 5px;
   padding-right: 5px;
 }
-.manageStatus {
-  display: flex;
-  width: 100%;
-  max-width: 900px;
-  padding-left: 2rem;
-}
+
 .itbkk-manage-status {
   font-style: italic;
-  background-color: #343365;
-  color: #fff7d9;
   background-color: #6f418f;
   color: #f5e2ff;
-  padding: 10px;
-  border-radius: 50px;
   transition: transform 0.3s ease;
 }
 .itbkk-manage-status:hover {
@@ -527,10 +499,7 @@ h3 {
   font-style: italic;
   color: gray;
 }
-.addtask {
-  margin-right: 45rem;
-  text-align: center;
-}
+
 .plus {
   font-size: 40px;
   font-weight: 10px;
@@ -549,13 +518,13 @@ h3 {
   transition: transform 0.3s ease;
   color: #ad386f;
 }
-.btn-a {
+/* .btn-a {
   position: fixed;
   bottom: 50px;
   right: 50px;
   cursor: pointer;
   z-index: 2;
-}
+} */
 .iconbutton {
   width: 50px;
   height: 50px;
@@ -563,9 +532,11 @@ h3 {
   box-shadow: 5px 5px 5px #49494946;
 }
 .itbkk-button-add {
-  width: 80px;
-  height: 80px;
-  background: #ad386f;
+  font-style: italic;
+  background-color: #ad386f;
+  color: #f5e2ff;
+  transition: transform 0.3s ease;
+  
 }
 .iconbutton i {
   display: flex;
@@ -574,10 +545,7 @@ h3 {
   height: 100%;
   color: white;
 }
-.button:hover {
-  background-color: #66163b;
-  color: white;
-}
+
 .itbkk-assignees {
   font-style: normal;
   width: auto;
@@ -601,29 +569,14 @@ h3 {
   color: gray;
   font-style: italic;
 }
-header {
-  margin-bottom: 20px;
-}
 
-.addtask {
-  margin-right: 45rem;
-  text-align: center;
-}
 .kebab {
   color: #939393;
 }
 .idkb {
   display: inline;
 }
-h1 {
-  font-family: "Ubuntu", sans-serif;
-  font-weight: 500;
-  font-style: normal;
-  font-size: 40px;
-  color: #47467b;
-  font-weight: 800;
-  margin: 4rem 0 2rem;
-}
+
 .tb {
   padding: 2rem;
   width: 100%;

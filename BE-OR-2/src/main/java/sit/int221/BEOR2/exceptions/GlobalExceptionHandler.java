@@ -30,6 +30,16 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
 
+    @ExceptionHandler(ApiForbiddenException.class)
+    protected ResponseEntity<ErrorResponse> handleApiForbiddenException(ApiForbiddenException exception, HttpServletRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setTimestamp(new Date());
+        errorResponse.setStatus(HttpStatus.FORBIDDEN.value());
+        errorResponse.setMessage(exception.getMessage());
+        errorResponse.setInstance(request.getRequestURI());
+        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+    }
+
     @ExceptionHandler(ApiNotFoundException.class)
     protected ResponseEntity<ErrorResponse> handleApiNotFoundException(ApiNotFoundException exception, HttpServletRequest request) {
         ErrorResponse errorResponse = new ErrorResponse();

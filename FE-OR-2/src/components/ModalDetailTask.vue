@@ -3,37 +3,55 @@ import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useTaskStore } from "@/stores/api.js";
 
-const fetchTask = import.meta.env.VITE_API_TASK;
-const fetchStatus = import.meta.env.VITE_API_STATUS;
+// API Endpoint URLs
+const baseUrl = import.meta.env.VITE_API_BOARDS;
+const fetchTask = import.meta.env.VITE_API_BOARD_TASK; // ใช้ URL ตามที่กำหนดใน .env
+const fetchStatus = import.meta.env.VITE_API_BOARD_STATUS; // ใช้ URL ตามที่กำหนดใน .env
 
+// Pinia store for tasks and statuses
 const store = useTaskStore();
 const route = useRoute();
 const router = useRouter();
-const id = route.params.id;
+const boardId = route.params.boardId; // ดึงค่า boardId จาก URL
+const taskId = route.params.taskId; // ดึงค่า id ของ task
 const localTimeZone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone);
-const modalDetail = ref([""]);
+const modalDetail = ref({});
 const status = ref({});
 
-function getToken() {
+// ฟังก์ชันสำหรับเรียก API พร้อม JWT Token
+async function fetchWithToken(url, options = {}) {
   const token = localStorage.getItem("jwtToken");
-  if (!token) {
-    console.error("No token available");
-    router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
-    return null;
-  }
-  return token;
-}
+  if (!token) return null; // ถ้าไม่มี token ให้ return null
 
-async function fetchDataStatus() {
-  const token = getToken();
-  if (!token) return;
-
-  const response = await fetch(fetchStatus, {
+  const response = await fetch(url, {
+    ...options,
     headers: {
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${token}`, // ส่ง JWT Token
       "Content-Type": "application/json",
+      ...options.headers,
     },
   });
+
+  // ตรวจสอบสถานะ 401 Unauthorized
+  if (response.status === 401) {
+    router.push("/login"); // Redirect ไปหน้า login
+    return null;
+  }
+
+  return response;
+}
+
+// ฟังก์ชันดึงข้อมูล Status ของบอร์ดปัจจุบัน
+async function fetchDataStatus() {
+  const response = await fetchWithToken(
+    `${baseUrl}/v3/boards/${boardId}/statuses` // ใช้ fetchWithToken พร้อม boardId
+  );
+  if (!response) return; // ถ้า response เป็น null ให้ return
+
+  if (response.status === 404) {
+    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    return;
+  }
 
   if (!response.ok) {
     throw new Error(`Failed to fetch status: ${response.statusText}`);
@@ -47,6 +65,7 @@ async function fetchDataStatus() {
   return dataStatus;
 }
 
+// ฟังก์ชันฟอร์แมตวันที่
 function formatDate(date) {
   if (!date) {
     return "N/A"; // กรณีที่ไม่มีวันที่ส่งเข้ามา
@@ -63,21 +82,17 @@ function formatDate(date) {
     .join(" ");
 }
 
-onMounted(async () => {
-  const datastatus = await fetchDataStatus();
-  store.status.value = datastatus;
-});
+// ฟังก์ชันเปิด Modal สำหรับแสดงรายละเอียดของ Task
+async function openModalDetail() {
+  const response = await fetchWithToken(
+    `${baseUrl}/v3/boards/${boardId}/tasks/${taskId}` // ใช้ fetchWithToken สำหรับ task ที่เลือก
+  );
+  if (!response) return; // ถ้า response เป็น null ให้ return
 
-const openModalDetail = async () => {
-  const token = getToken();
-  if (!token) return;
-
-  const response = await fetch(`${fetchTask}/${id}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  if (response.status === 404) {
+    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    return;
+  }
 
   const res = await response.json();
   modalDetail.value = res;
@@ -89,16 +104,23 @@ const openModalDetail = async () => {
       alert("The requested task does not exist");
     }, 500);
   }
-};
+}
 
+// ฟังก์ชันที่เรียกเมื่อ component ถูก mounted
 onMounted(async () => {
-  openModalDetail();
+  const datastatus = await fetchDataStatus(); // ดึงข้อมูล status
+  if (datastatus) {
+    store.status.value = datastatus;
+  }
+  await openModalDetail(); // ดึงรายละเอียด task
 });
 
+// ฟังก์ชันปิด Modal
 const closeModal = () => {
-  router.push({ name: "task" });
+  router.push({ name: "board-tasks", params: { boardId: boardId } }).catch(() => {});
 };
 </script>
+
 <template>
   <div class="details fixed inset-0 overflow-y-auto bg-black bg-opacity-50">
     <div
@@ -185,7 +207,8 @@ const closeModal = () => {
                     >
                       <option
                         v-for="(status, index) in store.status.value"
-                        :selected="status.name == modalDetail.status"
+                        :key="index"
+                       
                       >
                         {{ status.name }}
                       </option>
@@ -219,6 +242,7 @@ const closeModal = () => {
     </div>
   </div>
 </template>
+
 
 <style>
 @import url("https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono");

@@ -12,4 +12,6 @@ import lombok.Setter;
 public class BoardDto {
     private String id;
     private String name;
+    private String visibility;
+    private UserDto owner;
 }

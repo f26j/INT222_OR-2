@@ -12,5 +12,14 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
+  },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080', // URL ของ API ที่ต้องการ Proxy
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '') // ลบ '/api' ออกเมื่อส่งคำขอไปยัง Backend
+      }
+    }
   }
 })

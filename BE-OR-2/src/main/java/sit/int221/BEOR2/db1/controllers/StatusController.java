@@ -8,11 +8,11 @@ import sit.int221.BEOR2.db1.dtos.StatusDto;
 import sit.int221.BEOR2.db1.entities.Status;
 import sit.int221.BEOR2.db1.services.StatusService;
 import sit.int221.BEOR2.BeOr2CrossOrigin;
-
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequestMapping("/v2/statuses")
+@RequestMapping("/v3/boards/{id}/statuses")
 @BeOr2CrossOrigin
 public class StatusController {
     @Autowired
@@ -22,42 +22,46 @@ public class StatusController {
 
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
-    public List<StatusDto> getStatuses() {
-        List<Status> statuses = statusService.getStatuses();
+    public List<StatusDto> getStatuses(@PathVariable String id) {
+        List<Status> statuses = statusService.getStatuses(id);
         return statuses.stream().map(status -> new StatusDto(
-                    status.getId(),
-                    status.getName(),
-                    status.getDescription()
-                )).toList();
+                status.getId(),
+                status.getName(),
+                status.getDescription()
+        )).toList();
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{statusId}")
     @ResponseStatus(HttpStatus.OK)
-    public Status getStatusById(@PathVariable Integer id) {
-        return statusService.getStatusById(id);
+    public Status getStatusById(@PathVariable String id, @PathVariable Integer statusId) {
+        return statusService.getStatusById(id, statusId);
     }
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public StatusDto addStatus(@RequestBody Status status) {
-        return modelMapper.map(statusService.addStatus(status), StatusDto.class);
+    public StatusDto addStatus(@PathVariable String id, @Valid @RequestBody Status status) {
+        return modelMapper.map(statusService.addStatus(id, status), StatusDto.class);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{statusId}")
     @ResponseStatus(HttpStatus.OK)
-    public StatusDto editStatus(@PathVariable Integer id, @RequestBody Status status) {
-        return modelMapper.map(statusService.editStatus(id, status), StatusDto.class);
+    public StatusDto editStatus(@PathVariable String id,
+                                @PathVariable Integer statusId,
+                                @Valid @RequestBody Status status) {
+        return modelMapper.map(statusService.editStatus(id, statusId, status), StatusDto.class);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{statusId}")
     @ResponseStatus(HttpStatus.OK)
-    public void deleteStatus(@PathVariable Integer id) {
-        statusService.deleteStatus(id);
+    public void deleteStatus(@PathVariable String id, @PathVariable Integer statusId) {
+        statusService.deleteStatus(id, statusId);
     }
 
-    @DeleteMapping("/{id}/{newId}")
+    @DeleteMapping("/{statusId}/{statusNewId}")
     @ResponseStatus(HttpStatus.OK)
-    public void transferStatus(@PathVariable Integer id, @PathVariable Integer newId) {
-        statusService.transferStatus(id, newId);
+    public void transferStatus(@PathVariable String id,
+                               @PathVariable Integer statusId,
+                               @PathVariable Integer statusNewId) {
+        statusService.transferStatus(id, statusId, statusNewId);
     }
 }

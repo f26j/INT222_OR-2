@@ -5,17 +5,20 @@ import { useRoute, useRouter } from "vue-router";
 import { useTaskStore } from "@/stores/api.js";
 import { useToastStore } from "@/stores/toast.js";
 
-// Store,Api zone
+// Store, API zone
 const route = useRoute();
 const router = useRouter();
 const store = useTaskStore();
 const toastStore = useToastStore();
-const fetchTask = import.meta.env.VITE_API_TASK;
-const fetchStatus = import.meta.env.VITE_API_STATUS;
+const boardId = route.params.boardId; // ดึงค่า boardId จาก URL
+const taskId = route.params.taskId || ""; // ดึงค่า taskId จาก URL
+
+const baseUrl = import.meta.env.VITE_API_BOARDS;
+const fetchTask = import.meta.env.VITE_API_BOARD_TASK;
+const fetchStatus = import.meta.env.VITE_API_BOARD_STATUS;
 
 // Variable zone
-const id = route.params.id;
-const modalEdit = ref([""]);
+const modalEdit = ref(null);
 const localTimeZone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone);
 const newTitle = ref("");
 const newDescription = ref("");
@@ -27,29 +30,39 @@ const originalAssignee = ref("");
 const originalDescription = ref("");
 const originalStatus = ref({});
 
-function getToken() {
+// ฟังก์ชันสำหรับดึง Token และเรียก API พร้อม Token
+async function fetchWithToken(url, options = {}) {
   const token = localStorage.getItem("jwtToken");
-  if (!token) {
-    console.error("No token available");
-    router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
-    return null;
-  }
-  return token;
-}
+  if (!token) return null;
 
-async function fetchDataStatus() {
-  const token = getToken(); // ดึง JWT Token จาก localStorage
-  if (!token) return; // ถ้าไม่มี Token ให้หยุดการทำงาน
-
-  const response = await fetch(fetchStatus, {
+  const response = await fetch(url, {
+    ...options,
     headers: {
-      Authorization: `Bearer ${token}`, // ส่ง JWT Token
+      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
+      ...options.headers,
     },
   });
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch status: ${response.statusText}`);
+  // ตรวจสอบสถานะ 401 Unauthorized
+  if (response.status === 401) {
+    router.push("/login");
+    return null;
+  }
+
+  return response;
+}
+
+// ฟังก์ชันดึงข้อมูล Status
+async function fetchDataStatus() {
+  const response = await fetchWithToken(
+    `${baseUrl}/v3/boards/${boardId}/statuses`
+  );
+  if (!response) return;
+
+  if (response.status === 404) {
+    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    return;
   }
 
   const dataStatus = await response.json();
@@ -60,14 +73,15 @@ async function fetchDataStatus() {
   return dataStatus;
 }
 
+// ฟังก์ชันสำหรับฟอร์แมตวันที่
 function formatDate(date) {
   if (!date) {
-    return "N/A"; // กรณีที่ไม่มีวันที่ส่งเข้ามา
+    return "N/A";
   }
 
   const d = new Date(date);
   if (isNaN(d)) {
-    return "Invalid Date"; // กรณีที่วันที่ไม่ถูกต้อง
+    return "Invalid Date";
   }
 
   return d
@@ -76,16 +90,17 @@ function formatDate(date) {
     .join(" ");
 }
 
+// ฟังก์ชันเปิด Modal สำหรับแก้ไข Task
 const openModalEdit = async () => {
-  const token = getToken(); // ดึง token จาก localStorage
-  if (!token) return;
+  if (!taskId) {
+    console.error("Task ID is missing");
+    return;
+  }
 
-  const response = await fetch(`${fetchTask}/${id}`, {
-    headers: {
-      Authorization: `Bearer ${token}`, // ส่ง JWT Token
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await fetchWithToken(
+    `${baseUrl}/v3/boards/${boardId}/tasks/${taskId}`
+  );
+  if (!response) return;
 
   const res = await response.json();
   if (!response.ok) {
@@ -95,6 +110,7 @@ const openModalEdit = async () => {
     }, 500);
     return;
   }
+
   modalEdit.value = res;
   newTitle.value = modalEdit.value.title || "";
   newDescription.value = modalEdit.value.description || "";
@@ -107,23 +123,22 @@ const openModalEdit = async () => {
   originalStatus.value = { ...modalEdit.value.status };
 };
 
+// เมื่อ component mount
 onMounted(async () => {
   openModalEdit();
   const datastatus = await fetchDataStatus();
   store.status.value = datastatus;
 });
 
+// ฟังก์ชันแก้ไข Task
 const editTask = async () => {
-  const token = getToken();
-  if (!token) return;
-
   const editedTask = {
-    id: id,
+    id: taskId,
     title: newTitle.value.trim(),
     description: newDescription.value.trim(),
     assignees: newAssignees.value.trim(),
     status: store.status.value.find(
-      (status) => status.name == newStatus.value.name
+      (status) => status.name === newStatus.value.name
     ),
   };
 
@@ -132,20 +147,19 @@ const editTask = async () => {
   }
 
   try {
-    const response = await fetch(`${fetchTask}/${id}`, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`, // ส่ง JWT Token
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(editedTask),
-    });
+    const response = await fetchWithToken(
+      `${baseUrl}/v3/boards/${boardId}/tasks/${taskId}`,
+      {
+        method: "PUT",
+        body: JSON.stringify(editedTask),
+      }
+    );
 
     if (!response.ok) {
       throw new Error("Failed to edit task");
-    } else {
-      store.updateTask({ ...editedTask });
     }
+
+    store.updateTask({ ...editedTask });
 
     closeModal();
     toastStore.handleTaskEdited();
@@ -154,10 +168,12 @@ const editTask = async () => {
   }
 };
 
+// ฟังก์ชันปิด Modal
 const closeModal = () => {
-  router.push({ name: "task" });
+  router.push({ name: "board-tasks", params: { boardId } });
 };
 </script>
+
 <template>
   <div
     v-if="modalEdit"

@@ -7,88 +7,92 @@ export const useToastStore = defineStore("toast", () => {
   const showToastAddStatus = ref(false);
   const showToastEditStatus = ref(false);
   const showToastDeleteStatus = ref(false);
-  const addSuccess = ref(false)
-  const editSuccess = ref(false)
-  const deleteSuccess = ref(false)
-  const showToastLogin = ref(false)
+  const addSuccess = ref(false);
+  const editSuccess = ref(false);
+  const deleteSuccess = ref(false);
+  const showToastLogin = ref(false);
+
+  // Timeout references
+  let toastAddTimeout = null;
+  let toastEditTimeout = null;
+  let toastAddStatusTimeout = null;
+  let toastEditStatusTimeout = null;
+  let toastDeleteStatusTimeout = null;
+  let toastLoginTimeout = null;
+
+  const resetTimeout = (timeoutRef, callback, duration = 5000) => {
+    if (timeoutRef) clearTimeout(timeoutRef); // Clear existing timeout
+    return setTimeout(callback, duration); // Set new timeout
+  };
 
   const handleTaskAdded = () => {
     showToastAdd.value = true;
-    console.log(showToastAdd.value);
-    setTimeout(() => {
+    toastAddTimeout = resetTimeout(toastAddTimeout, () => {
       showToastAdd.value = false;
-    }, 5000);
+    });
   };
 
   const handleTaskEdited = () => {
     showToastEdit.value = true;
-    console.log(showToastEdit.value);
-    setTimeout(() => {
+    toastEditTimeout = resetTimeout(toastEditTimeout, () => {
       showToastEdit.value = false;
-    }, 5000);
+    });
   };
 
   const handleStatusAdded = () => {
     showToastAddStatus.value = true;
-    addSuccess.value = true
-    console.log(showToastAddStatus.value);
-    setTimeout(() => {
-        showToastAddStatus.value = false;
-    }, 5000);
+    addSuccess.value = true;
+    toastAddStatusTimeout = resetTimeout(toastAddStatusTimeout, () => {
+      showToastAddStatus.value = false;
+    });
   };
-  
+
   const handleStatusAddedF = () => {
     showToastAddStatus.value = true;
-    addSuccess.value = false
-    console.log(showToastAddStatus.value);
-    setTimeout(() => {
+    addSuccess.value = false;
+    toastAddStatusTimeout = resetTimeout(toastAddStatusTimeout, () => {
       showToastAddStatus.value = false;
-    }, 5000);
+    });
   };
-  
+
   const handleStatusEdited = () => {
     showToastEditStatus.value = true;
-    editSuccess.value = true
-    console.log(showToastEditStatus.value);
-    setTimeout(() => {
+    editSuccess.value = true;
+    toastEditStatusTimeout = resetTimeout(toastEditStatusTimeout, () => {
       showToastEditStatus.value = false;
-    }, 5000);
+    });
   };
-  
+
   const handleStatusEditedF = () => {
     showToastEditStatus.value = true;
-    editSuccess.value = false
-    console.log(showToastEditStatus.value);
-    setTimeout(() => {
+    editSuccess.value = false;
+    toastEditStatusTimeout = resetTimeout(toastEditStatusTimeout, () => {
       showToastEditStatus.value = false;
-    }, 5000);
+    });
   };
 
   const handleStatusDeleted = () => {
     showToastDeleteStatus.value = true;
-    deleteSuccess.value = true
-    console.log(showToastDeleteStatus.value);
-    setTimeout(() => {
+    deleteSuccess.value = true;
+    toastDeleteStatusTimeout = resetTimeout(toastDeleteStatusTimeout, () => {
       showToastDeleteStatus.value = false;
-    }, 5000);
+    });
   };
-  
+
   const handleStatusDeletedF = () => {
     showToastDeleteStatus.value = true;
-    deleteSuccess.value = false
-    console.log(showToastDeleteStatus.value);
-    setTimeout(() => {
+    deleteSuccess.value = false;
+    toastDeleteStatusTimeout = resetTimeout(toastDeleteStatusTimeout, () => {
       showToastDeleteStatus.value = false;
-    }, 5000);
+    });
   };
 
   const handleLogin = () => {
-    showToastLogin.value = true
-    console.log(showToastLogin.value)
-    setTimeout(() => {
-      showToastLogin.value = false
-    }, 5000)
-  }
+    showToastLogin.value = true;
+    toastLoginTimeout = resetTimeout(toastLoginTimeout, () => {
+      showToastLogin.value = false;
+    });
+  };
 
   const closeToast = () => {
     showToastAdd.value = false;
@@ -97,6 +101,14 @@ export const useToastStore = defineStore("toast", () => {
     showToastEditStatus.value = false;
     showToastDeleteStatus.value = false;
     showToastLogin.value = false;
+
+    // Clear all timeouts when toast is manually closed
+    clearTimeout(toastAddTimeout);
+    clearTimeout(toastEditTimeout);
+    clearTimeout(toastAddStatusTimeout);
+    clearTimeout(toastEditStatusTimeout);
+    clearTimeout(toastDeleteStatusTimeout);
+    clearTimeout(toastLoginTimeout);
   };
 
   return {
@@ -119,5 +131,5 @@ export const useToastStore = defineStore("toast", () => {
     handleStatusDeletedF,
     handleLogin,
     closeToast,
-  }
+  };
 });
