@@ -87,13 +87,14 @@ public class BoardService {
         // ตรวจสอบว่ามีชื่อสถานะซ้ำกันหรือไม่
         List<String> defaultStatusNames = Arrays.asList("No Status", "To Do", "Doing", "Done");
         for (String statusName : defaultStatusNames) {
-            if (!statusRepository.existsByNameAndBoardId(statusName, savedBoard.getId())) {
-                Status status = new Status(savedBoard, statusName, "Default status");
+            String uniqueStatusName = statusName + " " + uniqueSuffix;
+            if (!statusRepository.existsByNameAndBoardId(uniqueStatusName, savedBoard.getId())) {
+                Status status = new Status(savedBoard, uniqueStatusName, "Default status");
                 statusRepository.saveAndFlush(status);
             } else {
-                log.warn("Status with name '{}' already exists for board '{}'", statusName, savedBoard.getId());
+                log.warn("Status with name '{}' already exists for board '{}'", uniqueStatusName, savedBoard.getId());
             }
-        };
+        }
 
         // ตรวจสอบการตอบกลับ
         BoardDto responseDto = new BoardDto();
