@@ -5,8 +5,7 @@ import { useToastStore } from "@/stores/toast.js";
 import { useTaskStore } from "@/stores/api.js";
 
 // Store, API zone
-const fetchTask = import.meta.env.VITE_API_BOARD_TASK || "";
-const fetchStatus = import.meta.env.VITE_API_STATUS || "";
+const baseUrl = import.meta.env.VITE_API_BOARDS;
 const router = useRouter();
 const store = useTaskStore();
 const toastStore = useToastStore();
@@ -51,15 +50,15 @@ async function fetchWithToken(url, options = {}) {
 
 // ดึงข้อมูล Status ของ Board
 async function fetchDataStatus() {
-  if (!fetchStatus) {
-    console.error("fetchStatus URL is not defined");
-    return;
-  }
-
   const response = await fetchWithToken(
-    fetchStatus.replace("{board}", boardId)
+    (`${baseUrl}/v3/boards/${boardId}/statuses`)
   ); // ใช้ fetchWithToken
   if (!response) return; // ถ้า response เป็น null ให้ return
+
+  if (response.status === 404) {
+    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    return;
+  }
 
   const dataStatus = await response.json();
   if (!Array.isArray(dataStatus)) {
@@ -102,7 +101,7 @@ const addTask = async () => {
   }
 
   try {
-    const response = await fetchWithToken(`${fetchTask}/${boardId}/tasks`, {
+    const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}/tasks`, {
       // ใช้ URL ที่รวม boardId
       method: "POST",
       body: JSON.stringify(newTask),

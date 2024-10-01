@@ -1,15 +1,16 @@
-import { ref } from "vue";
+import { reactive, ref } from "vue";
 import { defineStore } from "pinia";
+import { useUserStore } from "@/stores/users.js";
 
 // Task Store
 export const useTaskStore = defineStore("apiTask", () => {
-  const tasks = ref([]);
+  const tasks = reactive([]);
   const status = ref([]);
 
   const updateTask = (updatedTask) => {
-    const index = tasks.value.findIndex(
-      (task) => parseInt(task.id) === parseInt(updatedTask.id)
-    );
+    const index = tasks.value.findIndex((task) => {
+      return parseInt(task.id) === parseInt(updatedTask.id);
+    });
     if (index !== -1) {
       tasks.value[index] = updatedTask;
     } else {
@@ -43,9 +44,31 @@ export const useStatusStore = defineStore("apiStatus", () => {
 });
 
 // Board Store
-// Board Store
 export const useBoardStore = defineStore("apiBoard", () => {
   const boards = ref([]);
+  const baseUrl = import.meta.env.VITE_API_BOARDS;
+  const userStore = useUserStore();
+
+  const fetchBoards = async () => {
+    try {
+      const token = localStorage.getItem("jwtToken");
+      const response = await fetch(`${baseUrl}/v3/boards`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch boards");
+      }
+      const data = await response.json();
+      boards.value = data; // Save the fetched boards
+    } catch (error) {
+      console.error("Error fetching boards:", error.message);
+    }
+  };
 
   const createBoard = async (newBoard) => {
     try {
@@ -80,5 +103,50 @@ export const useBoardStore = defineStore("apiBoard", () => {
     }
   };
 
-  return { boards, createBoard, updateBoard, addBoard };
+  // ฟังก์ชันลบ Board พร้อมตรวจสอบ oid
+  const deleteBoard = async (boardId) => {
+    try {
+      const token = localStorage.getItem("jwtToken");
+      const board = boards.value.find((board) => board.id === boardId);
+
+      // ตรวจสอบว่าเจอ board หรือไม่
+      if (!board) {
+        throw new Error("Board not found");
+      }
+
+      // ตรวจสอบว่า oid ของบอร์ดตรงกับ oid ของผู้ใช้หรือไม่
+      if (board.owner.oid !== userStore.oid) {
+        throw new Error(
+          "Permission denied: You are not the owner of this board"
+        );
+      }
+
+      const response = await fetch(`${baseUrl}/v3/boards/${boardId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete board");
+      }
+
+      // ลบ board จาก store
+      boards.value = boards.value.filter((b) => b.id !== boardId);
+      console.log("Board deleted successfully:", boardId);
+    } catch (error) {
+      console.error("Error deleting board:", error.message);
+    }
+  };
+
+  return {
+    boards,
+    createBoard,
+    updateBoard,
+    addBoard,
+    fetchBoards,
+    deleteBoard,
+  };
 });

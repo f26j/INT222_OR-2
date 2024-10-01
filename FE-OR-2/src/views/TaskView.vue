@@ -3,7 +3,7 @@
 import { onMounted, ref, watch, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { storeToRefs } from "pinia";
-import { useTaskStore } from "@/stores/api.js";
+import { useBoardStore, useTaskStore } from "@/stores/api.js";
 import { useToastStore } from "@/stores/toast.js";
 import { useUserStore } from "@/stores/users.js";
 import Bg_effect from "../components/css/Background.vue";
@@ -16,9 +16,7 @@ import ToastDelete from "../components/toast/ToastDelete.vue";
 import Navbar from "../components/css/Navbar.vue";
 
 // Store,Api zone
-const fetchBoard = import.meta.env.VITE_API_BOARD;
-const fetchTask = import.meta.env.VITE_API_BOARD_STATUS; // http://localhost:8080/api/v3/boards
-const fetchStatus = import.meta.env.VITE_API_BOARD_STATUS; // http://localhost:8080/api/v3/boards/{board}/statuses
+const baseUrl = import.meta.env.VITE_API_BOARDS;
 const router = useRouter();
 const route = useRoute();
 const store = useTaskStore();
@@ -33,11 +31,13 @@ const selectDeleteTaskTitle = ref("");
 const selectDeleteTaskIndex = ref("");
 const originalTasks = ref([]);
 const userStore = useUserStore();
+const boardName = ref("");
 
 // Function zone
 onMounted(async () => {
   try {
-    const data = await fetchData(); // Fetch task data
+    await fetchBoard();
+    const data = await fetchData();
     const datastatus = await fetchDataStatus(); // Fetch status data
     originalTasks.value = [...data];
     store.tasks.value = [...data];
@@ -76,9 +76,14 @@ async function fetchWithToken(url, options = {}) {
 
 async function fetchData() {
   // Fetch tasks for the specified board
-  const response = await fetchWithToken(fetchTask);
+  const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}/tasks`);
   if (!response) return; // If response is null, return
 
+  if (response.status === 404) {
+    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    return;
+  }
+  
   if (!response.ok) {
     throw new Error(`Error fetching tasks: ${response.statusText}`);
   }
@@ -94,9 +99,14 @@ async function fetchData() {
 async function fetchDataStatus() {
   // Fetch statuses for the specified board
   const response = await fetchWithToken(
-    `${fetchStatus.replace("{board}", boardId)}`
+    `${baseUrl}/v3/boards/${boardId}/statuses`
   );
   if (!response) return; // If response is null, return
+  
+  if (response.status === 404) {
+    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    return;
+  }
 
   if (!response.ok) {
     throw new Error(`Error fetching status: ${response.statusText}`);
@@ -108,6 +118,23 @@ async function fetchDataStatus() {
   }
 
   return dataStatus;
+}
+
+async function fetchBoard() {
+  const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}`);
+  if (!response) return; // ถ้าไม่มี response ให้ return
+
+  if (response.status === 404) {
+    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    return;
+  }
+
+  if (!response.ok) {
+    throw new Error(`Error fetching board: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  boardName.value = data.name; // เก็บชื่อบอร์ดใน boardName
 }
 
 // Functions for managing tasks
@@ -149,13 +176,18 @@ const openModalDelete = (taskId, title, index) => {
 
 async function deleteTask(taskId) {
   const response = await fetchWithToken(
-    `${fetchTask}/${boardId}/tasks/${taskId}`,
+    `${baseUrl}/v3/boards/${boardId}/tasks/${taskId}`,
     {
       method: "DELETE",
     }
   );
 
   if (!response) return; // If response is null, return
+
+  if (response.status === 404) {
+    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    return;
+  }
 
   if (response.ok) {
     originalTasks.value = originalTasks.value.filter(
@@ -237,45 +269,48 @@ watch(
     store.tasks.value = newVal;
   }
 );
+
+
 </script>
 
 <template>
   <Navbar class="itbkk-fullname" />
-  <div class="body">
-    <header>
-      <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
-      <h1 class="text-center">
-        IT-Bangmod Kradan Kanban
-        <h3>Home</h3>
-      </h1>
-      <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
-    </header>
-    <main class="flex flex-col items-center">
-      <div class="manageStatus">
+  <div class="pt-24">
+  <header class="mb-2 max-w-6xl mx-auto">
+    <!-- ชื่อหัวข้อบอร์ด -->
+    <h1 class="text-left text-3xl font-bold">IT-Bangmod Kradan Kanban</h1>
+    
+    <!-- Board List และปุ่มจัดการ -->
+    <div class="flex justify-between items-center mt-2">
+      <!-- แสดงชื่อบอร์ด -->
+      <h2 class="text-lg font-semibold text-gray-800"><span class="cursor-pointer" @click="router.push({ name: 'board' })">Board ></span> <span class="b">{{ boardName }}</span> </h2>
+      
+      <!-- ปุ่ม Manage Status และ Add Task -->
+      <div class="flex space-x-4">
+        <!-- ปุ่ม Manage Status -->
         <button
-          type="button"
-          class="itbkk-manage-status flex"
-          @click="openStatus"
+          @click="router.push({ name: 'status-manage' })"
+          class="flex items-center bg-white text-gray-800 px-4 py-2 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="32"
-            height="32"
-            viewBox="0 0 512 512"
+            width="20"
+            height="20"
+            fill="currentColor"
+            class="mr-2"
+            viewBox="0 0 16 16"
           >
             <path
-              fill="currentColor"
-              d="M256 176a80 80 0 1 0 80 80a80.24 80.24 0 0 0-80-80m172.72 80a165.53 165.53 0 0 1-1.64 22.34l48.69 38.12a11.59 11.59 0 0 1 2.63 14.78l-46.06 79.52a11.64 11.64 0 0 1-14.14 4.93l-57.25-23a176.56 176.56 0 0 1-38.82 22.67l-8.56 60.78a11.93 11.93 0 0 1-11.51 9.86h-92.12a12 12 0 0 1-11.51-9.53l-8.56-60.78A169.3 169.3 0 0 1 151.05 393L93.8 416a11.64 11.64 0 0 1-14.14-4.92L33.6 331.57a11.59 11.59 0 0 1 2.63-14.78l48.69-38.12A174.58 174.58 0 0 1 83.28 256a165.53 165.53 0 0 1 1.64-22.34l-48.69-38.12a11.59 11.59 0 0 1-2.63-14.78l46.06-79.52a11.64 11.64 0 0 1 14.14-4.93l57.25 23a176.56 176.56 0 0 1 38.82-22.67l8.56-60.78A11.93 11.93 0 0 1 209.94 26h92.12a12 12 0 0 1 11.51 9.53l8.56 60.78A169.3 169.3 0 0 1 361 119l57.2-23a11.64 11.64 0 0 1 14.14 4.92l46.06 79.52a11.59 11.59 0 0 1-2.63 14.78l-48.69 38.12a174.58 174.58 0 0 1 1.64 22.66"
+              d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0Zm3.5 7.5H8.5v-3a.5.5 0 1 0-1 0v3h-3a.5.5 0 1 0 0 1h3v3a.5.5 0 1 0 1 0v-3h3a.5.5 0 1 0 0-1Z"
             />
           </svg>
-          <span class="mntext">Manage Status</span>
+          Manage Status
         </button>
-      </div>
-
-      <div class="btn-a">
+        
+        <!-- ปุ่ม Add Task -->
         <button
-          class="flex items-center bg-white text-gray-800 px-4 py-2 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
           @click="openModalAdd"
+          class="flex items-center bg-white text-gray-800 px-4 py-2 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -292,7 +327,13 @@ watch(
           Add Task
         </button>
       </div>
+    </div>
+  </header>
+</div>
 
+  <div class="body">
+
+    <main class="flex flex-col items-center">
       <div class="tb">
         <table>
           <thead>
@@ -386,12 +427,16 @@ watch(
 @import url("https://fonts.googleapis.com");
 @import url("https://fonts.gstatic.com");
 @import url("https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
-* {
-  user-select: none;
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  scroll-behavior: smooth;
+
+
+h1 {
+  font-family: "Ubuntu", sans-serif;
+  /* font-weight: 500; */
+  /* font-style: normal; */
+  /* font-size: 40px; */
+  color: #47467b;
+  /* font-weight: 800; */
+  /* margin: 4rem 0 2rem; */
 }
 
 h3 {
@@ -407,6 +452,7 @@ h3 {
 /* .itbkk-fullname {
   box-shadow: none;
 } */
+ 
 .itbkk-status-sort {
   box-shadow: none;
   padding-left: 10px;
@@ -438,20 +484,11 @@ h3 {
   padding-left: 5px;
   padding-right: 5px;
 }
-.manageStatus {
-  display: flex;
-  width: 100%;
-  max-width: 900px;
-  padding-left: 2rem;
-}
+
 .itbkk-manage-status {
   font-style: italic;
-  background-color: #343365;
-  color: #fff7d9;
   background-color: #6f418f;
   color: #f5e2ff;
-  padding: 10px;
-  border-radius: 50px;
   transition: transform 0.3s ease;
 }
 .itbkk-manage-status:hover {
@@ -462,10 +499,7 @@ h3 {
   font-style: italic;
   color: gray;
 }
-.addtask {
-  margin-right: 45rem;
-  text-align: center;
-}
+
 .plus {
   font-size: 40px;
   font-weight: 10px;
@@ -484,13 +518,13 @@ h3 {
   transition: transform 0.3s ease;
   color: #ad386f;
 }
-.btn-a {
+/* .btn-a {
   position: fixed;
   bottom: 50px;
   right: 50px;
   cursor: pointer;
   z-index: 2;
-}
+} */
 .iconbutton {
   width: 50px;
   height: 50px;
@@ -498,9 +532,11 @@ h3 {
   box-shadow: 5px 5px 5px #49494946;
 }
 .itbkk-button-add {
-  width: 80px;
-  height: 80px;
-  background: #ad386f;
+  font-style: italic;
+  background-color: #ad386f;
+  color: #f5e2ff;
+  transition: transform 0.3s ease;
+  
 }
 .iconbutton i {
   display: flex;
@@ -509,10 +545,7 @@ h3 {
   height: 100%;
   color: white;
 }
-.button:hover {
-  background-color: #66163b;
-  color: white;
-}
+
 .itbkk-assignees {
   font-style: normal;
   width: auto;
@@ -536,29 +569,14 @@ h3 {
   color: gray;
   font-style: italic;
 }
-header {
-  margin-bottom: 20px;
-}
 
-.addtask {
-  margin-right: 45rem;
-  text-align: center;
-}
 .kebab {
   color: #939393;
 }
 .idkb {
   display: inline;
 }
-h1 {
-  font-family: "Ubuntu", sans-serif;
-  font-weight: 500;
-  font-style: normal;
-  font-size: 40px;
-  color: #47467b;
-  font-weight: 800;
-  margin: 4rem 0 2rem;
-}
+
 .tb {
   padding: 2rem;
   width: 100%;

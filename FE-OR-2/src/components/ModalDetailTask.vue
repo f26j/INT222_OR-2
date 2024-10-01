@@ -4,6 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useTaskStore } from "@/stores/api.js";
 
 // API Endpoint URLs
+const baseUrl = import.meta.env.VITE_API_BOARDS;
 const fetchTask = import.meta.env.VITE_API_BOARD_TASK; // ใช้ URL ตามที่กำหนดใน .env
 const fetchStatus = import.meta.env.VITE_API_BOARD_STATUS; // ใช้ URL ตามที่กำหนดใน .env
 
@@ -12,7 +13,7 @@ const store = useTaskStore();
 const route = useRoute();
 const router = useRouter();
 const boardId = route.params.boardId; // ดึงค่า boardId จาก URL
-const taskId = route.params.id; // ดึงค่า id ของ task
+const taskId = route.params.taskId; // ดึงค่า id ของ task
 const localTimeZone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone);
 const modalDetail = ref({});
 const status = ref({});
@@ -43,9 +44,14 @@ async function fetchWithToken(url, options = {}) {
 // ฟังก์ชันดึงข้อมูล Status ของบอร์ดปัจจุบัน
 async function fetchDataStatus() {
   const response = await fetchWithToken(
-    `${fetchStatus.replace("{board}", boardId)}` // ใช้ fetchWithToken พร้อม boardId
+    `${baseUrl}/v3/boards/${boardId}/statuses` // ใช้ fetchWithToken พร้อม boardId
   );
   if (!response) return; // ถ้า response เป็น null ให้ return
+
+  if (response.status === 404) {
+    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    return;
+  }
 
   if (!response.ok) {
     throw new Error(`Failed to fetch status: ${response.statusText}`);
@@ -79,9 +85,14 @@ function formatDate(date) {
 // ฟังก์ชันเปิด Modal สำหรับแสดงรายละเอียดของ Task
 async function openModalDetail() {
   const response = await fetchWithToken(
-    `${fetchTask}/${boardId}/tasks/${taskId}` // ใช้ fetchWithToken สำหรับ task ที่เลือก
+    `${baseUrl}/v3/boards/${boardId}/tasks/${taskId}` // ใช้ fetchWithToken สำหรับ task ที่เลือก
   );
   if (!response) return; // ถ้า response เป็น null ให้ return
+
+  if (response.status === 404) {
+    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    return;
+  }
 
   const res = await response.json();
   modalDetail.value = res;
@@ -197,7 +208,7 @@ const closeModal = () => {
                       <option
                         v-for="(status, index) in store.status.value"
                         :key="index"
-                        :selected="status.name == modalDetail.status.name"
+                       
                       >
                         {{ status.name }}
                       </option>

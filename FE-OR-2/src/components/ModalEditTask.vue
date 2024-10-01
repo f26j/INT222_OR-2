@@ -13,6 +13,7 @@ const toastStore = useToastStore();
 const boardId = route.params.boardId; // ดึงค่า boardId จาก URL
 const taskId = route.params.taskId || ""; // ดึงค่า taskId จาก URL
 
+const baseUrl = import.meta.env.VITE_API_BOARDS;
 const fetchTask = import.meta.env.VITE_API_BOARD_TASK;
 const fetchStatus = import.meta.env.VITE_API_BOARD_STATUS;
 
@@ -55,9 +56,14 @@ async function fetchWithToken(url, options = {}) {
 // ฟังก์ชันดึงข้อมูล Status
 async function fetchDataStatus() {
   const response = await fetchWithToken(
-    fetchStatus.replace("{board}", boardId)
+    `${baseUrl}/v3/boards/${boardId}/statuses`
   );
   if (!response) return;
+
+  if (response.status === 404) {
+    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    return;
+  }
 
   const dataStatus = await response.json();
   if (!Array.isArray(dataStatus)) {
@@ -92,7 +98,7 @@ const openModalEdit = async () => {
   }
 
   const response = await fetchWithToken(
-    `${fetchTask}/${boardId}/tasks/${taskId}`
+    `${baseUrl}/v3/boards/${boardId}/tasks/${taskId}`
   );
   if (!response) return;
 
@@ -142,7 +148,7 @@ const editTask = async () => {
 
   try {
     const response = await fetchWithToken(
-      `${fetchTask}/${boardId}/tasks/${taskId}`,
+      `${baseUrl}/v3/boards/${boardId}/tasks/${taskId}`,
       {
         method: "PUT",
         body: JSON.stringify(editedTask),

@@ -3,6 +3,7 @@ import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useToastStore } from "@/stores/toast.js";
 import { useUserStore } from "@/stores/users.js";
+import { useBoardStore } from "@/stores/api.js"; // Import the board store
 import { storeToRefs } from "pinia";
 import Bg_effect from "../components/css/Background.vue";
 import Toast_login from "../components/toast/ToastLogin.vue";
@@ -20,27 +21,47 @@ const isLoginValid = computed(() => {
 });
 
 const userStore = useUserStore();
+const boardStore = useBoardStore(); // Use the board store
+const { boards } = storeToRefs(boardStore);
 
+// ฟังก์ชันจัดการล็อกอินและตรวจสอบบอร์ด
 const handleSubmit = async (event) => {
   event.preventDefault();
 
   if (!isLoginValid.value) {
-    toastStore.handleLogin();
+    // แสดง toast เมื่อข้อมูล login ไม่ถูกต้อง
+    userStore.showLoginError();
     return;
   }
 
   try {
+    // ทำการล็อกอิน
     await userStore.fetchUserData(username.value, password.value);
 
     if (userStore.token) {
+      // เก็บ token ไว้ใน localStorage
       localStorage.setItem("jwtToken", userStore.token);
-      router.push("/board");
+
+      // ดึงข้อมูลบอร์ดทั้งหมด
+      await boardStore.fetchBoards();
+
+      // ตรวจสอบว่าผู้ใช้มีบอร์ดหรือไม่
+      const userBoards = boards.value.filter(
+        (board) => board.owner.oid === userStore.oid
+      );
+
+      if (userBoards.length === 1) {
+        // ถ้าผู้ใช้มีบอร์ดอยู่แล้ว ให้เปลี่ยนเส้นทางไปยังบอร์ดนั้นโดยอัตโนมัติ
+        router.push(`/board/${userBoards[0].id}`);
+      } else {
+        // ถ้าไม่มีบอร์ดหรือมีมากกว่า 1 บอร์ด ให้เปลี่ยนเส้นทางไปที่หน้า Board
+        router.push("/board");
+      }
     } else {
       toastStore.handleLogin();
     }
   } catch (error) {
-    console.error("Error during login request:", error);
-    toastStore.handleLogin();
+    userStore.showLoginError();
   }
 };
 

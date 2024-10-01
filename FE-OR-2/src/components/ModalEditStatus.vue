@@ -1,11 +1,11 @@
 <script setup>
 import { ref, onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { useStatusStore } from "@/stores/api.js";
 import { useToastStore } from "@/stores/toast.js";
 const store = useStatusStore();
 
-const fetchStatus = import.meta.env.VITE_API_STATUS;
+const baseUrl = import.meta.env.VITE_API_BOARDS;
 const route = useRoute();
 const router = useRouter();
 const toastStore = useToastStore();
@@ -13,53 +13,73 @@ const newName = ref("");
 const newDescription = ref("");
 const statuses = ref([]);
 const id = route.params.id;
+const boardId = route.params.boardId;
+const statusId = route.params.statusId;
 
 const originalName = ref("");
 const originalDescription = ref("");
 
 const closeModal = () => {
-  router.push({ path: "/status/manage" });
+  router.push({ name: "status-manage" });
 };
 
+// ฟังก์ชันสำหรับดึง Token
+function getToken() {
+  const token = localStorage.getItem("jwtToken");
+  if (!token) {
+    console.error("No token available");
+    router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
+    return null;
+  }
+  return token;
+}
+
 async function fetchWithToken(url, options = {}) {
-  const token = getToken();  // ดึง JWT Token
-  if (!token) return null;  // ถ้าไม่มี Token ให้ return null
+  const token = getToken(); // ดึง JWT Token
+  if (!token) return null; // ถ้าไม่มี Token ให้ return null
 
   const response = await fetch(url, {
     ...options,
     headers: {
-      Authorization: `Bearer ${token}`,  // ส่ง JWT Token
+      Authorization: `Bearer ${token}`, // ส่ง JWT Token
       "Content-Type": "application/json",
       ...options.headers,
     },
   });
 
   if (response.status === 401) {
-    router.push("/login");  // Redirect ไปที่ login เมื่อสถานะเป็น 401
+    router.push("/login"); // Redirect ไปที่ login เมื่อสถานะเป็น 401
     return null;
   }
 
-  return response;  // ส่ง response กลับไปใช้งาน
+  return response; // ส่ง response กลับไปใช้งาน
 }
 
 async function getStatus() {
-  const response = await fetchWithToken(fetchStatus);  // ใช้ fetchWithToken
-  if (!response) return;  // ถ้า response เป็น null ให้หยุดการทำงาน
+  const response = await fetchWithToken(
+    `${baseUrl}/v3/boards/${boardId}/statuses/${statusId}`
+  ); // ใช้ fetchWithToken
+  if (!response) return; // ถ้า response เป็น null ให้หยุดการทำงาน
+
+  if (response.status === 404) {
+    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    return;
+  }
 
   const res = await response.json();
-  const selectId = res.find((status) => status.id == id);
-  if (!selectId) {
-    router.push({ path: "/status/manage" });
+  // const selectId = res.find((status) => status.id == id);
+  if (!res) {
+    router.push({ name: "status-manage" });
     setTimeout(() => {
       alert("An error has occurred, the status does not exist");
     }, 500);
     return;
   }
 
-  newName.value = selectId.name;
-  newDescription.value = selectId.description;
-  originalName.value = selectId.name;
-  originalDescription.value = selectId.description;
+  newName.value = res.name;
+  newDescription.value = res.description;
+  originalName.value = res.name;
+  originalDescription.value = res.description;
 }
 
 onMounted(() => {
@@ -81,12 +101,20 @@ const editStatus = async () => {
   }
 
   try {
-    const response = await fetchWithToken(`${fetchStatus}/${id}`, {
-      method: "PUT",
-      body: JSON.stringify(newStatus),
-    });
+    const response = await fetchWithToken(
+      `${baseUrl}/v3/boards/${boardId}/statuses/${statusId}`,
+      {
+        method: "PUT",
+        body: JSON.stringify(newStatus),
+      }
+    );
 
-    if (!response) return;  // ถ้า response เป็น null ให้หยุดการทำงาน
+    if (!response) return; // ถ้า response เป็น null ให้หยุดการทำงาน
+
+    if (response.status === 404) {
+      router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+      return;
+    }
 
     const data = await response.json();
     if (!response.ok) {
@@ -100,7 +128,7 @@ const editStatus = async () => {
       store.statuses.value.splice(statusIndex, 1, data);
     }
 
-    router.push({ name: "statusView" }).catch(() => {});
+    router.push({ name: "status-manage" }).catch(() => {});
   } catch (error) {
     editSuccess.value = false;
     toastStore.handleStatusEditedF();

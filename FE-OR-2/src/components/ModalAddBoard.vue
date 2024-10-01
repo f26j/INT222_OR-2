@@ -13,7 +13,7 @@ const router = useRouter();
 
 const boardStore = useBoardStore();
 const boardName = ref("");
-const createBoardAPI = import.meta.env.VITE_API_BOARDS;
+const baseUrl = import.meta.env.VITE_API_BOARDS;
 
 watch(
   fullname,
@@ -31,7 +31,7 @@ async function createBoard() {
   };
 
   try {
-    const response = await fetch(createBoardAPI, {
+    const response = await fetch(`${baseUrl}/v3/boards`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token.value}`,

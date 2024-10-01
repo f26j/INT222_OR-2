@@ -9,7 +9,7 @@ import Bg_effect from "../components/css/Background.vue";
 import Copyright from "../components/css/Copyright.vue";
 
 // API URL จาก environment
-const fetchBoards = import.meta.env.VITE_API_BOARDS;
+const baseUrl = import.meta.env.VITE_API_BOARDS;
 
 // ใช้ `ref` สำหรับเก็บข้อมูลบอร์ดและสถานะการโหลด
 const store = useBoardStore();
@@ -20,7 +20,8 @@ const router = useRouter();
 
 // เรียกใช้ userStore เพื่อดึง token
 const userStore = useUserStore();
-const { token } = storeToRefs(userStore); // ตรวจสอบให้แน่ใจว่าใช้ storeToRefs ในการดึง token
+const boardStore = useBoardStore();
+const { token, oid } = storeToRefs(userStore); // ดึง oid จาก store เพื่อใช้งานในการตรวจสอบ
 
 // เปลี่ยนฟังก์ชัน fetchBoardApi และปรับ logic ของการกรองบอร์ด
 async function fetchBoardApi() {
@@ -31,7 +32,7 @@ async function fetchBoardApi() {
 
   try {
     loading.value = true;
-    const response = await fetch(fetchBoards, {
+    const response = await fetch(`${baseUrl}/v3/boards`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token.value}`,
@@ -39,22 +40,34 @@ async function fetchBoardApi() {
       },
     });
 
+    // ตรวจสอบสถานะการตอบสนอง
+    if (response.status === 401) {
+      // ถ้าได้รับสถานะ 401 ให้ logout และเปลี่ยนเส้นทางไปที่หน้า login
+      userStore.logout();
+      router.push("/login");
+      return;
+    }
+
     if (!response.ok) {
       throw new Error("Error fetching boards");
     }
 
     const data = await response.json();
-    console.log(data);
 
-    // ตรวจสอบ user และ user.oid ก่อนการกรอง
+    // ตรวจสอบว่ามี oid ก่อนทำการกรองบอร์ด
+    if (!oid.value) {
+      throw new Error("User OID is missing");
+    }
+
+    // กรองบอร์ดที่เป็นเจ้าของโดย user หรือมี visibility เป็น public
     const filteredBoards = data.filter(
       (board) =>
-        (board.owner && board.owner.oid === userStore.oid) ||
+        (board.owner && board.owner.oid === oid.value) ||
         board.visibility === "PUBLIC"
     );
 
     boards.value = filteredBoards;
-    console.log(userStore.oid);
+    console.log(oid.value);
     console.log(filteredBoards);
   } catch (err) {
     console.error("Error fetching boards:", err);
@@ -64,25 +77,42 @@ async function fetchBoardApi() {
   }
 }
 
+// ฟังก์ชันลบ Board พร้อมตรวจสอบ oid
+const deleteBoard = async (boardId) => {
+  const boardToDelete = boards.value.find((board) => board.id === boardId);
+
+  if (boardToDelete && boardToDelete.owner.oid === userStore.oid) {
+    try {
+      await boardStore.deleteBoard(boardId);
+      await boardStore.fetchBoards(); // อัปเดตรายการบอร์ดหลังจากลบสำเร็จ
+    } catch (error) {
+      console.error("Error deleting board:", error);
+    }
+  } else {
+    alert("You do not have permission to delete this board.");
+  }
+};
+
 // เมื่อโหลด component ให้ดึงบอร์ดจาก backend
 onMounted(() => {
   fetchBoardApi();
 });
 </script>
 
+
 <template>
   <Navbar class="itbkk-fullname" />
-  <div class="body">
-    <header>
-      <h1 class="text-center">IT-Bangmod Kradan Kanban</h1>
-    </header>
-  </div>
-  <main>
-    <div class="p-6 bg-gradient-to-r to-pink-100 rounded-lg">
-      <div class="flex justify-between items-center mb-6 max-w-6xl mx-auto">
-        <h1 class="text-xl font-semibold text-gray-800">Board List</h1>
+  <div class="pt-24">
+    <header class="mb-2 max-w-6xl mx-auto">
+      <!-- IT-Bangmod Kradan Kanban อยู่ซ้ายบน -->
+      <h1 class="text-left text-3xl font-bold">IT-Bangmod Kradan Kanban</h1>
+      <!-- Board List และปุ่ม Create new board -->
+      <div class="flex justify-between items-center mt-2">
+        <!-- ขนาดของ Board List เล็กกว่า IT-Bangmod Kradan Kanban -->
+        <h2 class="text-lg font-semibold text-gray-800">Board List</h2>
         <button
           @click="router.push('/board/add')"
+          :disabled="boards.length === 1"
           class="flex items-center bg-white text-gray-800 px-4 py-2 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
         >
           <svg
@@ -100,31 +130,39 @@ onMounted(() => {
           Create new board
         </button>
       </div>
+    </header>
+  </div>
 
-      <table class="w-full text-left">
+  <main>
+    <div class="p-4 bg-gradient-to-r to-pink-100 rounded-lg">
+      <table class="w-full text-left table-fixed">
+        <!-- ใช้ table-fixed เพื่อจัดความกว้างคอลัมน์ -->
         <thead class="bg-violet-500">
           <tr>
-            <th class="px-6 py-4 font-semibold">No</th>
-            <th class="px-6 py-4 font-semibold">Name</th>
-            <th class="px-6 py-4 font-semibold">Action</th>
+            <th class="px-4 py-3 w-1/12 text-center font-semibold">No</th>
+            <!-- จัดตรงกลางและปรับขนาด -->
+            <th class="px-4 py-3 w-6/12 text-left font-semibold">Name</th>
+            <!-- ปรับขนาดให้ยืดได้ -->
+            <th class="px-4 py-3 w-5/12 text-center font-semibold">Action</th>
+            <!-- จัดตรงกลางและปรับขนาด -->
           </tr>
         </thead>
         <tbody>
           <!-- ตรวจสอบสถานะการโหลด -->
           <tr v-if="loading">
-            <td colspan="4" class="px-6 py-4 text-center text-gray-600">
+            <td colspan="3" class="px-4 py-4 text-center text-gray-600">
               Loading...
             </td>
           </tr>
           <tr v-else-if="error">
-            <td colspan="4" class="px-6 py-4 text-center text-red-600">
+            <td colspan="3" class="px-4 py-4 text-center text-red-600">
               Error loading boards.
             </td>
           </tr>
 
           <!-- แสดงข้อความหากไม่มีบอร์ด -->
           <tr v-if="boards.length === 0 && !loading && !error">
-            <td colspan="4" class="px-6 py-4 text-center">No Board Added</td>
+            <td colspan="3" class="px-4 py-4 text-center">No Board Added</td>
           </tr>
 
           <!-- แสดงข้อมูลบอร์ด -->
@@ -133,19 +171,27 @@ onMounted(() => {
             :key="board.id"
             class="border-b last:border-0"
           >
-            <td class="px-6 py-4">{{ index + 1 }}</td>
-            <td class="px-6 py-4" @click="router.push(`/board/${board.id}`)">
+            <td class="px-4 py-3 text-center">{{ index + 1 }}</td>
+            <!-- จัดตรงกลาง -->
+            <td
+              class="px-4 py-3 cursor-pointer"
+              @click="router.push(`/board/${board.id}`)"
+            >
               {{ board.name }}
             </td>
-            <td class="px-6 py-4 flex items-center space-x-4">
+            <td class="px-4 py-3 flex justify-center space-x-4">
+              <!-- จัดปุ่มให้ดูสมส่วน -->
               <button
-                class="itbkk-button-edit flex items-center space-x-2 w-20"
-                @click="router.push(`/board/${board.id}`)"
+                class="flex items-center bg-white text-gray-800 px-3 py-1.5 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
+                @click="editBoard(board.id)"
+                disabled
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="30"
-                  height="30"
+                  width="20"
+                  height="20"
+                  fill="currentColor"
+                  class="mr-2"
                   viewBox="0 0 24 24"
                 >
                   <path
@@ -159,13 +205,15 @@ onMounted(() => {
               </button>
 
               <button
-                class="itbkk-button-delete flex items-center space-x-2 w-24"
+                class="flex items-center bg-white text-gray-800 px-3 py-1.5 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
                 @click="deleteBoard(board.id)"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="30"
-                  height="30"
+                  width="20"
+                  height="20"
+                  fill="currentColor"
+                  class="mr-2"
                   viewBox="0 0 24 24"
                 >
                   <path
@@ -189,51 +237,100 @@ onMounted(() => {
       </table>
     </div>
   </main>
+
   <footer>
     <Copyright />
   </footer>
   <Bg_effect />
   <router-view></router-view>
 </template>
-
 <style scoped>
 /* สไตล์ของตาราง */
-h1 {
-  font-family: "Ubuntu", sans-serif;
-  font-weight: 500;
-  font-style: normal;
-  font-size: 30px;
-  color: #000000;
-  font-weight: 800;
-  margin: 4rem 0 2rem;
-}
-
 table {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  border-collapse: separate; /* ป้องกันมุมโค้งที่ทับกัน */
+  border-spacing: 0;
+  background-color: #fff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* เพิ่มเงา */
+  border-radius: 15px; /* โค้งทั้งตาราง */
   overflow: hidden;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.432);
 }
 
 th,
 td {
-  background-color: rgba(255, 254, 255, 0.329);
+  padding: 15px; /* เพิ่ม padding เล็กน้อยให้ดูโล่งขึ้น */
+  background-color: rgba(255, 254, 255, 0.6); /* ให้พื้นหลังดูสว่าง */
 }
 
 th {
-  color: rgba(255, 255, 255, 0.748);
+  background-color: #47467b; /* พื้นหลังหัวข้อสีโทนหรู */
+  color: white;
+  font-weight: 700;
+  text-align: center;
 }
 
 td {
-  color: #683c86;
+  color: #683c86; /* สีตัวอักษรในตาราง */
   font-family: "Ubuntu", sans-serif;
-  font-weight: 600;
-  font-style: normal;
+  font-weight: 500;
+  text-align: center;
 }
 
-thead th {
-  background-color: #8e5bb1;
+tbody tr {
+  transition: background-color 0.3s ease;
 }
 
 tbody tr:hover {
-  background-color: rgba(255, 255, 255, 0.63);
+  background-color: rgba(142, 91, 177, 0.1); /* เปลี่ยนสีเมื่อ hover */
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* มุมโค้งสำหรับหัวตาราง */
+thead th:first-child {
+  border-top-left-radius: 15px;
+}
+
+thead th:last-child {
+  border-top-right-radius: 15px;
+}
+
+/* มุมโค้งสำหรับท้ายตาราง */
+tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 15px;
+}
+
+tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 15px;
+}
+
+.itbkk-button-edit,
+.itbkk-button-delete {
+  padding: 10px;
+  background-color: #8e5bb1; /* สีพื้นหลังเดิม */
+  color: white;
+  border-radius: 8px;
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.itbkk-button-edit:hover,
+.itbkk-button-delete:hover {
+  background-color: #6a4581; /* สีพื้นหลังเมื่อ hover */
+  transform: scale(1.05); /* ขยายปุ่มเล็กน้อยเมื่อ hover */
+}
+
+.itbkk-button-edit svg,
+.itbkk-button-delete svg {
+  margin-right: 8px; /* เพิ่มระยะห่างระหว่างไอคอนกับข้อความ */
+}
+
+.itbkk-button-edit span,
+.itbkk-button-delete span {
+  font-size: 14px;
+  font-weight: 500;
 }
 </style>

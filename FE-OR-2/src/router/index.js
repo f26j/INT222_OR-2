@@ -16,6 +16,8 @@ import ModalAddStatus from "../components/ModalAddStatus.vue";
 import ModalEditStatus from "../components/ModalEditStatus.vue";
 import ManageStatus from "../components/ManageStatus.vue";
 
+import NotFoundPage from "../components/css/NotFoundPage.vue"
+
 // Router Configuration
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -41,6 +43,11 @@ const router = createRouter({
           component: ModalAddBoard,
         },
       ],
+    },
+    {
+      path: "/:pathMatch(.*)*", // เส้นทางสำหรับหน้า NotFoundPage
+      name: "NotFound",
+      component: NotFoundPage,
     },
     {
       path: "/board/:boardId", // กลุ่มของ Task

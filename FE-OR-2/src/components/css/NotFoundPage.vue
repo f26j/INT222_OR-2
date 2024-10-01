@@ -1,5 +1,5 @@
 <script setup>
-import Bg_effect from "../components/css/Background.vue";
+import Bg_effect from "./Background.vue";
 </script>
 
 <template>

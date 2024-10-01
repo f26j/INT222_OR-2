@@ -1,18 +1,20 @@
 <script setup>
 // Import zone
 import { ref } from "vue"
-import { useRouter } from "vue-router"
+import { useRouter, useRoute } from "vue-router";
 import { useStatusStore } from "@/stores/api.js"
 import { useToastStore } from "@/stores/toast.js"
 
 // Variable zone
 const store = useStatusStore()
 const toastStore = useToastStore()
-const fetchURL = ref(import.meta.env.VITE_API_STATUS)
-const router = useRouter()
+const baseUrl = import.meta.env.VITE_API_BOARDS;
+const router = useRouter();
+const route = useRoute();
 const newName = ref("")
 const newDescription = ref("")
 const statuses = ref([])
+const boardId = route.params.boardId;
 
 // Function zone
 async function fetchWithToken(url, options = {}) {
@@ -42,7 +44,7 @@ async function fetchWithToken(url, options = {}) {
 }
 
 const closeModal = () => {
-  router.push({ name: "statusView" })
+  router.push({ name: "status-manage" })
 }
 
 const addStatus = async () => {
@@ -58,7 +60,7 @@ const addStatus = async () => {
   }
 
   try {
-    const response = await fetchWithToken(`${fetchURL.value}`, {
+    const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}/statuses`, {
       method: "POST",
       body: JSON.stringify(newStatus),
     });

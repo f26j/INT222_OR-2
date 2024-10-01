@@ -40,7 +40,7 @@ defineEmits(["closeModal", "confirmDeleteModal"]);
           class="itbkk-message w-10/12 break-all text-ellipsis overflow-hidden"
         >
           Do you want to delete the task <br />
-          number {{ indexs }} - "{{ title }}" ?
+          number {{ indexs + 1 }} - "{{ title }}" ?
         </div>
         <div
           class="Button h-32 flex justify-center items-center gap-10 rounded-full"

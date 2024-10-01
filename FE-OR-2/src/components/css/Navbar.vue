@@ -9,6 +9,14 @@ const router = useRouter();
 // ใช้ computed เพื่อดึง fullname จาก store
 const fullname = computed(() => userStore.fullname);
 
+// สร้างตัวแปรเพื่อควบคุมการเปิด/ปิดของ dropdown
+const dropdownOpen = ref(false);
+
+// สลับสถานะเปิด/ปิด dropdown
+const toggleDropdown = () => {
+  dropdownOpen.value = !dropdownOpen.value;
+};
+
 // เรียก checkAuth เมื่อโหลดหน้าเพื่อให้มั่นใจว่า fullname ถูกดึงจาก token
 onMounted(() => {
   if (userStore.token) {
@@ -26,8 +34,8 @@ const logout = () => {
   userStore.logout();
   console.log("Token after logout:", userStore.token); 
   router.push("/login");
+  dropdownOpen.value = false; // ปิด dropdown หลังจาก logout
 };
-
 
 </script>
 
@@ -56,7 +64,11 @@ const logout = () => {
       </a>
     </div>
     <div class="flex-none mr-2 dropdown dropdown-end">
-      <a href="#" class="btn btn-ghost normal-case text-xl flex items-center">
+      <a
+        href="#"
+        class="btn btn-ghost normal-case text-xl flex items-center"
+        @click="toggleDropdown"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           class="h-10 w-10 rounded-full mr-2"
@@ -74,12 +86,13 @@ const logout = () => {
           <p v-if="fullname" class="text-sm font-semibold">{{ fullname }}</p>
         </div>
       </a>
+      <!-- ใช้ v-if เพื่อควบคุมการแสดงผลของ dropdown -->
       <ul
-        tabindex="0"
+        v-if="dropdownOpen"
         class="dropdown-content menu bg-white text-[#343365] rounded-box z-[1] w-36 p-2 mt-2 shadow"
       >
         <li>
-          <a @click="logout" class="flex items-center space-x-2 group">
+          <a @mousedown="logout" class="flex items-center space-x-2 group"> <!-- ใช้ @mousedown -->
             <svg
               fill="#000000"
               width="20px"
@@ -88,17 +101,9 @@ const logout = () => {
               xmlns="http://www.w3.org/2000/svg"
               class="hover-red-icon transition-colors duration-300"
             >
-              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-              <g
-                id="SVGRepo_tracerCarrier"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              ></g>
-              <g id="SVGRepo_iconCarrier">
-                <path
-                  d="M497 273L329 441c-15 15-41 4.5-41-17v-96H152c-13.3 0-24-10.7-24-24v-96c0-13.3 10.7-24 24-24h136V88c0-21.4 25.9-32 41-17l168 168c9.3 9.4 9.3 24.6 0 34zM192 436v-40c0-6.6-5.4-12-12-12H96c-17.7 0-32-14.3-32-32V160c0-17.7 14.3-32 32-32h84c6.6 0 12-5.4 12-12V76c0-6.6-5.4-12-12-12H96c-53 0-96 43-96 96v192c0 53 43 96 96 96h84c6.6 0 12-5.4 12-12z"
-                ></path>
-              </g>
+              <path
+                d="M497 273L329 441c-15 15-41 4.5-41-17v-96H152c-13.3 0-24-10.7-24-24v-96c0-13.3 10.7-24 24-24h136V88c0-21.4 25.9-32 41-17l168 168c9.3 9.4 9.3 24.6 0 34zM192 436v-40c0-6.6-5.4-12-12-12H96c-17.7 0-32-14.3-32-32V160c0-17.7 14.3-32 32-32h84c6.6 0 12-5.4 12-12V76c0-6.6-5.4-12-12-12H96c-53 0-96 43-96 96v192c0 53 43 96 96 96h84c6.6 0 12-5.4 12-12z"
+              ></path>
             </svg>
             <span class="transition-colors duration-300">Sign Out</span>
           </a>
@@ -109,6 +114,14 @@ const logout = () => {
 </template>
 
 <style scoped>
+.navbar {
+  position: fixed; /* ทำให้ navbar ติดอยู่บนสุดของหน้าจอ */
+  top: 0; /* ให้ชิดด้านบน */
+  left: 0;
+  right: 0;
+  z-index: 50; /* กำหนด z-index เพื่อให้แน่ใจว่าอยู่เหนือเนื้อหาอื่นๆ */
+}
+  
 .hover-red-icon {
   transition: fill 0.3s ease;
 }

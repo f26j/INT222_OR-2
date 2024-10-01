@@ -1,7 +1,7 @@
 <script setup>
 // import zone
 import { onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { storeToRefs } from "pinia";
 import { useStatusStore } from "@/stores/api.js";
 import { useToastStore } from "@/stores/toast.js";
@@ -14,11 +14,9 @@ import ModalDeleteStatus from "../components/ModalDeleteStatus.vue";
 import Navbar from "../components/css/Navbar.vue";
 
 // Store, API zone
-const fetchStatus =
-  import.meta.env.VITE_API_STATUS || "http://localhost:8080/api/status"; // ใช้ fallback URL
-const fetchUsers =
-  import.meta.env.VITE_API_USERS || "http://localhost:8080/api/users"; // ใช้ fallback URL
+const baseUrl = import.meta.env.VITE_API_BOARDS;
 const router = useRouter();
+const route = useRoute();
 const store = useStatusStore();
 const toastStore = useToastStore();
 const {
@@ -28,10 +26,12 @@ const {
   closeToast,
 } = storeToRefs(toastStore);
 
+
 // Variable zone
 const showDelete = ref(false);
 const selectDeleteStatusId = ref("");
 const selectDeleteStatusName = ref("");
+const boardId = route.params.boardId; // Get boardId from the URL
 
 // ฟังก์ชันสำหรับดึง Token
 function getToken() {
@@ -75,14 +75,21 @@ async function fetchWithToken(url, options = {}) {
 
 // ดึงข้อมูล Status ของ Board
 async function fetchData() {
-  const response = await fetchWithToken(fetchStatus); // เรียกใช้ fetchWithToken
+  const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}/statuses`); // เรียกใช้ fetchWithToken
   if (!response) return; // ถ้า response เป็น null ให้ return
+
+  if (response.status === 404) {
+    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    return;
+  }
 
   if (!response.ok) {
     throw new Error(`Error fetching status: ${response.statusText}`);
   }
 
   const data = await response.json();
+  console.log(data);
+  
   if (!Array.isArray(data)) {
     throw new TypeError("Fetched data is not an array");
   }
@@ -97,7 +104,7 @@ onMounted(async () => {
 
 // เปิดหน้า Home
 const openHome = () => {
-  router.push({ path: "/task" });
+  router.push({ name: "board-tasks" });
 };
 
 // เปิด Modal สำหรับการเพิ่ม Status
@@ -108,7 +115,7 @@ const openModalAdd = async () => {
 // เปิด Modal สำหรับการแก้ไข Status
 const openModalEdit = (id) => {
   if (id) {
-    router.push({ name: "status-edit", params: { id: id } });
+    router.push({ name: "status-edit", params: { statusId: id } });
   } else {
     console.error("ID parameter is required to open the edit modal");
   }
@@ -123,11 +130,16 @@ const openModalDelete = (id, name) => {
 
 // ฟังก์ชันสำหรับการลบ Status
 async function deleteStatus(id) {
-  const response = await fetchWithToken(`${fetchStatus}/${id}`, {
+  const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}/statuses/${id}`, {
     method: "DELETE",
   });
 
   if (!response) return; // ถ้า response เป็น null ให้ return
+
+  if (response.status === 404) {
+    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    return;
+  }
 
   if (response.ok) {
     store.statuses.value = store.statuses.value.filter(
@@ -141,6 +153,37 @@ async function deleteStatus(id) {
 
   confirmDeleteStatus(); // เรียกใช้งานหลังจากการลบเสร็จสิ้น
   showDelete.value = false; // ปิด modal
+}
+
+async function deleteTransfer(id, newId) {
+  const token = getToken();
+  if (!token) return;  // ถ้าไม่มี token ให้หยุดการทำงาน
+
+  try {
+    const response = await fetch(`${baseUrl}/v3/boards/${boardId}/statuses/${id}/${newId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,  // ส่ง JWT Token
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.ok) {
+      store.statuses.value = store.statuses.value.filter(
+        (status) => status.id !== id
+      );
+      toastStore.handleStatusDeleted();  // แสดงผลว่า status ถูกลบสำเร็จ
+    } else {
+      toastStore.handleStatusDeletedF();  // แสดงผลว่าการลบล้มเหลว
+      console.error("Failed to delete status");
+    }
+  } catch (error) {
+    toastStore.handleStatusDeletedF();  // แสดงผลว่ามีข้อผิดพลาดในการลบ
+    console.error("Error deleting status:", error.message);
+  }
+
+  confirmDeleteStatus();  // เรียกใช้งานหลังจากการลบเสร็จสิ้น
+  showDelete.value = false;  // ปิด modal
 }
 
 // ฟังก์ชันสำหรับยืนยันการลบ Status
@@ -166,16 +209,55 @@ const closeModal = () => {
 
 <template>
   <Navbar class="itbkk-fullname" />
+  <div class="pt-24">
+  <header class="mb-2 max-w-6xl mx-auto">
+    <h1 class="text-left text-3xl font-bold">IT-Bangmod Kradan Kanban</h1>
+    <div class="flex justify-between items-center mt-2">
+      <h2 class="text-lg font-semibold text-gray-800">Board List </h2>
+      <div class="flex space-x-4">
+        <button
+          @click="openHome"
+          class="itbkk-button-home flex items-center bg-white text-gray-800 px-4 py-2 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            fill="currentColor"
+            class="mr-2"
+            viewBox="0 0 16 16"
+          >
+            <path
+              d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0Zm3.5 7.5H8.5v-3a.5.5 0 1 0-1 0v3h-3a.5.5 0 1 0 0 1h3v3a.5.5 0 1 0 1 0v-3h3a.5.5 0 1 0 0-1Z"
+            />
+          </svg>
+          Back
+        </button>
+        
+        <!-- ปุ่ม Add Task -->
+        <button
+          @click="openModalAdd"
+          class="flex items-center bg-white text-gray-800 px-4 py-2 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            fill="currentColor"
+            class="mr-2"
+            viewBox="0 0 16 16"
+          >
+            <path
+              d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0Zm3.5 7.5H8.5v-3a.5.5 0 1 0-1 0v3h-3a.5.5 0 1 0 0 1h3v3a.5.5 0 1 0 1 0v-3h3a.5.5 0 1 0 0-1Z"
+            />
+          </svg>
+          Add Status
+        </button>
+      </div>
+    </div>
+  </header>
+</div>
   <div class="body">
-    <header>
-      <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
-      <h1 class="text-center">
-        IT-Bangmod Kradan Kanban
-        <h3>Manage Status</h3>
-      </h1>
-      <hr class="my-6 sm:mx-auto border border-white/20 lg:my-8" />
-    </header>
-
     <main class="flex flex-col items-center">
       <div class="statusBtn">
         <button
@@ -338,22 +420,14 @@ const closeModal = () => {
 @import url("https://fonts.gstatic.com");
 @import url("https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
 
-* {
-  user-select: none;
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  scroll-behavior: smooth;
+h1 {
+  font-family: "Ubuntu", sans-serif;
+  color: #683c86;
 }
 
 h3 {
   font-family: "Ubuntu", sans-serif;
-  font-weight: 400;
-  font-style: normal;
-  font-size: 30px;
   color: #737292;
-  text-align: center;
-  justify-content: center;
 }
 
 .statusBtn {
@@ -462,15 +536,7 @@ header {
   display: inline;
 }
 
-h1 {
-  font-family: "Ubuntu", sans-serif;
-  font-weight: 500;
-  font-style: normal;
-  font-size: 40px;
-  color: #683c86;
-  font-weight: 800;
-  margin: 4rem 0 2rem;
-}
+
 
 .tb {
   padding: 2rem;
