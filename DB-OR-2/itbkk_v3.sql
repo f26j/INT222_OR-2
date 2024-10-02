@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS users
     email             VARCHAR(50)                                                   NOT NULL,
     created_on        DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_on        DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    );
+);
 
 CREATE TABLE IF NOT EXISTS boards
 (
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS boards
     created_on        DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_on        DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_owner_id FOREIGN KEY (owner_id) REFERENCES users (oid) ON DELETE CASCADE
-    );
+);
 
 CREATE TABLE IF NOT EXISTS statuses
 (
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS statuses
     created_on        DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_on        DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_board_id_2 FOREIGN KEY (board_id) REFERENCES boards (id) ON DELETE CASCADE
-    );
+);
 
 CREATE TABLE IF NOT EXISTS tasks
 (
