@@ -1,3 +1,4 @@
+-- Check foreign key is false
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- Database
@@ -59,13 +60,13 @@ CREATE TABLE IF NOT EXISTS tasks
     CONSTRAINT fk_board_id_1 FOREIGN KEY (board_id) REFERENCES boards (id) ON DELETE CASCADE
 );
 
--- INSERT
+-- Insert
 ALTER TABLE statuses MODIFY COLUMN board_id CHAR(10) NULL;
-
 INSERT INTO statuses (board_id, name, description)
 VALUES (NULL, 'No Status', 'Default status for new boards'),
        (NULL, 'To Do', 'Tasks that are yet to be started'),
        (NULL, 'Doing', 'Tasks that are in progress'),
        (NULL, 'Done', 'Tasks that have been completed');
 
+-- Check foreign key is true
 SET FOREIGN_KEY_CHECKS = 1;
