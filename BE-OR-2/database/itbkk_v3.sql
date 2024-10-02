@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS users
     email             VARCHAR(50)                                                   NOT NULL,
     created_on        DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_on        DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
+    );
 
 CREATE TABLE IF NOT EXISTS boards
 (
@@ -32,18 +32,18 @@ CREATE TABLE IF NOT EXISTS boards
     created_on        DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_on        DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_owner_id FOREIGN KEY (owner_id) REFERENCES users (oid) ON DELETE CASCADE
-);
+    );
 
 CREATE TABLE IF NOT EXISTS statuses
 (
     id                INT PRIMARY KEY AUTO_INCREMENT,
-    board_id          CHAR(10)                                                      NOT NULL,
-    name              VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci  NOT NULL UNIQUE,
+    board_id          CHAR(10)                                                      ,
+    name              VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci  NOT NULL,
     description       VARCHAR(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
     created_on        DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_on        DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_board_id_2 FOREIGN KEY (board_id) REFERENCES boards (id) ON DELETE CASCADE
-);
+    );
 
 CREATE TABLE IF NOT EXISTS tasks
 (
@@ -57,6 +57,12 @@ CREATE TABLE IF NOT EXISTS tasks
     updated_on        DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_status_id FOREIGN KEY (status_id) REFERENCES statuses (id),
     CONSTRAINT fk_board_id_1 FOREIGN KEY (board_id) REFERENCES boards (id) ON DELETE CASCADE
-);
+    );
+
+INSERT INTO statuses (board_id, name, description) VALUES
+                                                       (null, 'No Status', 'Default status for new boards'),
+                                                       (null, 'To Do', 'Tasks that are yet to be started'),
+                                                       (null, 'Doing', 'Tasks that are in progress'),
+                                                       (null, 'Done', 'Tasks that have been completed');
 
 SET FOREIGN_KEY_CHECKS = 1;
