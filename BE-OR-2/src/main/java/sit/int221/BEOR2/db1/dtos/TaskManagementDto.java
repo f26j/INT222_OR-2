@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import sit.int221.BEOR2.db1.entities.Status;
 
 @Getter
 @Setter
@@ -15,5 +14,5 @@ public class TaskManagementDto {
     private String title;
     private String description;
     private String assignees;
-    private Status status;
+    private StatusDto status;
 }

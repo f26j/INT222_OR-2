@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import sit.int221.BEOR2.db1.dtos.StatusDto;
+import sit.int221.BEOR2.db1.dtos.StatusManagementDto;
 import sit.int221.BEOR2.db1.entities.Status;
 import sit.int221.BEOR2.db1.services.StatusService;
 import sit.int221.BEOR2.BeOr2CrossOrigin;
@@ -26,8 +27,7 @@ public class StatusController {
         List<Status> statuses = statusService.getStatuses(id);
         return statuses.stream().map(status -> new StatusDto(
                 status.getId(),
-                status.getName(),
-                status.getDescription()
+                status.getName()
         )).toList();
     }
 
@@ -39,16 +39,16 @@ public class StatusController {
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public StatusDto addStatus(@PathVariable String id, @Valid @RequestBody Status status) {
-        return modelMapper.map(statusService.addStatus(id, status), StatusDto.class);
+    public StatusManagementDto addStatus(@PathVariable String id, @Valid @RequestBody Status status) {
+        return modelMapper.map(statusService.addStatus(id, status), StatusManagementDto.class);
     }
 
     @PutMapping("/{statusId}")
     @ResponseStatus(HttpStatus.OK)
-    public StatusDto editStatus(@PathVariable String id,
+    public StatusManagementDto editStatus(@PathVariable String id,
                                 @PathVariable Integer statusId,
                                 @Valid @RequestBody Status status) {
-        return modelMapper.map(statusService.editStatus(id, statusId, status), StatusDto.class);
+        return modelMapper.map(statusService.editStatus(id, statusId, status), StatusManagementDto.class);
     }
 
     @DeleteMapping("/{statusId}")

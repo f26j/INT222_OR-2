@@ -4,6 +4,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import sit.int221.BEOR2.db1.dtos.StatusDto;
 import sit.int221.BEOR2.db1.dtos.TaskManagementDto;
 import sit.int221.BEOR2.db1.dtos.TaskDto;
 import sit.int221.BEOR2.db1.entities.Task;
@@ -32,7 +33,10 @@ public class TaskController {
                 task.getId(),
                 task.getTitle(),
                 task.getAssignees(),
-                task.getStatus()
+                new StatusDto(
+                        task.getStatus().getId(),
+                        task.getStatus().getName()
+                )
         )).toList();
     }
 

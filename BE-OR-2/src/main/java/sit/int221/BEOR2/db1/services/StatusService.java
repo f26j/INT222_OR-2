@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import sit.int221.BEOR2.db1.dtos.StatusDto;
 import sit.int221.BEOR2.db1.entities.Board;
 import sit.int221.BEOR2.db1.entities.Status;
 import sit.int221.BEOR2.db1.entities.Task;
@@ -51,12 +52,12 @@ public class StatusService {
     public Status editStatus(@PathVariable String boardId,
                              @PathVariable Integer statusId,
                              @RequestBody Status status) {
-        if (statusId == 1) {
-            throw new ApiBadRequestException("Status id '" + statusId + "' cannot be edited");
-        }
-
         Status existingStatus = statusRepository.findByBoardIdAndId(boardId, statusId)
                 .orElseThrow(() -> new ApiNotFoundException("Status id '" + statusId + "' in board id '" + boardId + "' not found"));
+
+        if (existingStatus.getName().contains("No Status") || existingStatus.getName().contains("Done")) {
+            throw new ApiBadRequestException("Status name '" + existingStatus.getName() + "' cannot be deleted");
+        }
 
         status.setId(existingStatus.getId());
         status.setBoard(existingStatus.getBoard());
@@ -66,10 +67,6 @@ public class StatusService {
 
     @Transactional
     public void deleteStatus(@PathVariable String boardId, @PathVariable Integer statusId) {
-        if (statusId == 1) {
-            throw new ApiBadRequestException("Status id '" + statusId + "' cannot be deleted");
-        }
-
         Status statusToDelete = statusRepository.findByBoardIdAndId(boardId, statusId)
                 .orElseThrow(() -> new ApiNotFoundException("Status id '" + statusId + "' does not exist for board id '" + boardId + "'"));
 
@@ -80,12 +77,17 @@ public class StatusService {
     public void transferStatus(@PathVariable String boardId,
                                @PathVariable Integer statusId,
                                @PathVariable Integer newStatusId) {
-        if (statusId.equals(newStatusId) || statusId == 1) {
+        if (statusId.equals(newStatusId)) {
             throw new ApiBadRequestException("Status id '" + statusId + "' and new id '" + newStatusId + "' cannot be transferred");
         }
 
         Status deleteId = statusRepository.findByBoardIdAndId(boardId, statusId)
                 .orElseThrow(() -> new ApiNotFoundException("Status id '" + statusId + "' does not exist for board id '" + boardId + "'"));
+
+        if (deleteId.getName().contains("No Status") || deleteId.getName().contains("Done")) {
+            throw new ApiBadRequestException("Status name '" + deleteId.getName() + "' cannot be deleted");
+        }
+
         Status transferId = statusRepository.findByBoardIdAndId(boardId, newStatusId)
                 .orElseThrow(() -> new ApiNotFoundException("New status id '" + newStatusId + "' does not exist for board id '" + boardId + "'"));
 
