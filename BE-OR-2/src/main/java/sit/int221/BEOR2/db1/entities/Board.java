@@ -54,4 +54,6 @@ public class Board {
     protected void onUpdate() {
         this.updated_on = ZonedDateTime.now();
     }
+
+
 }
