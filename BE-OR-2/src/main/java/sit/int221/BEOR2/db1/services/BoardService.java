@@ -4,7 +4,6 @@ import io.viascom.nanoid.NanoId;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,7 +21,6 @@ import sit.int221.BEOR2.exceptions.ApiForbiddenException;
 import sit.int221.BEOR2.exceptions.ApiNotFoundException;
 
 import javax.validation.Valid;
-import java.util.Arrays;
 import java.util.List;
 
 @Service

@@ -57,12 +57,12 @@ CREATE TABLE IF NOT EXISTS tasks
     updated_on        DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_status_id FOREIGN KEY (status_id) REFERENCES statuses (id),
     CONSTRAINT fk_board_id_1 FOREIGN KEY (board_id) REFERENCES boards (id) ON DELETE CASCADE
-    );
+);
 
-INSERT INTO statuses (board_id, name, description) VALUES
-                                                       (null, 'No Status', 'Default status for new boards'),
-                                                       (null, 'To Do', 'Tasks that are yet to be started'),
-                                                       (null, 'Doing', 'Tasks that are in progress'),
-                                                       (null, 'Done', 'Tasks that have been completed');
+INSERT INTO statuses (board_id, name, description)
+VALUES (null, 'No Status', 'Default status for new boards'),
+       (null, 'To Do', 'Tasks that are yet to be started'),
+       (null, 'Doing', 'Tasks that are in progress'),
+       (null, 'Done', 'Tasks that have been completed');
 
 SET FOREIGN_KEY_CHECKS = 1;

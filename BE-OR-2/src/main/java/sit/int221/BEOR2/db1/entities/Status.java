@@ -21,7 +21,7 @@ public class Status {
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "board_id", nullable = false)
+    @JoinColumn(name = "board_id")
     private Board board;
 
     @Column(name = "name", nullable = false, length = 50, unique = true)
