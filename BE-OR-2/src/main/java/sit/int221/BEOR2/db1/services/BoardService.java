@@ -4,6 +4,7 @@ import io.viascom.nanoid.NanoId;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,6 +34,8 @@ public class BoardService {
     private UserRepository userRepository;
     @Autowired
     private StatusRepository statusRepository;  // ประกาศ statusRepository
+    @Autowired
+    private StatusService statusService;
 
     public List<Board> getBoards() {
         return boardRepository.findAll();
@@ -78,21 +81,13 @@ public class BoardService {
         // สร้าง id สำหรับบอร์ด (10 ตัวอักษร)
         board.setId(NanoId.generate(10));
 
-        // บันทึกบอร์ดลงในฐานข้อมูล
         Board savedBoard = boardRepository.saveAndFlush(board);
+        List<Status> status = statusRepository.findDefaultStatuses();
 
-        // สร้าง default statuses สำหรับบอร์ดใหม่
-        String uniqueSuffix = savedBoard.getId().substring(0, 5); // ตัวอย่างการใช้ ID ของบอร์ดเพื่อทำให้ไม่ซ้ำกัน
-
-        // ตรวจสอบว่ามีชื่อสถานะซ้ำกันหรือไม่
-        List<String> defaultStatusNames = Arrays.asList("No Status", "To Do", "Doing", "Done");
-        for (String statusName : defaultStatusNames) {
-            String uniqueStatusName = statusName + " " + uniqueSuffix;
-            if (!statusRepository.existsByNameAndBoardId(uniqueStatusName, savedBoard.getId())) {
-                Status status = new Status(savedBoard, uniqueStatusName, "Default status");
-                statusRepository.saveAndFlush(status);
-            } else {
-                log.warn("Status with name '{}' already exists for board '{}'", uniqueStatusName, savedBoard.getId());
+        if (board != null) {
+            for (Status defaultStatus : status) {
+                Status newStatus = new Status(board, defaultStatus.getName(), defaultStatus.getDescription());
+                statusService.addStatus(board.getId(), newStatus);
             }
         }
 

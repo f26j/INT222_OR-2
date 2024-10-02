@@ -67,8 +67,6 @@ async function fetchBoardApi() {
     );
 
     boards.value = filteredBoards;
-    console.log(oid.value);
-    console.log(filteredBoards);
   } catch (err) {
     console.error("Error fetching boards:", err);
     error.value = true;
@@ -112,8 +110,8 @@ onMounted(() => {
         <h2 class="text-lg font-semibold text-gray-800">Board List</h2>
         <button
           @click="router.push('/board/add')"
-          :disabled="boards.length === 1"
-          class="flex items-center bg-white text-gray-800 px-4 py-2 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
+
+          class="flex items-center cursor-pointer bg-color-purple text-white px-4 py-2 shadow hover:shadow-md hover:scale-105 transition-transform duration-30 rounded-full"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -123,8 +121,11 @@ onMounted(() => {
             class="mr-2"
             viewBox="0 0 16 16"
           >
-            <path
-              d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0Zm3.5 7.5H8.5v-3a.5.5 0 1 0-1 0v3h-3a.5.5 0 1 0 0 1h3v3a.5.5 0 1 0 1 0v-3h3a.5.5 0 1 0 0-1Z"
+          <path
+              fill="currentColor"
+              fillRule="evenodd"
+              d="M8 1a1 1 0 0 0-2 0v5H1a1 1 0 0 0 0 2h5v5a1 1 0 1 0 2 0V8h5a1 1 0 1 0 0-2H8z"
+              clipRule="evenodd"
             />
           </svg>
           Create new board
@@ -137,7 +138,7 @@ onMounted(() => {
     <div class="p-4 bg-gradient-to-r to-pink-100 rounded-lg">
       <table class="w-full text-left table-fixed">
         <!-- ใช้ table-fixed เพื่อจัดความกว้างคอลัมน์ -->
-        <thead class="bg-violet-500">
+        <thead class="bg-violet-500 ">
           <tr>
             <th class="px-4 py-3 w-1/12 text-center font-semibold">No</th>
             <!-- จัดตรงกลางและปรับขนาด -->
@@ -150,7 +151,7 @@ onMounted(() => {
         <tbody>
           <!-- ตรวจสอบสถานะการโหลด -->
           <tr v-if="loading">
-            <td colspan="3" class="px-4 py-4 text-center text-gray-600">
+            <td colspan="3" class="px-4 py-4 text-center text-color-purple">
               Loading...
             </td>
           </tr>
@@ -171,10 +172,10 @@ onMounted(() => {
             :key="board.id"
             class="border-b last:border-0"
           >
-            <td class="px-4 py-3 text-center">{{ index + 1 }}</td>
+            <td class="px-4 py-3 text-center text-color-purple">{{ index + 1 }}</td>
             <!-- จัดตรงกลาง -->
             <td
-              class="px-4 py-3 cursor-pointer"
+              class="px-4 py-3 cursor-pointer text-color-purple "
               @click="router.push(`/board/${board.id}`)"
             >
               {{ board.name }}
@@ -182,7 +183,7 @@ onMounted(() => {
             <td class="px-4 py-3 flex justify-center space-x-4">
               <!-- จัดปุ่มให้ดูสมส่วน -->
               <button
-                class="flex items-center bg-white text-gray-800 px-3 py-1.5 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
+                class="flex items-center bg-white text-color-purple px-3 py-1.5 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
                 @click="editBoard(board.id)"
                 disabled
               >
@@ -205,7 +206,7 @@ onMounted(() => {
               </button>
 
               <button
-                class="flex items-center bg-white text-gray-800 px-3 py-1.5 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
+                class="flex items-center bg-white text-color-purple px-3 py-1.5 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
                 @click="deleteBoard(board.id)"
               >
                 <svg
@@ -246,6 +247,18 @@ onMounted(() => {
 </template>
 <style scoped>
 /* สไตล์ของตาราง */
+
+.text-color-purple{
+  color: #47467b;
+}
+
+.bg-color-purple{
+  background-color: #47467b;
+}
+
+.bg-color-purple:hover {
+  background-color: #636296;
+}
 table {
   width: 100%;
   max-width: 900px;
@@ -266,7 +279,7 @@ td {
 
 th {
   background-color: #47467b; /* พื้นหลังหัวข้อสีโทนหรู */
-  color: white;
+  
   font-weight: 700;
   text-align: center;
 }

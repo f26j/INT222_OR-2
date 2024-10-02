@@ -31,7 +31,8 @@ const {
 const showDelete = ref(false);
 const selectDeleteStatusId = ref("");
 const selectDeleteStatusName = ref("");
-const boardId = route.params.boardId; // Get boardId from the URL
+const boardId = route.params.boardId;
+const boardName = ref(""); // Get boardId from the UR
 
 // ฟังก์ชันสำหรับดึง Token
 function getToken() {
@@ -73,6 +74,24 @@ async function fetchWithToken(url, options = {}) {
   }
 }
 
+async function fetchBoard() {
+  const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}`);
+  if (!response) return; // ถ้าไม่มี response ให้ return
+
+  if (response.status === 404) {
+    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    return;
+  }
+
+  if (!response.ok) {
+    throw new Error(`Error fetching board: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  boardName.value = data.name; // เก็บชื่อบอร์ดใน boardName
+}
+
+
 // ดึงข้อมูล Status ของ Board
 async function fetchData() {
   const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}/statuses`); // เรียกใช้ fetchWithToken
@@ -88,7 +107,6 @@ async function fetchData() {
   }
 
   const data = await response.json();
-  console.log(data);
   
   if (!Array.isArray(data)) {
     throw new TypeError("Fetched data is not an array");
@@ -98,6 +116,7 @@ async function fetchData() {
 
 // เมื่อ component ถูก mounted ให้ดึงข้อมูล Status
 onMounted(async () => {
+  await fetchBoard();
   const data = await fetchData();
   store.statuses.value = data;
 });
@@ -213,11 +232,11 @@ const closeModal = () => {
   <header class="mb-2 max-w-6xl mx-auto">
     <h1 class="text-left text-3xl font-bold">IT-Bangmod Kradan Kanban</h1>
     <div class="flex justify-between items-center mt-2">
-      <h2 class="text-lg font-semibold text-gray-800">Board List </h2>
+      <h2 class="text-lg font-semibold text-gray-800"><span class="cursor-pointer" @click="router.push({ name: 'board' })">Board ></span> <span class="a cursor-pointer"  @click="router.push({ name: 'board-tasks' })">{{ boardName }}</span> > Status</h2>
       <div class="flex space-x-4">
         <button
           @click="openHome"
-          class="itbkk-button-home flex items-center bg-white text-gray-800 px-4 py-2 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
+          class="itbkk-button-home flex items-center bg-white text-gray-800 px-4 py-2 rounded-full shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -225,19 +244,19 @@ const closeModal = () => {
             height="20"
             fill="currentColor"
             class="mr-2"
-            viewBox="0 0 16 16"
+            viewBox="0 4 16 16"
           >
-            <path
-              d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0Zm3.5 7.5H8.5v-3a.5.5 0 1 0-1 0v3h-3a.5.5 0 1 0 0 1h3v3a.5.5 0 1 0 1 0v-3h3a.5.5 0 1 0 0-1Z"
-            />
+          <path
+              fill="currentColor"
+              d="m16 8.5l1.53 1.53l-1.06 1.06L10 4.62l-6.47 6.47l-1.06-1.06L10 2.5l4 4v-2h2zm-6-2.46l6 5.99V18H4v-5.97zM12 17v-5H8v5z"
+            ></path>
           </svg>
           Back
         </button>
         
-        <!-- ปุ่ม Add Task -->
         <button
           @click="openModalAdd"
-          class="flex items-center bg-white text-gray-800 px-4 py-2 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
+          class="itbkk-button-add flex items-center bg-white text-gray-800 px-4 py-2 rounded-full shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -247,8 +266,11 @@ const closeModal = () => {
             class="mr-2"
             viewBox="0 0 16 16"
           >
-            <path
-              d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0Zm3.5 7.5H8.5v-3a.5.5 0 1 0-1 0v3h-3a.5.5 0 1 0 0 1h3v3a.5.5 0 1 0 1 0v-3h3a.5.5 0 1 0 0-1Z"
+          <path
+              fill="currentColor"
+              fillRule="evenodd"
+              d="M8 1a1 1 0 0 0-2 0v5H1a1 1 0 0 0 0 2h5v5a1 1 0 1 0 2 0V8h5a1 1 0 1 0 0-2H8z"
+              clipRule="evenodd"
             />
           </svg>
           Add Status
@@ -259,50 +281,6 @@ const closeModal = () => {
 </div>
   <div class="body">
     <main class="flex flex-col items-center">
-      <div class="statusBtn">
-        <button
-          type="button"
-          class="itbkk-button-home btn-stt"
-          @click="openHome"
-        >
-          <svg
-            class="homeicon"
-            xmlns="http://www.w3.org/2000/svg"
-            width="1em"
-            height="1em"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fill="currentColor"
-              d="m16 8.5l1.53 1.53l-1.06 1.06L10 4.62l-6.47 6.47l-1.06-1.06L10 2.5l4 4v-2h2zm-6-2.46l6 5.99V18H4v-5.97zM12 17v-5H8v5z"
-            ></path>
-          </svg>
-          <span class="hometext">HOME</span>
-        </button>
-        <span style="padding-left: 1rem"></span>
-        <button
-          type="button"
-          class="itbkk-button-add btn-stt"
-          @click="openModalAdd"
-        >
-          <svg
-            class="addicon"
-            xmlns="http://www.w3.org/2000/svg"
-            width="1em"
-            height="1em"
-            viewBox="0 0 14 14"
-          >
-            <path
-              fill="currentColor"
-              fillRule="evenodd"
-              d="M8 1a1 1 0 0 0-2 0v5H1a1 1 0 0 0 0 2h5v5a1 1 0 1 0 2 0V8h5a1 1 0 1 0 0-2H8z"
-              clipRule="evenodd"
-            ></path>
-          </svg>
-          <span class="addtext">ADD</span>
-        </button>
-      </div>
-
       <div class="tb">
         <table>
           <thead>
@@ -430,6 +408,10 @@ h3 {
   color: #737292;
 }
 
+.a {
+  color: rgb(250, 133, 188);
+}
+
 .statusBtn {
   display: flex;
   height: 40px;
@@ -451,11 +433,12 @@ h3 {
 
 .itbkk-button-home {
   background-color: #343365;
+  color: white;
 }
 
 .itbkk-button-add {
-  margin-left: 2rem;
   background-color: #683c86;
+  color: white;
 }
 
 .hometext,
