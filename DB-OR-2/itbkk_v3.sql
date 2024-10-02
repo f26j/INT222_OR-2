@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS boards
 CREATE TABLE IF NOT EXISTS statuses
 (
     id                INT PRIMARY KEY AUTO_INCREMENT,
-    board_id          CHAR(10)                                                      ,
+    board_id          CHAR(10)                                                      NOT NULL,
     name              VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci  NOT NULL,
     description       VARCHAR(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
     created_on        DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -52,17 +52,20 @@ CREATE TABLE IF NOT EXISTS tasks
     title             VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
     description       VARCHAR(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
     assignees         VARCHAR(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci  NULL,
-    status_id         INT                                                           NOT NULL,
+    status_id         INT                                                           NOT NULL DEFAULT 1,
     created_on        DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_on        DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_status_id FOREIGN KEY (status_id) REFERENCES statuses (id),
     CONSTRAINT fk_board_id_1 FOREIGN KEY (board_id) REFERENCES boards (id) ON DELETE CASCADE
 );
 
+-- INSERT
+ALTER TABLE statuses MODIFY COLUMN board_id CHAR(10) NULL;
+
 INSERT INTO statuses (board_id, name, description)
-VALUES (null, 'No Status', 'Default status for new boards'),
-       (null, 'To Do', 'Tasks that are yet to be started'),
-       (null, 'Doing', 'Tasks that are in progress'),
-       (null, 'Done', 'Tasks that have been completed');
+VALUES (NULL, 'No Status', 'Default status for new boards'),
+       (NULL, 'To Do', 'Tasks that are yet to be started'),
+       (NULL, 'Doing', 'Tasks that are in progress'),
+       (NULL, 'Done', 'Tasks that have been completed');
 
 SET FOREIGN_KEY_CHECKS = 1;
