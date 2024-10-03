@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import sit.int221.BEOR2.db1.dtos.StatusDto;
 import sit.int221.BEOR2.db1.dtos.TaskManagementDto;
 import sit.int221.BEOR2.db1.dtos.TaskDto;
+import sit.int221.BEOR2.db1.dtos.TaskSpecificDto;
 import sit.int221.BEOR2.db1.entities.Task;
 import sit.int221.BEOR2.db1.services.TaskService;
 import sit.int221.BEOR2.BeOr2CrossOrigin;
@@ -42,7 +43,7 @@ public class TaskController {
 
     @GetMapping("/{taskId}")
     @ResponseStatus(HttpStatus.OK)
-    public Task getTaskById(@PathVariable String id, @PathVariable Integer taskId) {
+    public TaskSpecificDto getTaskById(@PathVariable String id, @PathVariable Integer taskId) {
         return taskService.getTaskById(id, taskId);
     }
 

@@ -6,6 +6,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import sit.int221.BEOR2.db1.dtos.BoardDto;
+import sit.int221.BEOR2.db1.dtos.StatusDto;
+import sit.int221.BEOR2.db1.dtos.TaskSpecificDto;
+import sit.int221.BEOR2.db1.dtos.UserDto;
 import sit.int221.BEOR2.db1.entities.Board;
 import sit.int221.BEOR2.db1.entities.Task;
 import sit.int221.BEOR2.db1.repositories.BoardRepository;
@@ -37,9 +41,31 @@ public class TaskService {
     }
 
     // ดึง Task โดยใช้ boardId และ taskId
-    public Task getTaskById(@PathVariable String boardId, Integer taskId) {
-        return taskRepository.findByBoardIdAndId(boardId, taskId)
+    public TaskSpecificDto getTaskById(@PathVariable String boardId, Integer taskId) {
+        Task task = taskRepository.findByBoardIdAndId(boardId, taskId)
                 .orElseThrow(() -> new ApiNotFoundException("Task id '" + taskId + "' in board id '" + boardId + "' not found"));
+
+        return new TaskSpecificDto(
+                task.getId(),
+                new BoardDto(
+                        task.getBoard().getId(),
+                        task.getBoard().getName(),
+                        task.getBoard().getVisibility(),
+                        new UserDto(
+                                task.getBoard().getUser().getOid(),
+                                task.getBoard().getUser().getUsername()
+                        )
+                ),
+                task.getTitle(),
+                task.getDescription(),
+                task.getAssignees(),
+                new StatusDto(
+                        task.getStatus().getId(),
+                        task.getStatus().getName()
+                ),
+                task.getCreated_on(),
+                task.getUpdated_on()
+        );
     }
 
     // เพิ่ม Task ใหม่ใน Board ที่กำหนด

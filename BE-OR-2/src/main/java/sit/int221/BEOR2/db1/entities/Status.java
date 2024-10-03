@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -29,6 +30,12 @@ public class Status {
 
     @Column(name = "description", length = 200)
     private String description;
+
+    @Column(name = "created_on", nullable = false, updatable = false)
+    private ZonedDateTime created_on;
+
+    @Column(name = "updated_on", nullable = false)
+    private ZonedDateTime updated_on;
 
     @JsonIgnore
     @OneToMany(mappedBy = "status")
@@ -66,5 +73,17 @@ public class Status {
     // Constructor สำหรับรับ id โดยตรง (เพื่อให้สามารถ deserialize ได้จาก JSON)
     public Status(int id) {
         this.id = id;
+    }
+
+    // ตั้งค่าเวลาสร้างและปรับปรุง
+    @PrePersist
+    protected void onCreate() {
+        this.created_on = ZonedDateTime.now();
+        this.updated_on = ZonedDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updated_on = ZonedDateTime.now();
     }
 }

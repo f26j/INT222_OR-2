@@ -5,6 +5,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import sit.int221.BEOR2.db1.dtos.BoardDto;
+import sit.int221.BEOR2.db1.dtos.StatusSpecificDto;
+import sit.int221.BEOR2.db1.dtos.UserDto;
 import sit.int221.BEOR2.db1.entities.Board;
 import sit.int221.BEOR2.db1.entities.Status;
 import sit.int221.BEOR2.db1.entities.Task;
@@ -32,9 +35,26 @@ public class StatusService {
         return statusRepository.findByBoardId(boardId);
     }
 
-    public Status getStatusById(@PathVariable String boardId, @PathVariable Integer statusId) {
-        return statusRepository.findByBoardIdAndId(boardId, statusId)
+    public StatusSpecificDto getStatusById(@PathVariable String boardId, @PathVariable Integer statusId) {
+        Status status = statusRepository.findByBoardIdAndId(boardId, statusId)
                 .orElseThrow(() -> new ApiNotFoundException("Status id '" + statusId + "' does not exist for board id '" + boardId + "'"));
+
+        return new StatusSpecificDto(
+                status.getId(),
+                new BoardDto(
+                        status.getBoard().getId(),
+                        status.getBoard().getName(),
+                        status.getBoard().getVisibility(),
+                        new UserDto(
+                                status.getBoard().getUser().getOid(),
+                                status.getBoard().getUser().getUsername()
+                        )
+                ),
+                status.getName(),
+                status.getDescription(),
+                status.getCreated_on(),
+                status.getUpdated_on()
+        );
     }
 
     @Transactional

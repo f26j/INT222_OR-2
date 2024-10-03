@@ -51,8 +51,15 @@ public class BoardService {
             throw new ApiForbiddenException("Access denied");
         }
 
-        return new BoardDto(board.getId(), board.getName(), board.getVisibility(),
-                new UserDto(board.getUser().getOid(), board.getUser().getUsername()));
+        return new BoardDto(
+                board.getId(),
+                board.getName(),
+                board.getVisibility(),
+                new UserDto(
+                        board.getUser().getOid(),
+                        board.getUser().getUsername()
+                )
+        );
     }
 
     @Transactional
@@ -94,7 +101,10 @@ public class BoardService {
         responseDto.setId(savedBoard.getId());
         responseDto.setName(savedBoard.getName());
         responseDto.setVisibility(savedBoard.getVisibility());
-        responseDto.setOwner(new UserDto(savedBoard.getUser().getOid(), savedBoard.getUser().getUsername()));
+        responseDto.setOwner(new UserDto(
+                savedBoard.getUser().getOid(),
+                savedBoard.getUser().getUsername()
+        ));
         return responseDto;
     }
 
@@ -106,8 +116,15 @@ public class BoardService {
         board.setId(existingBoard.getId());
         board.setUser(existingBoard.getUser());
         boardRepository.saveAndFlush(board);
-        return new BoardDto(board.getId(), board.getName(), board.getVisibility(),
-                new UserDto(board.getUser().getOid(), board.getUser().getUsername()));
+        return new BoardDto(
+                board.getId(),
+                board.getName(),
+                board.getVisibility(),
+                new UserDto(
+                        board.getUser().getOid(),
+                        board.getUser().getUsername()
+                )
+        );
     }
 
     @Transactional

@@ -36,10 +36,10 @@ public class Task {
     private Status status;
 
     @Column(name = "created_on", nullable = false, updatable = false)
-    private ZonedDateTime createdOn;
+    private ZonedDateTime created_on;
 
     @Column(name = "updated_on", nullable = false)
-    private ZonedDateTime updatedOn;
+    private ZonedDateTime updated_on;
 
     // ใช้ String.trim() เพื่อ trim ช่องว่างของ title, description, และ assignees
     public void setTitle(String title) {
@@ -57,12 +57,12 @@ public class Task {
     // ตั้งค่าเวลาสร้างและปรับปรุง
     @PrePersist
     protected void onCreate() {
-        this.createdOn = ZonedDateTime.now();
-        this.updatedOn = ZonedDateTime.now();
+        this.created_on = ZonedDateTime.now();
+        this.updated_on = ZonedDateTime.now();
     }
 
     @PreUpdate
     protected void onUpdate() {
-        this.updatedOn = ZonedDateTime.now();
+        this.updated_on = ZonedDateTime.now();
     }
 }

@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import sit.int221.BEOR2.db1.dtos.StatusDto;
 import sit.int221.BEOR2.db1.dtos.StatusManagementDto;
+import sit.int221.BEOR2.db1.dtos.StatusSpecificDto;
 import sit.int221.BEOR2.db1.entities.Status;
 import sit.int221.BEOR2.db1.services.StatusService;
 import sit.int221.BEOR2.BeOr2CrossOrigin;
@@ -33,7 +34,7 @@ public class StatusController {
 
     @GetMapping("/{statusId}")
     @ResponseStatus(HttpStatus.OK)
-    public Status getStatusById(@PathVariable String id, @PathVariable Integer statusId) {
+    public StatusSpecificDto getStatusById(@PathVariable String id, @PathVariable Integer statusId) {
         return statusService.getStatusById(id, statusId);
     }
 
