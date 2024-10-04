@@ -308,10 +308,12 @@ watch(
       <h1 class="text-left text-3xl font-bold">IT-Bangmod Kradan Kanban</h1>
       <div class="flex justify-between items-center mt-2">
         <h2 class="text-lg font-semibold">
-          <span class="cursor-pointer" @click="router.push({ name: 'board' })"
+          <span
+            class="itbkk-boards cursor-pointer"
+            @click="router.push({ name: 'board' })"
             >Board</span
           >&nbsp;>&nbsp;
-          <span class="textPink cursor-pointer">{{ boardName }}</span>
+          <span class="textPink">{{ boardName }}</span>
         </h2>
         <div class="flex space-x-4">
           <!-- ปุ่ม Manage Status -->
@@ -341,9 +343,9 @@ watch(
             v-if="boardOwnerOid === userStore.oid"
             @click="openModal"
             v-bind:class="{
-              'itbkk-manage-privacy-private px-4 py-2 flex items-center rounded-full':
+              'itbkk-manage-privacy-private px-4 py-2 flex items-center rounded-full shadow hover:shadow-md hover:scale-105 transition-transform duration-300':
                 visibility === 'PRIVATE',
-              'itbkk-manage-privacy-public px-4 py-2 flex items-center rounded-full':
+              'itbkk-manage-privacy-public px-4 py-2 flex items-center rounded-full shadow hover:shadow-md hover:scale-105 transition-transform duration-300':
                 visibility === 'PUBLIC',
             }"
           >
@@ -390,7 +392,7 @@ watch(
           <!-- ปุ่ม Add Task -->
           <button
             @click="openModalAdd"
-            class="itbkk-button-add flex items-center bg-white text-gray-800 px-4 py-2 rounded-full shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
+            class="itbkk-button-add flex items-center px-4 py-2 rounded-full shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -594,8 +596,9 @@ h3 {
   background-color: rgba(255, 255, 255, 0);
   color: #ad386f;
   border: 2px solid #ad386f;
-  border-color: #ad386f;
+  transition: background-color 0.5s ease, transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 .itbkk-manage-status:hover {
   background-color: rgba(255, 255, 255, 0.5);
 }
@@ -606,6 +609,7 @@ h3 {
   color: #ad386f;
   border: 2px solid #ad386f;
   border-color: #ad386f;
+  transition: background-color 0.5s ease, transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 .itbkk-manage-privacy-public:hover {
   background-color: rgba(255, 255, 255, 0.5);
@@ -617,6 +621,7 @@ h3 {
   color: #ad386f;
   border: 2px solid #ad386f;
   border-color: #ad386f;
+  transition: background-color 0.5s ease, transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 .itbkk-manage-privacy-private:hover {
   background-color: rgba(255, 255, 255, 0.5);
@@ -629,7 +634,9 @@ h3 {
   transition: transform 0.3s ease;
 }
 
-
+.itbkk-boards:hover {
+  color: #47467b;
+}
 
 .itbkk-status-sort {
   box-shadow: none;

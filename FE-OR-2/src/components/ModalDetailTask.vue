@@ -5,8 +5,6 @@ import { useTaskStore } from "@/stores/api.js";
 
 // API Endpoint URLs
 const baseUrl = import.meta.env.VITE_API_BOARDS;
-const fetchTask = import.meta.env.VITE_API_BOARD_TASK; // ใช้ URL ตามที่กำหนดใน .env
-const fetchStatus = import.meta.env.VITE_API_BOARD_STATUS; // ใช้ URL ตามที่กำหนดใน .env
 
 // Pinia store for tasks and statuses
 const store = useTaskStore();
@@ -97,7 +95,6 @@ async function openModalDetail() {
   const res = await response.json();
   modalDetail.value = res;
   status.value = { ...modalDetail.value.status };
-
   if (!response.ok) {
     router.push("/");
     setTimeout(() => {
@@ -222,10 +219,10 @@ const closeModal = () => {
                   <p>Timezone : {{ localTimeZone }}</p>
                 </div>
                 <div class="itbkk-created-on text-left">
-                  <p>CreatedOn : {{ formatDate(modalDetail.createdOn) }}</p>
+                  <p>CreatedOn : {{ formatDate(modalDetail.created_on) }}</p>
                 </div>
                 <div class="itbkk-updated-on text-left">
-                  <p>UpdatedOn : {{ formatDate(modalDetail.updatedOn) }}</p>
+                  <p>UpdatedOn : {{ formatDate(modalDetail.updated_on) }}</p>
                 </div>
               </div>
             </div>

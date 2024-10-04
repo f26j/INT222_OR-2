@@ -240,12 +240,12 @@ const closeModal = () => {
       <div class="flex justify-between items-center mt-2">
         <h2 class="text-lg font-semibold text-gray-800">
           <span
-            class="cursor-pointer"
+            class="itbkk-boards cursor-pointer"
             @click="router.push({ name: 'board' })"
             >Board</span
           >&nbsp;>&nbsp;
           <span
-            class="cursor-pointer"
+            class="itbkk-tasks cursor-pointer"
             @click="router.push({ name: 'board-tasks' })"
             >{{ boardName }}</span
           >&nbsp;>&nbsp;<span class="textPurple">Status</span>
@@ -456,6 +456,14 @@ h3 {
   transition: transform 0.3s ease;
 }
 
+.itbkk-tasks:hover {
+  color: #a31a5a;
+}
+
+.itbkk-boards:hover {
+  color: #47467b;
+}
+
 
 .itbkk-button-home {
   font-style: italic;
@@ -463,6 +471,7 @@ h3 {
   color: #683c86;
   border: 2px solid #683c86;
   border-color: #683c86;
+  transition: background-color 0.5s ease, transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 .itbkk-button-home:hover {
   background-color: rgba(255, 255, 255, 0.5);
@@ -517,7 +526,7 @@ h3 {
 .itbkk-button-action button:hover {
   transform: scale(1.06);
   transition: transform 0.3s ease;
-  color: #ad386f;
+  color: #683c86;
 }
 
 .itbkk-status-name p,
@@ -530,7 +539,7 @@ h3 {
 }
 
 .itbkk-status-name p {
-  color: #343365;
+  color: black;
 }
 
 .italic-gray {
@@ -582,7 +591,7 @@ th {
 }
 
 td {
-  color: #683c86;
+  color: black;
   font-family: "Ubuntu", sans-serif;
   font-weight: 600;
   font-style: normal;
@@ -590,7 +599,6 @@ td {
 
 td.bgd {
   padding-left: 30px;
-  /* width: 80px; */
 }
 
 thead th {

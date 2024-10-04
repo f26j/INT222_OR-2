@@ -286,10 +286,10 @@ const closeModal = () => {
                     <p>Timezone : {{ localTimeZone }}</p>
                   </div>
                   <div class="itbkk-created-on text-left">
-                    <p>CreatedOn : {{ formatDate(modalEdit.createdOn) }}</p>
+                    <p>CreatedOn : {{ formatDate(modalEdit.created_on) }}</p>
                   </div>
                   <div class="itbkk-updated-on text-left">
-                    <p>UpdatedOn : {{ formatDate(modalEdit.updatedOn) }}</p>
+                    <p>UpdatedOn : {{ formatDate(modalEdit.updated_on) }}</p>
                   </div>
                 </div>
               </div>
@@ -358,6 +358,17 @@ textarea::placeholder {
   float: right;
   border-radius: 50px;
 }
+
+.ok:disabled {
+  color: white;
+  background-color: #a8a8a8;
+}
+
+.ok:disabled:hover {
+  color: white;
+  background-color: #a8a8a8;
+}
+
 
 .close {
   width: 4rem;

@@ -107,7 +107,7 @@ onMounted(() => {
       <!-- Board List และปุ่ม Create new board -->
       <div class="flex justify-between items-center mt-2">
         <!-- ขนาดของ Board List เล็กกว่า IT-Bangmod Kradan Kanban -->
-        <h2 class="text-lg font-semibold">Board List</h2>
+        <h2 class="itbkk-boards text-lg font-semibold">Board List</h2>
         <button
           @click="router.push('/board/add')"
           class="flex items-center cursor-pointer bg-color-purple text-white px-4 py-2 shadow hover:shadow-md hover:scale-105 transition-transform duration-30 rounded-full"
@@ -264,6 +264,10 @@ h2 {
 
 .bg-color-purple:hover {
   background-color: #636296;
+}
+
+.itbkk-boards:hover {
+  color: #47467b;
 }
 table {
   width: 100%;

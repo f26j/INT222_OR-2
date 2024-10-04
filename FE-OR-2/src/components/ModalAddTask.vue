@@ -332,7 +332,7 @@ const closeModal = () => {
 }
 
 .ok:disabled {
-  background-color: gray;
+  background-color: #a8a8a8;
   color: #ffffff;
 }
 .ok:disabled:hover {
