@@ -199,13 +199,13 @@ const closeModal = () => {
                 <div class="titlee flex flex-wrap -mx-3 mb-2">
                   <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
                     <label
-                      class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                      class="block uppercase tracking-wide  text-xs font-bold mb-2"
                       for="grid-city"
                     >
                       Title
                     </label>
                     <textarea
-                      class="ttitle appearance-none block w-full h-32 bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
+                      class="ttitle appearance-none block w-full h-32 bg-gray-200 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
                       id="assign"
                       type="text"
                       placeholder="Enter title..."
@@ -219,12 +219,12 @@ const closeModal = () => {
                   <div class="flex flex-wrap -mx-3 mb-2">
                     <div class="desc w-full md:w-1/3 px-3 mb-6 md:mb-0">
                       <label
-                        class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                        class="block uppercase tracking-wide text-xs font-bold mb-2"
                         for="grid-city"
                         >Description
                       </label>
                       <textarea
-                        class="itbkkdesc appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                        class="itbkkdesc appearance-none block w-full bg-gray-200 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                         id="description"
                         type="text"
                         placeholder="Enter description..."
@@ -240,13 +240,13 @@ const closeModal = () => {
                   <div class="assign flex flex-wrap -mx-3 mb-2">
                     <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
                       <label
-                        class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                        class="block uppercase tracking-wide text-xs font-bold mb-2"
                         for="grid-city"
                       >
                         Assignees
                       </label>
                       <textarea
-                        class="itbkkassignees appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
+                        class="itbkkassignees appearance-none block w-full bg-gray-200 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
                         id="assign"
                         type="text"
                         placeholder="Enter assignees..."
@@ -260,14 +260,14 @@ const closeModal = () => {
                 <div class="itbkk-status text-left">
                   <div class="w-full md:w-1/3 mb-6 md:mb-0">
                     <label
-                      class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                      class="block uppercase tracking-wide text-xs font-bold mb-2"
                       for="grid-state"
                     >
                       Status
                     </label>
                     <div class="relative itbkk-status">
                       <select
-                        class="statusbx block w-60 bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                        class="statusbx block w-60 bg-gray-200 border border-gray-200 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                         id="grid-state"
                         v-model="newStatus.name"
                       >
@@ -322,7 +322,7 @@ const closeModal = () => {
   </div>
 </template>
 
-<style>
+<style scoped>
 @import url("https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono");
 @import url("https://fonts.googleapis.com");
 @import url("https://fonts.gstatic.com");
@@ -335,12 +335,12 @@ textarea::placeholder {
 
 .modals {
   background-color: #bfb8da;
-  color: #47467b;
+  color: black;
   width: 800px;
 }
 
 .details {
-  color: #47467b;
+  color: black;
   font-family: "Ubuntu", sans-serif;
   font-weight: 500;
   font-style: normal;
@@ -380,7 +380,7 @@ textarea::placeholder {
 }
 
 .modal-header {
-  color: #47467b;
+  color: black;
   font-family: "Ubuntu", sans-serif;
   font-weight: 500;
   font-style: normal;

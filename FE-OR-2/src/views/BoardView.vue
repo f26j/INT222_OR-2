@@ -107,16 +107,15 @@ onMounted(() => {
       <!-- Board List และปุ่ม Create new board -->
       <div class="flex justify-between items-center mt-2">
         <!-- ขนาดของ Board List เล็กกว่า IT-Bangmod Kradan Kanban -->
-        <h2 class="text-lg font-semibold text-gray-800">Board List</h2>
+        <h2 class="text-lg font-semibold">Board List</h2>
         <button
           @click="router.push('/board/add')"
-
           class="flex items-center cursor-pointer bg-color-purple text-white px-4 py-2 shadow hover:shadow-md hover:scale-105 transition-transform duration-30 rounded-full"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
+            width="32"
+            height="32"
             fill="currentColor"
             class="mr-2"
             viewBox="0 0 16 16"
@@ -246,7 +245,14 @@ onMounted(() => {
   <router-view></router-view>
 </template>
 <style scoped>
-/* สไตล์ของตาราง */
+h1 {
+  font-family: "Ubuntu", sans-serif;
+  color: black;
+}
+
+h2 { 
+  color: black;
+}
 
 .text-color-purple{
   color: #47467b;
@@ -279,7 +285,7 @@ td {
 
 th {
   background-color: #47467b; /* พื้นหลังหัวข้อสีโทนหรู */
-  
+  color: #ffff;
   font-weight: 700;
   text-align: center;
 }

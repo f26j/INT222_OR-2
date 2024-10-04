@@ -26,7 +26,6 @@ const {
   closeToast,
 } = storeToRefs(toastStore);
 
-
 // Variable zone
 const showDelete = ref(false);
 const selectDeleteStatusId = ref("");
@@ -91,10 +90,11 @@ async function fetchBoard() {
   boardName.value = data.name; // เก็บชื่อบอร์ดใน boardName
 }
 
-
 // ดึงข้อมูล Status ของ Board
 async function fetchData() {
-  const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}/statuses`); // เรียกใช้ fetchWithToken
+  const response = await fetchWithToken(
+    `${baseUrl}/v3/boards/${boardId}/statuses`
+  ); // เรียกใช้ fetchWithToken
   if (!response) return; // ถ้า response เป็น null ให้ return
 
   if (response.status === 404) {
@@ -107,7 +107,7 @@ async function fetchData() {
   }
 
   const data = await response.json();
-  
+
   if (!Array.isArray(data)) {
     throw new TypeError("Fetched data is not an array");
   }
@@ -149,9 +149,12 @@ const openModalDelete = (id, name) => {
 
 // ฟังก์ชันสำหรับการลบ Status
 async function deleteStatus(id) {
-  const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}/statuses/${id}`, {
-    method: "DELETE",
-  });
+  const response = await fetchWithToken(
+    `${baseUrl}/v3/boards/${boardId}/statuses/${id}`,
+    {
+      method: "DELETE",
+    }
+  );
 
   if (!response) return; // ถ้า response เป็น null ให้ return
 
@@ -176,33 +179,36 @@ async function deleteStatus(id) {
 
 async function deleteTransfer(id, newId) {
   const token = getToken();
-  if (!token) return;  // ถ้าไม่มี token ให้หยุดการทำงาน
+  if (!token) return; // ถ้าไม่มี token ให้หยุดการทำงาน
 
   try {
-    const response = await fetch(`${baseUrl}/v3/boards/${boardId}/statuses/${id}/${newId}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,  // ส่ง JWT Token
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await fetch(
+      `${baseUrl}/v3/boards/${boardId}/statuses/${id}/${newId}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`, // ส่ง JWT Token
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
     if (response.ok) {
       store.statuses.value = store.statuses.value.filter(
         (status) => status.id !== id
       );
-      toastStore.handleStatusDeleted();  // แสดงผลว่า status ถูกลบสำเร็จ
+      toastStore.handleStatusDeleted(); // แสดงผลว่า status ถูกลบสำเร็จ
     } else {
-      toastStore.handleStatusDeletedF();  // แสดงผลว่าการลบล้มเหลว
+      toastStore.handleStatusDeletedF(); // แสดงผลว่าการลบล้มเหลว
       console.error("Failed to delete status");
     }
   } catch (error) {
-    toastStore.handleStatusDeletedF();  // แสดงผลว่ามีข้อผิดพลาดในการลบ
+    toastStore.handleStatusDeletedF(); // แสดงผลว่ามีข้อผิดพลาดในการลบ
     console.error("Error deleting status:", error.message);
   }
 
-  confirmDeleteStatus();  // เรียกใช้งานหลังจากการลบเสร็จสิ้น
-  showDelete.value = false;  // ปิด modal
+  confirmDeleteStatus(); // เรียกใช้งานหลังจากการลบเสร็จสิ้น
+  showDelete.value = false; // ปิด modal
 }
 
 // ฟังก์ชันสำหรับยืนยันการลบ Status
@@ -229,56 +235,67 @@ const closeModal = () => {
 <template>
   <Navbar class="itbkk-fullname" />
   <div class="pt-24">
-  <header class="mb-2 max-w-6xl mx-auto">
-    <h1 class="text-left text-3xl font-bold">IT-Bangmod Kradan Kanban</h1>
-    <div class="flex justify-between items-center mt-2">
-      <h2 class="text-lg font-semibold text-gray-800"><span class="cursor-pointer" @click="router.push({ name: 'board' })">Board ></span> <span class="a cursor-pointer"  @click="router.push({ name: 'board-tasks' })">{{ boardName }}</span> > Status</h2>
-      <div class="flex space-x-4">
-        <button
-          @click="openHome"
-          class="itbkk-button-home flex items-center bg-white text-gray-800 px-4 py-2 rounded-full shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            fill="currentColor"
-            class="mr-2"
-            viewBox="0 4 16 16"
+    <header class="mb-2 max-w-6xl mx-auto">
+      <h1 class="text-left text-3xl font-bold">IT-Bangmod Kradan Kanban</h1>
+      <div class="flex justify-between items-center mt-2">
+        <h2 class="text-lg font-semibold text-gray-800">
+          <span
+            class="cursor-pointer"
+            @click="router.push({ name: 'board' })"
+            >Board</span
+          >&nbsp;>&nbsp;
+          <span
+            class="cursor-pointer"
+            @click="router.push({ name: 'board-tasks' })"
+            >{{ boardName }}</span
+          >&nbsp;>&nbsp;<span class="textPurple">Status</span>
+        </h2>
+        <div class="flex space-x-4">
+          <button
+            @click="openHome"
+            class="itbkk-button-home flex items-center bg-white text-gray-800 px-4 py-2 rounded-full shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
           >
-          <path
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
               fill="currentColor"
-              d="m16 8.5l1.53 1.53l-1.06 1.06L10 4.62l-6.47 6.47l-1.06-1.06L10 2.5l4 4v-2h2zm-6-2.46l6 5.99V18H4v-5.97zM12 17v-5H8v5z"
-            ></path>
-          </svg>
-          Back
-        </button>
-        
-        <button
-          @click="openModalAdd"
-          class="itbkk-button-add flex items-center bg-white text-gray-800 px-4 py-2 rounded-full shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            fill="currentColor"
-            class="mr-2"
-            viewBox="0 0 16 16"
+              class="mr-2"
+              viewBox="0 4 16 16"
+            >
+              <path
+                fill="currentColor"
+                d="m16 8.5l1.53 1.53l-1.06 1.06L10 4.62l-6.47 6.47l-1.06-1.06L10 2.5l4 4v-2h2zm-6-2.46l6 5.99V18H4v-5.97zM12 17v-5H8v5z"
+              ></path>
+            </svg>
+            Back
+          </button>
+
+          <button
+            @click="openModalAdd"
+            class="itbkk-button-add flex items-center bg-white text-gray-800 px-4 py-2 rounded-full shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
           >
-          <path
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
               fill="currentColor"
-              fillRule="evenodd"
-              d="M8 1a1 1 0 0 0-2 0v5H1a1 1 0 0 0 0 2h5v5a1 1 0 1 0 2 0V8h5a1 1 0 1 0 0-2H8z"
-              clipRule="evenodd"
-            />
-          </svg>
-          Add Status
-        </button>
+              class="mr-2"
+              viewBox="0 0 16 16"
+            >
+              <path
+                fill="currentColor"
+                fillRule="evenodd"
+                d="M8 1a1 1 0 0 0-2 0v5H1a1 1 0 0 0 0 2h5v5a1 1 0 1 0 2 0V8h5a1 1 0 1 0 0-2H8z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Add Status
+          </button>
+        </div>
       </div>
-    </div>
-  </header>
-</div>
+    </header>
+  </div>
   <div class="body">
     <main class="flex flex-col items-center">
       <div class="tb">
@@ -400,7 +417,11 @@ const closeModal = () => {
 
 h1 {
   font-family: "Ubuntu", sans-serif;
-  color: #683c86;
+  color: black;
+}
+
+h2 {
+  color: black;
 }
 
 h3 {
@@ -410,6 +431,10 @@ h3 {
 
 .a {
   color: rgb(250, 133, 188);
+}
+
+.textGray {
+  color: #717171;
 }
 
 .statusBtn {
@@ -431,9 +456,16 @@ h3 {
   transition: transform 0.3s ease;
 }
 
+
 .itbkk-button-home {
-  background-color: #343365;
-  color: white;
+  font-style: italic;
+  background-color: rgba(255, 255, 255, 0);
+  color: #683c86;
+  border: 2px solid #683c86;
+  border-color: #683c86;
+}
+.itbkk-button-home:hover {
+  background-color: rgba(255, 255, 255, 0.5);
 }
 
 .itbkk-button-add {
@@ -461,11 +493,6 @@ h3 {
   padding-left: 5px;
   cursor: pointer;
 }
-
-.itbkk-button-home:hover {
-  background-color: #636296;
-}
-
 .itbkk-button-add:hover {
   background-color: #9b65be;
 }
@@ -511,6 +538,14 @@ h3 {
   color: gray;
 }
 
+.textPurple {
+  color: #683c86;
+}
+
+.textPurple:hover {
+  color: #5e1f87;
+}
+
 header {
   margin-bottom: 20px;
 }
@@ -518,8 +553,6 @@ header {
 .idkb {
   display: inline;
 }
-
-
 
 .tb {
   padding: 2rem;
@@ -561,7 +594,7 @@ td.bgd {
 }
 
 thead th {
-  background-color: #8e5bb1;
+  background-color: #683c86;
 }
 
 tbody tr:hover {

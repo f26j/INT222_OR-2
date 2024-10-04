@@ -142,13 +142,13 @@ const closeModal = () => {
               <div class="flex flex-wrap -mx-3 mb-2">
                 <div class="desc w-full md:w-1/3 px-3 mb-6 md:mb-0">
                   <label
-                    class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                    class="block uppercase tracking-wide  text-xs font-bold mb-2"
                     for="grid-city"
                   >
                     Description
                   </label>
                   <textarea
-                    class="itbkk-description descinput appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                    class="itbkk-description descinput appearance-none block w-full bg-gray-200 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                     id="description"
                     type="text"
                     :class="{
@@ -169,13 +169,13 @@ const closeModal = () => {
                 <div class="assign flex flex-wrap -mx-3 mb-2">
                   <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
                     <label
-                      class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                      class="block uppercase tracking-wide text-xs font-bold mb-2"
                       for="grid-city"
                     >
                       Assignees
                     </label>
                     <textarea
-                      class="itbkk-assignees ass appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
+                      class="itbkk-assignees ass appearance-none block w-full bg-gray-200 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
                       id="assign"
                       type="text"
                       :class="{
@@ -193,7 +193,7 @@ const closeModal = () => {
               <div class="itbkk-status text-left">
                 <div class="w-full md:w-1/3 mb-6 md:mb-0">
                   <label
-                    class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                    class="block uppercase tracking-wide text-xs font-bold mb-2"
                     for="grid-state"
                   >
                     Status
@@ -244,7 +244,7 @@ const closeModal = () => {
 </template>
 
 
-<style>
+<style scoped>
 @import url("https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono");
 @import url("https://fonts.googleapis.com");
 @import url("https://fonts.gstatic.com");
@@ -252,12 +252,12 @@ const closeModal = () => {
 
 .modals {
   background-color: #bfb8da;
-  color: #47467b;
+  color: black;
   width: 800px;
 }
 
 .details {
-  color: #47467b;
+  color: black;
   font-family: "Ubuntu", sans-serif;
   font-weight: 500;
   font-style: normal;
@@ -297,7 +297,7 @@ const closeModal = () => {
 }
 
 .modal-header {
-  color: #47467b;
+  color: black;
   font-family: "Ubuntu", sans-serif;
   font-weight: 500;
   font-style: normal;
