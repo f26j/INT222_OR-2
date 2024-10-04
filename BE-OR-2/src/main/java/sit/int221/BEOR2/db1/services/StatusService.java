@@ -74,10 +74,6 @@ public class StatusService {
         Status existingStatus = statusRepository.findByBoardIdAndId(boardId, statusId)
                 .orElseThrow(() -> new ApiNotFoundException("Status id '" + statusId + "' in board id '" + boardId + "' not found"));
 
-        if (existingStatus.getName().contains("No Status") || existingStatus.getName().contains("Done")) {
-            throw new ApiBadRequestException("Status name '" + existingStatus.getName() + "' cannot be deleted");
-        }
-
         status.setId(existingStatus.getId());
         status.setBoard(existingStatus.getBoard());
         status.setName(status.getName().trim()); // ตัดช่องว่างด้านหน้าและหลังชื่อ
@@ -88,6 +84,10 @@ public class StatusService {
     public void deleteStatus(@PathVariable String boardId, @PathVariable Integer statusId) {
         Status statusToDelete = statusRepository.findByBoardIdAndId(boardId, statusId)
                 .orElseThrow(() -> new ApiNotFoundException("Status id '" + statusId + "' does not exist for board id '" + boardId + "'"));
+
+        if (statusToDelete.getName().contains("No Status") || statusToDelete.getName().contains("Done")) {
+            throw new ApiBadRequestException("Status name '" + statusToDelete.getName() + "' cannot be deleted");
+        }
 
         statusRepository.delete(statusToDelete);
     }
