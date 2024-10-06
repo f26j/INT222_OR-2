@@ -4,18 +4,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import sit.int221.BEOR2.db1.entities.User;
+import sit.int221.BEOR2.db1.repositories.UserRepository;
 import sit.int221.BEOR2.db2.dtos.JwtResponse;
-import sit.int221.BEOR2.db2.entities.User;
-import sit.int221.BEOR2.db2.repositories.UserRepository;
+import sit.int221.BEOR2.db2.entities.Users;
+import sit.int221.BEOR2.db2.repositories.UsersRepository;
 import sit.int221.BEOR2.exceptions.ApiBadRequestException;
 import sit.int221.BEOR2.exceptions.ApiUnauthorizedException;
 
+import java.time.ZonedDateTime;
 import java.util.Optional;
 
 @Service
-public class UserService {
+public class UsersService {
     @Autowired
-    private UserRepository userRepository;
+    private UsersRepository usersRepository; // DB2
+    @Autowired
+    private UserRepository userRepository; // DB1
     @Autowired
     private JwtUtil jwtUtil;
 
@@ -29,10 +34,22 @@ public class UserService {
         }
 
         String name = userName.trim();
-        Optional<User> user = userRepository.findByUsername(name);
-
+        Optional<Users> user = usersRepository.findByUsername(name);
         if (user.isEmpty() || !passwordEncoder.matches(password, user.get().getPassword())) {
             throw new ApiUnauthorizedException("Username or password is incorrect");
+        }
+
+        Optional<User> existingUser = userRepository.findByUsername(name);
+        if (existingUser.isEmpty()) {
+            User newUser = new User();
+            newUser.setOid(user.get().getOid());
+            newUser.setName(user.get().getName().trim());
+            newUser.setUsername(user.get().getUsername().trim());
+            newUser.setEmail(user.get().getEmail());
+            newUser.setCreated_on(ZonedDateTime.now());
+            newUser.setUpdated_on(ZonedDateTime.now());
+
+            userRepository.saveAndFlush(newUser);
         }
 
         String token = jwtUtil.generateToken(
@@ -41,6 +58,7 @@ public class UserService {
                 user.get().getEmail(),
                 user.get().getRole()
         );
+
         return new JwtResponse(token);
     }
 }

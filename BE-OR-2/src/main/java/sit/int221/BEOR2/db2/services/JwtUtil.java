@@ -1,6 +1,7 @@
 package sit.int221.BEOR2.db2.services;
 
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,9 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.util.UriComponents;
 
-import java.nio.charset.StandardCharsets;
 import java.security.Key;
-import java.security.MessageDigest;
 import java.util.*;
 import java.util.function.Function;
 
@@ -20,12 +19,11 @@ public class JwtUtil {
     private String SECRET_KEY;
 
     @Value("${jwt.expiration.time}")
-    private long EXPIRATION_TIME; // 30 mins
+    private long EXPIRATION_TIME; // 30 นาที
 
     @SneakyThrows
     private Key getSigningKey() {
-        MessageDigest md = MessageDigest.getInstance("SHA-256");
-        byte[] keyBytes = md.digest(this.SECRET_KEY.getBytes(StandardCharsets.UTF_8));
+        byte[] keyBytes = Decoders.BASE64.decode(this.SECRET_KEY);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
@@ -54,6 +52,10 @@ public class JwtUtil {
         return createToken(claims);
     }
 
+    public String getOid(String token) {
+        return extractAllClaims(token).get("oid", String.class);
+    }
+
     public boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
@@ -62,7 +64,7 @@ public class JwtUtil {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    private <T> T extractClaim(String token , Function<Claims, T> claimResolver) {
+    private <T> T extractClaim(String token, Function<Claims, T> claimResolver) {
         final Claims claim = extractAllClaims(token);
         return claimResolver.apply(claim);
     }
@@ -72,7 +74,7 @@ public class JwtUtil {
         return Jwts.parser()
                 .setSigningKey(getSigningKey())
                 .build()
-                .parseSignedClaims(token)
-                .getPayload();
+                .parseClaimsJws(token)
+                .getBody();
     }
 }

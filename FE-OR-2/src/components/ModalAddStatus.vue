@@ -1,75 +1,88 @@
 <script setup>
 // Import zone
 import { ref } from "vue"
-import { useRouter } from "vue-router"
+import { useRouter, useRoute } from "vue-router";
 import { useStatusStore } from "@/stores/api.js"
 import { useToastStore } from "@/stores/toast.js"
 
 // Variable zone
 const store = useStatusStore()
 const toastStore = useToastStore()
-const fetchURL = ref(import.meta.env.VITE_API_STATUS)
-const router = useRouter()
+const baseUrl = import.meta.env.VITE_API_BOARDS;
+const router = useRouter();
+const route = useRoute();
 const newName = ref("")
 const newDescription = ref("")
 const statuses = ref([])
+const boardId = route.params.boardId;
 
 // Function zone
-function getToken() {
+async function fetchWithToken(url, options = {}) {
   const token = localStorage.getItem("jwtToken");
   if (!token) {
     console.error("No token available");
-    router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
+    router.push("/login"); // Redirect ไปที่หน้า Login
     return null;
   }
-  return token;
+
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${token}`,  // ส่ง JWT Token
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+
+  // ตรวจสอบสถานะ 401 Unauthorized
+  if (response.status === 401) {
+    router.push("/login"); // Redirect ไปหน้า login เมื่อสถานะเป็น 401
+    return null;
+  }
+
+  return response;
 }
 
 const closeModal = () => {
-  router.push({ name: "statusView" })
+  router.push({ name: "status-manage" })
 }
 
 const addStatus = async () => {
-  const token = getToken();  // ดึง token จาก localStorage
-  if (!token) return;  // ถ้าไม่มี token ให้หยุดการทำงาน
-
   const trimmedName = newName.value.trim();
   const trimmedDescription = newDescription.value.trim();
   const newStatus = {
     name: trimmedName === "" ? null : trimmedName,
     description: trimmedDescription === "" ? null : trimmedDescription,
   };
-  
+
   if (!newStatus.name) {
     return;  // ถ้าไม่มีชื่อ status ให้หยุดการทำงาน
   }
 
   try {
-    const response = await fetch(`${fetchURL.value}`, {
+    const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}/statuses`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,  // ส่ง JWT Token
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify(newStatus),
     });
+
+    if (!response) return;  // ถ้า response เป็น null ให้หยุดการทำงาน
 
     const data = await response.json();
     if (!response.ok) {
       throw new Error("Failed to add new status");
     } else {
-      store.statuses.value.push(data);  // เพิ่ม status ใหม่ใน store
-      toastStore.handleStatusAdded();  // แสดง toast ว่าเพิ่มสำเร็จ
+      store.statuses.value.push(data);  // เพิ่มสถานะใหม่ลงใน store
+      toastStore.handleStatusAdded();   // แสดง toast เมื่อเพิ่มสถานะสำเร็จ
     }
 
     closeModal();
   } catch (error) {
-    toastStore.handleStatusAddedF();  // แสดง toast ว่าล้มเหลว
+    toastStore.handleStatusAddedF();
     console.error("Error adding new status:", error.message);
     closeModal();
   }
 
-  newName.value = "";  // รีเซ็ตฟิลด์
+  newName.value = "";  
   newDescription.value = "";
 };
 </script>
@@ -96,13 +109,13 @@ const addStatus = async () => {
               <div class="titlee flex flex-wrap -mx-3 mb-2">
                 <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
                   <label
-                    class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                    class="block uppercase tracking-wide text-xs font-bold mb-2"
                     for="grid-city"
                   >
                     Name
                   </label>
                   <textarea
-                    class="itbkk-status-name ttitle-stt appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
+                    class="itbkk-status-name ttitle-stt appearance-none block w-full bg-gray-200 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
                     id="name"
                     type="text"
                     placeholder="Enter name... (Required)"
@@ -116,12 +129,12 @@ const addStatus = async () => {
                 <div class="flex flex-wrap -mx-3 mb-2">
                   <div class="desc w-full md:w-1/3 px-3 mb-6 md:mb-0">
                     <label
-                      class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                      class="block uppercase tracking-wide text-xs font-bold mb-2"
                       for="grid-city"
                       >Description
                     </label>
                     <textarea
-                      class="itbkk-status-description itbkkdesc-stt appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                      class="itbkk-status-description itbkkdesc-stt appearance-none block w-full bg-gray-200 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                       id="description"
                       type="text"
                       placeholder="Enter description..."
@@ -159,7 +172,7 @@ const addStatus = async () => {
   </div>
 </template>
 
-<style>
+<style scoped>
 @import url("https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono");
 @import url("https://fonts.googleapis.com");
 @import url("https://fonts.gstatic.com");
@@ -167,12 +180,12 @@ const addStatus = async () => {
 
 .modalsAddStt {
   background-color: #c8badb;
-  color: #3a2864;
+  color: black;
   width: 800px;
 }
 
 .details {
-  color: #47467b;
+  color: black;
   font-family: "Ubuntu", sans-serif;
   font-weight: 500;
   font-style: normal;
@@ -236,7 +249,7 @@ const addStatus = async () => {
 }
 
 .modal-header {
-  color: #47467b;
+  color: black;
   font-family: "Ubuntu", sans-serif;
   font-weight: 500;
   font-style: normal;
@@ -254,7 +267,7 @@ h1 {
 }
 
 h4 {
-  color: #692153;
+  color: black;
 }
 
 .modal-body {

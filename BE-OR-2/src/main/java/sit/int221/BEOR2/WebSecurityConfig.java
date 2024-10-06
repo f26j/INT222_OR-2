@@ -27,19 +27,20 @@ public class WebSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(Customizer.withDefaults())
-                .csrf(AbstractHttpConfigurer::disable) // No 403 error
+                .csrf(AbstractHttpConfigurer::disable) // ปิด CSRF
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/login/**").permitAll()
-                        .anyRequest().authenticated())
+                        .requestMatchers("/error", "/login/**").permitAll()  // อนุญาตการเข้าถึง /error และ /login โดยไม่ต้อง authenticate
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()  // อนุญาตการเข้าถึง Swagger UI โดยไม่ต้อง authenticate
+                        .anyRequest().authenticated())  // ต้อง authenticate สำหรับ request อื่นๆ
                 .exceptionHandling(exceptionHandling -> exceptionHandling
-                        .authenticationEntryPoint(customAuthenticationEntryPoint))
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+                        .authenticationEntryPoint(customAuthenticationEntryPoint))  // จัดการข้อผิดพลาดในการ authentication
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))  // ใช้ session แบบ stateless
+                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);  // เพิ่ม JWT filter
         return http.build();
     }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
-        return configuration.getAuthenticationManager();
+        return configuration.getAuthenticationManager();  // กำหนด AuthenticationManager
     }
 }

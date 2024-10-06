@@ -1,14 +1,24 @@
 package sit.int221.BEOR2.db1.services;
 
+import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import sit.int221.BEOR2.db1.dtos.BoardDto;
+import sit.int221.BEOR2.db1.dtos.StatusDto;
+import sit.int221.BEOR2.db1.dtos.TaskSpecificDto;
+import sit.int221.BEOR2.db1.dtos.UserDto;
+import sit.int221.BEOR2.db1.entities.Board;
 import sit.int221.BEOR2.db1.entities.Task;
-import sit.int221.BEOR2.exceptions.ApiNotFoundException;
+import sit.int221.BEOR2.db1.repositories.BoardRepository;
 import sit.int221.BEOR2.db1.repositories.StatusRepository;
 import sit.int221.BEOR2.db1.repositories.TaskRepository;
+import sit.int221.BEOR2.exceptions.ApiBadRequestException;
+import sit.int221.BEOR2.exceptions.ApiNotFoundException;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @Service
@@ -17,45 +27,86 @@ public class TaskService {
     private TaskRepository taskRepository;
     @Autowired
     private StatusRepository statusRepository;
+    @Autowired
+    private BoardRepository boardRepository;
+    @Autowired
+    private EntityManager entityManager;
 
-    public List<Task> getTasks() {
-        return taskRepository.findAll();
+    // ดึง Tasks ทั้งหมดจาก boardId ที่กำหนด
+    public List<Task> getTasks(@PathVariable String boardId) {
+        if (!boardRepository.existsById(boardId)) {
+            throw new ApiNotFoundException("Board id '" + boardId + "' not found");
+        }
+        return taskRepository.findByBoardId(boardId);
     }
 
-    public Task getTaskById(@PathVariable Integer id) {
-        return taskRepository.findById(id).orElseThrow(() -> new ApiNotFoundException("Task id " + id + " does not exist"));
+    // ดึง Task โดยใช้ boardId และ taskId
+    public TaskSpecificDto getTaskById(@PathVariable String boardId, Integer taskId) {
+        Task task = taskRepository.findByBoardIdAndId(boardId, taskId)
+                .orElseThrow(() -> new ApiNotFoundException("Task id '" + taskId + "' in board id '" + boardId + "' not found"));
+
+        return new TaskSpecificDto(
+                task.getId(),
+                new BoardDto(
+                        task.getBoard().getId(),
+                        task.getBoard().getName(),
+                        task.getBoard().getVisibility(),
+                        new UserDto(
+                                task.getBoard().getUser().getOid(),
+                                task.getBoard().getUser().getUsername()
+                        )
+                ),
+                task.getTitle(),
+                task.getDescription(),
+                task.getAssignees(),
+                new StatusDto(
+                        task.getStatus().getId(),
+                        task.getStatus().getName()
+                ),
+                task.getCreated_on(),
+                task.getUpdated_on()
+        );
     }
 
+    // เพิ่ม Task ใหม่ใน Board ที่กำหนด
     @Transactional
-    public Task addTask(@RequestBody Task task) {
-        if (!statusRepository.existsById(task.getStatus().getId())) {
-            throw new ApiNotFoundException("The requested status does not exist");
+    public Task addTask(@PathVariable String boardId, @RequestBody @Valid Task task) {
+        Board existingBoard = boardRepository.findById(boardId)
+                .orElseThrow(() -> new ApiNotFoundException("Board id '" + boardId + "' not found"));
+
+        if (task.getStatus() == null || !statusRepository.existsById(task.getStatus().getId())) {
+            throw new ApiBadRequestException("Task status cannot be null or invalid");
         }
-        statusRepository.findById(task.getStatus().getId());
-        return taskRepository.saveAndFlush(task);
+
+        task.setBoard(existingBoard);
+        Task addedTask = taskRepository.saveAndFlush(task);
+        entityManager.refresh(addedTask); // รีเฟรชหลังการบันทึก
+        return addedTask;
     }
 
+    // แก้ไข Task ที่มีอยู่ใน Board
     @Transactional
-    public Task editTask(@PathVariable Integer id, @RequestBody Task task) {
-        if (!taskRepository.existsById(id)) {
-            throw new ApiNotFoundException("NOT FOUND");
+    public Task editTask(@PathVariable String boardId, @PathVariable Integer taskId, @RequestBody @Valid Task task) {
+        Task existingTask = taskRepository.findByBoardIdAndId(boardId, taskId)
+                .orElseThrow(() -> new ApiNotFoundException("Task id '" + taskId + "' in board id '" + boardId + "' not found"));
+
+        if (task.getStatus() == null || !statusRepository.existsById(task.getStatus().getId())) {
+            throw new ApiBadRequestException("Task status cannot be null or invalid");
         }
 
-        if (taskRepository.existsById(id)) {
-            task.setId(id);
-            return taskRepository.saveAndFlush(task);
-        }
-        return null;
+        task.setId(existingTask.getId());
+        task.setBoard(existingTask.getBoard());  // คง Board เดิมไว้
+        Task editedTask = taskRepository.saveAndFlush(task);
+        entityManager.refresh(editedTask);  // รีเฟรชเพื่อให้มั่นใจว่าข้อมูลเป็นปัจจุบัน
+        return editedTask;
     }
 
+    // ลบ Task ที่กำหนด
     @Transactional
-    public void deleteTask(@PathVariable Integer id) {
-        if (!taskRepository.existsById(id)) {
-            throw new ApiNotFoundException("NOT FOUND");
-        }
+    public void deleteTask(@PathVariable String boardId, @PathVariable Integer taskId) {
+        Task task = taskRepository.findByBoardIdAndId(boardId, taskId)
+                .orElseThrow(() -> new ApiNotFoundException("Task id '" + taskId + "' in board id '" + boardId + "' not found"));
 
-        if (taskRepository.existsById(id)) {
-            taskRepository.deleteById(id);
-        }
+        taskRepository.delete(task);
     }
 }

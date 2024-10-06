@@ -1,21 +1,22 @@
-import { defineStore } from 'pinia';
-import jwtDecode from 'vue-jwt-decode';
-import { useRouter } from 'vue-router';  // Import router
+import { defineStore } from "pinia";
+import jwtDecode from "vue-jwt-decode";
 
-const fetchUsers = import.meta.env.VITE_API_USERS;
+const fetchUsers = import.meta.env.VITE_API_LOGIN;
 
-export const useUserStore = defineStore('user', {
+export const useUserStore = defineStore("user", {
   state: () => ({
-    token: localStorage.getItem('token') || null, // ดึง token จาก localStorage
-    fullname: '',
+    token:
+      typeof window !== "undefined" ? localStorage.getItem("jwtToken") : null, // ตรวจสอบการเข้าถึง localStorage
+    fullname: "",
+    oid: "", // เปลี่ยนเป็น oid
   }),
   actions: {
     async fetchUserData(username, password) {
       try {
         const response = await fetch(fetchUsers, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             userName: username,
@@ -24,18 +25,20 @@ export const useUserStore = defineStore('user', {
         });
 
         if (!response.ok) {
-          throw new Error('Failed to fetch token');
+          throw new Error("Failed to fetch token");
         }
 
         const data = await response.json();
         this.token = data.access_token;
 
         // เก็บ token ไว้ใน localStorage
-        localStorage.setItem('token', this.token);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("jwtToken", this.token);
+        }
 
-        this.decodeToken();
+        this.decodeToken(); // ถอดรหัสข้อมูลจาก token
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error("Error fetching user data:", error);
       }
     },
 
@@ -43,40 +46,41 @@ export const useUserStore = defineStore('user', {
       try {
         if (this.token) {
           const decodedToken = jwtDecode.decode(this.token);
-          this.fullname = decodedToken.name || 'Unknown';
+          this.fullname = decodedToken.name || "Unknown"; // ถอดรหัส fullname จาก token
+          this.oid = decodedToken.oid || ""; // ถอดรหัส oid จาก token
         }
       } catch (error) {
-        console.error('Error decoding token:', error);
+        console.error("Error decoding token:", error);
       }
     },
 
     async checkAuth() {
-      const router = useRouter();  // เพิ่ม router เพื่อใช้งาน
       try {
         if (this.token) {
           const decodedToken = jwtDecode.decode(this.token);
           const currentTime = Date.now() / 1000;
           if (decodedToken.exp < currentTime) {
             this.logout(); // ถ้า token หมดอายุ ทำการ logout
-            throw new Error('Token has expired');
+            throw new Error("Token has expired");
           }
-          this.fullname = decodedToken.name || 'Unknown';
+          this.fullname = decodedToken.name || "Unknown";
+          this.oid = decodedToken.oid || ""; // ตั้งค่า oid จาก token
         } else {
-          throw new Error('No token found');
+          throw new Error("No token found");
         }
       } catch (error) {
-        console.error('Error checking authentication:', error);
+        console.error("Error checking authentication:", error);
         this.logout();
-        router.push('/login');  // Redirect ไปยังหน้า login
       }
     },
 
     logout() {
-      const router = useRouter(); // ใช้งาน router สำหรับ redirect
       this.token = null;
-      this.fullname = '';
-      localStorage.removeItem('token'); // ลบ token ออกจาก localStorage
-      router.push('/login');  // Redirect ไปยังหน้า login
-    }
+      this.fullname = "";
+      this.oid = ""; // รีเซ็ตค่า oid
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("jwtToken"); // ลบ token ออกจาก localStorage
+      }
+    },
   },
 });

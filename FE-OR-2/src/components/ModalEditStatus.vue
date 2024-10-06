@@ -1,11 +1,11 @@
 <script setup>
 import { ref, onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { useStatusStore } from "@/stores/api.js";
 import { useToastStore } from "@/stores/toast.js";
 const store = useStatusStore();
 
-const fetchStatus = import.meta.env.VITE_API_STATUS;
+const baseUrl = import.meta.env.VITE_API_BOARDS;
 const route = useRoute();
 const router = useRouter();
 const toastStore = useToastStore();
@@ -13,54 +13,73 @@ const newName = ref("");
 const newDescription = ref("");
 const statuses = ref([]);
 const id = route.params.id;
+const boardId = route.params.boardId;
+const statusId = route.params.statusId;
 
 const originalName = ref("");
 const originalDescription = ref("");
 
 const closeModal = () => {
-  router.push({ path: "/status/manage" });
+  router.push({ name: "status-manage" });
 };
 
+// ฟังก์ชันสำหรับดึง Token
 function getToken() {
   const token = localStorage.getItem("jwtToken");
   if (!token) {
     console.error("No token available");
-    router.push("/login"); // ถ้าไม่มี token จะ redirect ไปหน้า login
+    router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
     return null;
   }
   return token;
 }
 
-async function getStatus() {
-  const token = getToken();
-  if (!token) return; // ถ้าไม่มี token ให้หยุดการทำงาน
+async function fetchWithToken(url, options = {}) {
+  const token = getToken(); // ดึง JWT Token
+  if (!token) return null; // ถ้าไม่มี Token ให้ return null
 
-  try {
-    const response = await fetch(fetchStatus, {
-      headers: {
-        Authorization: `Bearer ${token}`, // ส่ง JWT Token
-        "Content-Type": "application/json",
-      },
-    });
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${token}`, // ส่ง JWT Token
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
 
-    const res = await response.json();
-    const selectId = res.find((status) => status.id == id);
-    if (!selectId) {
-      router.push({ path: "/status/manage" });
-      setTimeout(() => {
-        alert("An error has occurred, the status does not exist");
-      }, 500);
-      return;
-    }
-    newName.value = selectId.name;
-    newDescription.value = selectId.description;
-
-    originalName.value = selectId.name;
-    originalDescription.value = selectId.description;
-  } catch (error) {
-    console.error("Error fetching status:", error.message);
-    router.push({ path: "/status/manage" });
+  if (response.status === 401) {
+    router.push("/login"); // Redirect ไปที่ login เมื่อสถานะเป็น 401
+    return null;
   }
+
+  return response; // ส่ง response กลับไปใช้งาน
+}
+
+async function getStatus() {
+  const response = await fetchWithToken(
+    `${baseUrl}/v3/boards/${boardId}/statuses/${statusId}`
+  ); // ใช้ fetchWithToken
+  if (!response) return; // ถ้า response เป็น null ให้หยุดการทำงาน
+
+  if (response.status === 404) {
+    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    return;
+  }
+
+  const res = await response.json();
+  // const selectId = res.find((status) => status.id == id);
+  if (!res) {
+    router.push({ name: "status-manage" });
+    setTimeout(() => {
+      alert("An error has occurred, the status does not exist");
+    }, 500);
+    return;
+  }
+
+  newName.value = res.name;
+  newDescription.value = res.description;
+  originalName.value = res.name;
+  originalDescription.value = res.description;
 }
 
 onMounted(() => {
@@ -69,9 +88,6 @@ onMounted(() => {
 
 const editSuccess = ref(false);
 const editStatus = async () => {
-  const token = getToken();
-  if (!token) return; // ถ้าไม่มี token ให้หยุดการทำงาน
-
   const trimmedName = newName.value.trim();
   const trimmedDescription = newDescription.value.trim();
   const newStatus = {
@@ -85,14 +101,20 @@ const editStatus = async () => {
   }
 
   try {
-    const response = await fetch(`${fetchStatus}/${id}`, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`, // ส่ง JWT Token ใน header
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(newStatus),
-    });
+    const response = await fetchWithToken(
+      `${baseUrl}/v3/boards/${boardId}/statuses/${statusId}`,
+      {
+        method: "PUT",
+        body: JSON.stringify(newStatus),
+      }
+    );
+
+    if (!response) return; // ถ้า response เป็น null ให้หยุดการทำงาน
+
+    if (response.status === 404) {
+      router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+      return;
+    }
 
     const data = await response.json();
     if (!response.ok) {
@@ -106,11 +128,11 @@ const editStatus = async () => {
       store.statuses.value.splice(statusIndex, 1, data);
     }
 
-    router.push({ name: "statusView" }).catch(() => {});
+    router.push({ name: "status-manage" }).catch(() => {});
   } catch (error) {
     editSuccess.value = false;
     toastStore.handleStatusEditedF();
-    console.error("Error adding new status:", error.message);
+    console.error("Error editing status:", error.message);
   }
 };
 </script>
@@ -137,13 +159,13 @@ const editStatus = async () => {
               <div class="titlee flex flex-wrap -mx-3 mb-2">
                 <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
                   <label
-                    class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                    class="block uppercase tracking-wide text-xs font-bold mb-2"
                     for="grid-city"
                   >
                     Name
                   </label>
                   <textarea
-                    class="itbkk-status-name ttitle-stt appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
+                    class="itbkk-status-name ttitle-stt appearance-none block w-full bg-gray-200 border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
                     id="name"
                     type="text"
                     placeholder="Enter name... (Required)"
@@ -157,12 +179,12 @@ const editStatus = async () => {
                 <div class="flex flex-wrap -mx-3 mb-2">
                   <div class="desc w-full md:w-1/3 px-3 mb-6 md:mb-0">
                     <label
-                      class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                      class="block uppercase tracking-wide text-xs font-bold mb-2"
                       for="grid-city"
                       >Description
                     </label>
                     <textarea
-                      class="itbkk-status-description itbkkdesc-stt appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                      class="itbkk-status-description itbkkdesc-stt appearance-none block w-full bg-gray-200 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                       id="description"
                       type="text"
                       placeholder="Enter description..."
@@ -212,12 +234,12 @@ const editStatus = async () => {
 
 .modalsAddStt {
   background-color: #c8badb;
-  color: #3a2864;
+  color: black;
   width: 800px;
 }
 
 .details {
-  color: #47467b;
+  color: black;
   font-family: "Ubuntu", sans-serif;
   font-weight: 500;
   font-style: normal;
@@ -318,7 +340,7 @@ h1 {
 }
 
 h4 {
-  color: #692153;
+  color: black;
 }
 
 .modal-body {

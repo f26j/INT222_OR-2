@@ -5,17 +5,20 @@ import { useRoute, useRouter } from "vue-router";
 import { useTaskStore } from "@/stores/api.js";
 import { useToastStore } from "@/stores/toast.js";
 
-// Store,Api zone
+// Store, API zone
 const route = useRoute();
 const router = useRouter();
 const store = useTaskStore();
 const toastStore = useToastStore();
-const fetchTask = import.meta.env.VITE_API_TASK;
-const fetchStatus = import.meta.env.VITE_API_STATUS;
+const boardId = route.params.boardId; // ดึงค่า boardId จาก URL
+const taskId = route.params.taskId || ""; // ดึงค่า taskId จาก URL
+
+const baseUrl = import.meta.env.VITE_API_BOARDS;
+const fetchTask = import.meta.env.VITE_API_BOARD_TASK;
+const fetchStatus = import.meta.env.VITE_API_BOARD_STATUS;
 
 // Variable zone
-const id = route.params.id;
-const modalEdit = ref([""]);
+const modalEdit = ref(null);
 const localTimeZone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone);
 const newTitle = ref("");
 const newDescription = ref("");
@@ -27,29 +30,39 @@ const originalAssignee = ref("");
 const originalDescription = ref("");
 const originalStatus = ref({});
 
-function getToken() {
+// ฟังก์ชันสำหรับดึง Token และเรียก API พร้อม Token
+async function fetchWithToken(url, options = {}) {
   const token = localStorage.getItem("jwtToken");
-  if (!token) {
-    console.error("No token available");
-    router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
-    return null;
-  }
-  return token;
-}
+  if (!token) return null;
 
-async function fetchDataStatus() {
-  const token = getToken(); // ดึง JWT Token จาก localStorage
-  if (!token) return; // ถ้าไม่มี Token ให้หยุดการทำงาน
-
-  const response = await fetch(fetchStatus, {
+  const response = await fetch(url, {
+    ...options,
     headers: {
-      Authorization: `Bearer ${token}`, // ส่ง JWT Token
+      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
+      ...options.headers,
     },
   });
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch status: ${response.statusText}`);
+  // ตรวจสอบสถานะ 401 Unauthorized
+  if (response.status === 401) {
+    router.push("/login");
+    return null;
+  }
+
+  return response;
+}
+
+// ฟังก์ชันดึงข้อมูล Status
+async function fetchDataStatus() {
+  const response = await fetchWithToken(
+    `${baseUrl}/v3/boards/${boardId}/statuses`
+  );
+  if (!response) return;
+
+  if (response.status === 404) {
+    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    return;
   }
 
   const dataStatus = await response.json();
@@ -60,14 +73,15 @@ async function fetchDataStatus() {
   return dataStatus;
 }
 
+// ฟังก์ชันสำหรับฟอร์แมตวันที่
 function formatDate(date) {
   if (!date) {
-    return "N/A"; // กรณีที่ไม่มีวันที่ส่งเข้ามา
+    return "N/A";
   }
 
   const d = new Date(date);
   if (isNaN(d)) {
-    return "Invalid Date"; // กรณีที่วันที่ไม่ถูกต้อง
+    return "Invalid Date";
   }
 
   return d
@@ -76,16 +90,17 @@ function formatDate(date) {
     .join(" ");
 }
 
+// ฟังก์ชันเปิด Modal สำหรับแก้ไข Task
 const openModalEdit = async () => {
-  const token = getToken(); // ดึง token จาก localStorage
-  if (!token) return;
+  if (!taskId) {
+    console.error("Task ID is missing");
+    return;
+  }
 
-  const response = await fetch(`${fetchTask}/${id}`, {
-    headers: {
-      Authorization: `Bearer ${token}`, // ส่ง JWT Token
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await fetchWithToken(
+    `${baseUrl}/v3/boards/${boardId}/tasks/${taskId}`
+  );
+  if (!response) return;
 
   const res = await response.json();
   if (!response.ok) {
@@ -95,6 +110,7 @@ const openModalEdit = async () => {
     }, 500);
     return;
   }
+
   modalEdit.value = res;
   newTitle.value = modalEdit.value.title || "";
   newDescription.value = modalEdit.value.description || "";
@@ -107,23 +123,22 @@ const openModalEdit = async () => {
   originalStatus.value = { ...modalEdit.value.status };
 };
 
+// เมื่อ component mount
 onMounted(async () => {
   openModalEdit();
   const datastatus = await fetchDataStatus();
   store.status.value = datastatus;
 });
 
+// ฟังก์ชันแก้ไข Task
 const editTask = async () => {
-  const token = getToken();
-  if (!token) return;
-
   const editedTask = {
-    id: id,
+    id: taskId,
     title: newTitle.value.trim(),
     description: newDescription.value.trim(),
     assignees: newAssignees.value.trim(),
     status: store.status.value.find(
-      (status) => status.name == newStatus.value.name
+      (status) => status.name === newStatus.value.name
     ),
   };
 
@@ -132,20 +147,19 @@ const editTask = async () => {
   }
 
   try {
-    const response = await fetch(`${fetchTask}/${id}`, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`, // ส่ง JWT Token
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(editedTask),
-    });
+    const response = await fetchWithToken(
+      `${baseUrl}/v3/boards/${boardId}/tasks/${taskId}`,
+      {
+        method: "PUT",
+        body: JSON.stringify(editedTask),
+      }
+    );
 
     if (!response.ok) {
       throw new Error("Failed to edit task");
-    } else {
-      store.updateTask({ ...editedTask });
     }
+
+    store.updateTask({ ...editedTask });
 
     closeModal();
     toastStore.handleTaskEdited();
@@ -154,10 +168,12 @@ const editTask = async () => {
   }
 };
 
+// ฟังก์ชันปิด Modal
 const closeModal = () => {
-  router.push({ name: "task" });
+  router.push({ name: "board-tasks", params: { boardId } });
 };
 </script>
+
 <template>
   <div
     v-if="modalEdit"
@@ -183,13 +199,13 @@ const closeModal = () => {
                 <div class="titlee flex flex-wrap -mx-3 mb-2">
                   <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
                     <label
-                      class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                      class="block uppercase tracking-wide  text-xs font-bold mb-2"
                       for="grid-city"
                     >
                       Title
                     </label>
                     <textarea
-                      class="ttitle appearance-none block w-full h-32 bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
+                      class="ttitle appearance-none block w-full h-32 bg-gray-200 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
                       id="assign"
                       type="text"
                       placeholder="Enter title..."
@@ -203,12 +219,12 @@ const closeModal = () => {
                   <div class="flex flex-wrap -mx-3 mb-2">
                     <div class="desc w-full md:w-1/3 px-3 mb-6 md:mb-0">
                       <label
-                        class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                        class="block uppercase tracking-wide text-xs font-bold mb-2"
                         for="grid-city"
                         >Description
                       </label>
                       <textarea
-                        class="itbkkdesc appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                        class="itbkkdesc appearance-none block w-full bg-gray-200 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                         id="description"
                         type="text"
                         placeholder="Enter description..."
@@ -224,13 +240,13 @@ const closeModal = () => {
                   <div class="assign flex flex-wrap -mx-3 mb-2">
                     <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
                       <label
-                        class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                        class="block uppercase tracking-wide text-xs font-bold mb-2"
                         for="grid-city"
                       >
                         Assignees
                       </label>
                       <textarea
-                        class="itbkkassignees appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
+                        class="itbkkassignees appearance-none block w-full bg-gray-200 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
                         id="assign"
                         type="text"
                         placeholder="Enter assignees..."
@@ -244,14 +260,14 @@ const closeModal = () => {
                 <div class="itbkk-status text-left">
                   <div class="w-full md:w-1/3 mb-6 md:mb-0">
                     <label
-                      class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                      class="block uppercase tracking-wide text-xs font-bold mb-2"
                       for="grid-state"
                     >
                       Status
                     </label>
                     <div class="relative itbkk-status">
                       <select
-                        class="statusbx block w-60 bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                        class="statusbx block w-60 bg-gray-200 border border-gray-200 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                         id="grid-state"
                         v-model="newStatus.name"
                       >
@@ -270,10 +286,10 @@ const closeModal = () => {
                     <p>Timezone : {{ localTimeZone }}</p>
                   </div>
                   <div class="itbkk-created-on text-left">
-                    <p>CreatedOn : {{ formatDate(modalEdit.createdOn) }}</p>
+                    <p>CreatedOn : {{ formatDate(modalEdit.created_on) }}</p>
                   </div>
                   <div class="itbkk-updated-on text-left">
-                    <p>UpdatedOn : {{ formatDate(modalEdit.updatedOn) }}</p>
+                    <p>UpdatedOn : {{ formatDate(modalEdit.updated_on) }}</p>
                   </div>
                 </div>
               </div>
@@ -306,7 +322,7 @@ const closeModal = () => {
   </div>
 </template>
 
-<style>
+<style scoped>
 @import url("https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono");
 @import url("https://fonts.googleapis.com");
 @import url("https://fonts.gstatic.com");
@@ -319,12 +335,12 @@ textarea::placeholder {
 
 .modals {
   background-color: #bfb8da;
-  color: #47467b;
+  color: black;
   width: 800px;
 }
 
 .details {
-  color: #47467b;
+  color: black;
   font-family: "Ubuntu", sans-serif;
   font-weight: 500;
   font-style: normal;
@@ -342,6 +358,17 @@ textarea::placeholder {
   float: right;
   border-radius: 50px;
 }
+
+.ok:disabled {
+  color: white;
+  background-color: #a8a8a8;
+}
+
+.ok:disabled:hover {
+  color: white;
+  background-color: #a8a8a8;
+}
+
 
 .close {
   width: 4rem;
@@ -364,7 +391,7 @@ textarea::placeholder {
 }
 
 .modal-header {
-  color: #47467b;
+  color: black;
   font-family: "Ubuntu", sans-serif;
   font-weight: 500;
   font-style: normal;

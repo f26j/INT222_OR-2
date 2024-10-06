@@ -1,15 +1,16 @@
 <script setup>
 import { ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { useToastStore } from "@/stores/toast.js";
 import { useTaskStore } from "@/stores/api.js";
 
-// Store,Api zone
-const fetchTask = import.meta.env.VITE_API_TASK;
-const fetchStatus = import.meta.env.VITE_API_STATUS;
+// Store, API zone
+const baseUrl = import.meta.env.VITE_API_BOARDS;
 const router = useRouter();
 const store = useTaskStore();
 const toastStore = useToastStore();
+const route = useRoute();
+const boardId = route.params.boardId; // ดึงค่า boardId จาก URL
 
 // Variable zone
 const newTitle = ref("");
@@ -21,26 +22,43 @@ const newStatus = ref({
   description: "The default status",
 });
 
-function getToken() {
+// ฟังก์ชันสำหรับดึง Token และเรียก API พร้อม Token
+async function fetchWithToken(url, options = {}) {
   const token = localStorage.getItem("jwtToken");
   if (!token) {
     console.error("No token available");
     router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
     return null;
   }
-  return token;
-}
 
-async function fetchDataStatus() {
-  const token = getToken();  // ดึง JWT Token
-  if (!token) return;  // ถ้าไม่มี Token ให้หยุดการทำงาน
-
-  const response = await fetch(fetchStatus, {
+  const response = await fetch(url, {
+    ...options,
     headers: {
-      Authorization: `Bearer ${token}`,  // ส่ง JWT Token
+      Authorization: `Bearer ${token}`, // ส่ง JWT Token
       "Content-Type": "application/json",
+      ...options.headers,
     },
   });
+
+  if (response.status === 401) {
+    router.push("/login"); // Redirect ไปหน้า login เมื่อสถานะเป็น 401
+    return null;
+  }
+
+  return response;
+}
+
+// ดึงข้อมูล Status ของ Board
+async function fetchDataStatus() {
+  const response = await fetchWithToken(
+    (`${baseUrl}/v3/boards/${boardId}/statuses`)
+  ); // ใช้ fetchWithToken
+  if (!response) return; // ถ้า response เป็น null ให้ return
+
+  if (response.status === 404) {
+    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    return;
+  }
 
   const dataStatus = await response.json();
   if (!Array.isArray(dataStatus)) {
@@ -49,27 +67,33 @@ async function fetchDataStatus() {
   return dataStatus;
 }
 
+// OnMounted ดึงข้อมูล Status เมื่อ component ถูก mount
 onMounted(async () => {
   const datastatus = await fetchDataStatus();
   store.status.value = datastatus;
 });
 
+// ฟังก์ชันสำหรับเพิ่ม Task ใหม่
 const addTask = async () => {
-  const token = getToken(); // ดึง token จาก localStorage
-  if (!token) return; // ถ้าไม่มี token ให้หยุดการทำงาน
-
   const trimmedTitle = newTitle.value.trim();
   const trimmedDescription = newDescription.value.trim();
   const trimmedAssignees = newAssignees.value.trim();
+
   const selectedStatus = store.status.value.find(
     (status) => status.name === newStatus.value.name
   );
+
+  // ตรวจสอบให้แน่ใจว่า status ถูกต้อง
+  if (!selectedStatus || !selectedStatus.id) {
+    console.error("Task status cannot be null");
+    return;
+  }
 
   const newTask = {
     title: trimmedTitle,
     description: trimmedDescription === "" ? null : trimmedDescription,
     assignees: trimmedAssignees === "" ? null : trimmedAssignees,
-    status: selectedStatus,
+    status: { id: selectedStatus.id }, // ส่ง id ของ status
   };
 
   if (!newTask.title) {
@@ -77,25 +101,25 @@ const addTask = async () => {
   }
 
   try {
-    const response = await fetch(`${fetchTask}`, {
+    const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}/tasks`, {
+      // ใช้ URL ที่รวม boardId
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`, // ส่ง JWT Token
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify(newTask),
     });
 
+    if (!response) return; // ถ้า response เป็น null ให้ return
+
     const data = await response.json();
     if (!response.ok) {
+      console.error("Server Error:", data); // ตรวจสอบข้อผิดพลาดจากเซิร์ฟเวอร์
       throw new Error("Failed to add new task");
     } else {
-      console.log(data);
       store.tasks.value.push(data);
     }
 
     toastStore.handleTaskAdded();
-    router.push({ name: "task" }).catch(() => {});
+    // เปลี่ยนจาก name: "task" เป็น name: "board-tasks"
+    router.push({ name: "board-tasks", params: { boardId } }).catch(() => {});
   } catch (error) {
     console.error("Error adding new task:", error.message);
   }
@@ -112,9 +136,12 @@ const addTask = async () => {
 };
 
 const closeModal = () => {
-  router.push({ name: "task" });
+  router
+    .push({ name: "board-tasks", params: { boardId: boardId } })
+    .catch(() => {});
 };
 </script>
+
 <template>
   <div class="details fixed inset-0 overflow-y-auto bg-black bg-opacity-50">
     <div
@@ -136,13 +163,13 @@ const closeModal = () => {
               <div class="titlee flex flex-wrap -mx-3 mb-2">
                 <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
                   <label
-                    class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                    class="block uppercase tracking-wide text-xs font-bold mb-2"
                     for="grid-city"
                   >
                     Title
                   </label>
                   <textarea
-                    class="ttitle appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
+                    class="ttitle appearance-none block w-full bg-gray-200 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
                     id="assign"
                     type="text"
                     placeholder="Enter title..."
@@ -155,12 +182,12 @@ const closeModal = () => {
                 <div class="flex flex-wrap -mx-3 mb-2">
                   <div class="desc w-full md:w-1/3 px-3 mb-6 md:mb-0">
                     <label
-                      class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                      class="block uppercase tracking-wide text-xs font-bold mb-2"
                       for="grid-city"
                       >Description
                     </label>
                     <textarea
-                      class="itbkkdesc appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                      class="itbkkdesc appearance-none block w-full bg-gray-200 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                       id="description"
                       type="text"
                       placeholder="Enter description..."
@@ -175,13 +202,13 @@ const closeModal = () => {
                 <div class="assign flex flex-wrap -mx-3 mb-2">
                   <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
                     <label
-                      class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                      class="block uppercase tracking-wide text-xs font-bold mb-2"
                       for="grid-city"
                     >
                       Assignees
                     </label>
                     <textarea
-                      class="itbkkassignees appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
+                      class="itbkkassignees appearance-none block w-full bg-gray-200 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
                       id="assign"
                       type="text"
                       placeholder="Enter assignees..."
@@ -194,20 +221,20 @@ const closeModal = () => {
               <div class="itbkk-status text-left">
                 <div class="w-full md:w-1/3 mb-6 md:mb-0">
                   <label
-                    class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                    class="block uppercase tracking-wide text-xs font-bold mb-2"
                     for="grid-state"
                   >
                     Status
                   </label>
                   <div class="relative itbkk-status">
                     <select
-                      class="statusbx block w-60 bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                      class="statusbx block w-60 bg-gray-200 border border-gray-200 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                       id="grid-state"
                       v-model="newStatus.name"
                     >
                       <option
                         v-for="(status, index) in store.status.value"
-                        :selected="status.name == newStatus.value"
+                        :key="index"
                       >
                         {{ status.name }}
                       </option>
@@ -246,12 +273,12 @@ const closeModal = () => {
 
 .modals {
   background-color: #c8badb;
-  color: #3a2864;
+  color: black;
   width: 800px;
 }
 
 .details {
-  color: #47467b;
+  color: black;
   font-family: "Ubuntu", sans-serif;
   font-weight: 500;
   font-style: normal;
@@ -305,7 +332,7 @@ const closeModal = () => {
 }
 
 .ok:disabled {
-  background-color: gray;
+  background-color: #a8a8a8;
   color: #ffffff;
 }
 .ok:disabled:hover {
@@ -318,7 +345,7 @@ const closeModal = () => {
 }
 
 .modal-header {
-  color: #47467b;
+  color: black;
   font-family: "Ubuntu", sans-serif;
   font-weight: 500;
   font-style: normal;
@@ -336,7 +363,7 @@ h1 {
 }
 
 h4 {
-  color: #692153;
+  color: black;
 }
 
 .desc {

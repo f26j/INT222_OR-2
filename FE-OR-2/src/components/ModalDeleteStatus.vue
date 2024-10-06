@@ -1,12 +1,16 @@
 <script setup>
 import { ref, onMounted } from "vue";
+import { useRouter, useRoute } from "vue-router";
 import { useStatusStore } from "@/stores/api.js";
 
-const fetchStatus = import.meta.env.VITE_API_STATUS
+const baseUrl = import.meta.env.VITE_API_BOARDS;
 const store = useStatusStore();
 const isDeletable = ref(true);
 const currentStatus = ref({});
 const newStatusId = ref(1);
+const router = useRouter();
+const route = useRoute();
+const boardId = route.params.boardId; 
 
 function getToken() {
   const token = localStorage.getItem("jwtToken");
@@ -19,22 +23,42 @@ function getToken() {
 }
 
 async function getStatus() {
-  const token = getToken();  // ดึง token จาก localStorage
-  if (!token) return;  // ถ้าไม่มี token ให้หยุดการทำงาน
+  const token = getToken(); // ดึง token จาก localStorage
+  if (!token) return; // ถ้าไม่มี token ให้หยุดการทำงาน
 
-  const data = await fetch(`${fetchStatus}/${props.statusId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,  // ส่ง JWT Token
-      "Content-Type": "application/json",
-    },
-  });
+  try {
+    const response = await fetch(
+      `${baseUrl}/v3/boards/${boardId}/statuses/${props.statusId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`, // ส่ง JWT Token
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-  const res = await data.json();
-  console.log(res.count);
-  if (res.count > 0) {
-    isDeletable.value = false;
+    if (response.status === 404) {
+    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    return;
   }
-  currentStatus.value = res;
+
+    // ตรวจสอบสถานะ 401 Unauthorized
+    if (response.status === 401) {
+      router.push("/login"); // Redirect ไปหน้า login เมื่อสถานะเป็น 401
+      return;
+    }
+
+    const res = await response.json();
+    console.log(res.count);
+
+    // ตรวจสอบว่า status สามารถลบได้หรือไม่
+    if (res.count > 0) {
+      isDeletable.value = false;
+    }
+    currentStatus.value = res;
+  } catch (error) {
+    console.error("Error fetching status:", error);
+  }
 }
 
 onMounted(() => {
@@ -171,10 +195,10 @@ defineEmits(["closeModal", "confirmDeleteStatus", "deleteTransfer"]);
   </div>
 </template>
 
-<style>
+<style scoped>
 .modalDelete {
   background-color: #ffffff;
-  color: #47467b;
+  color: black;
   max-width: 600px;
   width: 600px;
   min-height: 200px;

@@ -5,8 +5,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import sit.int221.BEOR2.db1.dtos.BoardDto;
+import sit.int221.BEOR2.db1.dtos.StatusSpecificDto;
+import sit.int221.BEOR2.db1.dtos.UserDto;
+import sit.int221.BEOR2.db1.entities.Board;
 import sit.int221.BEOR2.db1.entities.Status;
 import sit.int221.BEOR2.db1.entities.Task;
+import sit.int221.BEOR2.db1.repositories.BoardRepository;
 import sit.int221.BEOR2.exceptions.ApiBadRequestException;
 import sit.int221.BEOR2.exceptions.ApiNotFoundException;
 import sit.int221.BEOR2.db1.repositories.StatusRepository;
@@ -20,66 +25,97 @@ public class StatusService {
     private StatusRepository statusRepository;
     @Autowired
     private TaskRepository taskRepository;
+    @Autowired
+    private BoardRepository boardRepository;
 
-    public List<Status> getStatuses() {
-        return statusRepository.findAll();
+    public List<Status> getStatuses(@PathVariable String boardId) {
+        if (!boardRepository.existsById(boardId)) {
+            throw new ApiNotFoundException("Board id '" + boardId + "' not found");
+        }
+        return statusRepository.findByBoardId(boardId);
     }
 
-    public Status getStatusById(@PathVariable Integer id) {
-        return statusRepository.findById(id).orElseThrow(() -> new ApiNotFoundException("Status id " + id + " does not exist"));
+    public StatusSpecificDto getStatusById(@PathVariable String boardId, @PathVariable Integer statusId) {
+        Status status = statusRepository.findByBoardIdAndId(boardId, statusId)
+                .orElseThrow(() -> new ApiNotFoundException("Status id '" + statusId + "' does not exist for board id '" + boardId + "'"));
+
+        return new StatusSpecificDto(
+                status.getId(),
+                new BoardDto(
+                        status.getBoard().getId(),
+                        status.getBoard().getName(),
+                        status.getBoard().getVisibility(),
+                        new UserDto(
+                                status.getBoard().getUser().getOid(),
+                                status.getBoard().getUser().getUsername()
+                        )
+                ),
+                status.getName(),
+                status.getDescription(),
+                status.getCreated_on(),
+                status.getUpdated_on()
+        );
     }
 
     @Transactional
-    public Status addStatus(@RequestBody Status status) {
+    public Status addStatus(@PathVariable String boardId, @RequestBody Status status) {
+        Board existingBoard = boardRepository.findById(boardId)
+                .orElseThrow(() -> new ApiNotFoundException("Board id '" + boardId + "' not found"));
+
+        status.setBoard(existingBoard);
+        status.setName(status.getName().trim()); // ตัดช่องว่างด้านหน้าและหลังชื่อ
         return statusRepository.saveAndFlush(status);
     }
 
     @Transactional
-    public Status editStatus(@PathVariable Integer id, @RequestBody Status status) {
-        // Test on Postman: status.getId() == null || status.getId() == 1
-        if (id == null || id == 1) {
-            throw new ApiBadRequestException("Status id " + id + " cannot be edited");
+    public Status editStatus(@PathVariable String boardId,
+                             @PathVariable Integer statusId,
+                             @RequestBody Status status) {
+        Status existingStatus = statusRepository.findByBoardIdAndId(boardId, statusId)
+                .orElseThrow(() -> new ApiNotFoundException("Status id '" + statusId + "' in board id '" + boardId + "' not found"));
+
+        if (existingStatus.getName().contains("No Status") || existingStatus.getName().contains("Done")) {
+            throw new ApiBadRequestException("Status name '" + existingStatus.getName() + "' cannot be deleted");
         }
 
-        if (!statusRepository.existsById(id)) {
-            throw new ApiNotFoundException("The requested status does not exist");
-        }
-
-        if (statusRepository.existsById(id)) {
-            status.setId(id);
-            return statusRepository.saveAndFlush(status);
-        }
-        return null;
+        status.setId(existingStatus.getId());
+        status.setBoard(existingStatus.getBoard());
+        status.setName(status.getName().trim()); // ตัดช่องว่างด้านหน้าและหลังชื่อ
+        return statusRepository.saveAndFlush(status);
     }
 
     @Transactional
-    public void deleteStatus(@PathVariable Integer id) {
-        if (id == 1) {
-            throw new ApiBadRequestException("Status id " + id + " cannot be deleted");
-        }
+    public void deleteStatus(@PathVariable String boardId, @PathVariable Integer statusId) {
+        Status statusToDelete = statusRepository.findByBoardIdAndId(boardId, statusId)
+                .orElseThrow(() -> new ApiNotFoundException("Status id '" + statusId + "' does not exist for board id '" + boardId + "'"));
 
-        if (!statusRepository.existsById(id)) {
-            throw new ApiNotFoundException("NOT FOUND");
-        }
-
-        if (statusRepository.existsById(id)) {
-            statusRepository.deleteById(id);
-        }
+        statusRepository.delete(statusToDelete);
     }
 
     @Transactional
-    public void transferStatus(@PathVariable Integer id, @PathVariable Integer newId) {
-        if (newId.equals(statusRepository.existsById(id)) || id == 1) {
-            throw new ApiBadRequestException("Status id " + id + " and new id " + newId + " cannot be transferred");
+    public void transferStatus(@PathVariable String boardId,
+                               @PathVariable Integer statusId,
+                               @PathVariable Integer newStatusId) {
+        if (statusId.equals(newStatusId)) {
+            throw new ApiBadRequestException("Status id '" + statusId + "' and new id '" + newStatusId + "' cannot be transferred");
         }
 
-        Status deleteId = statusRepository.findById(id).orElseThrow(() -> new ApiNotFoundException("NOT FOUND"));
-        Status transferId = statusRepository.findById(newId).orElse(null);
+        Status deleteId = statusRepository.findByBoardIdAndId(boardId, statusId)
+                .orElseThrow(() -> new ApiNotFoundException("Status id '" + statusId + "' does not exist for board id '" + boardId + "'"));
+
+        if (deleteId.getName().contains("No Status") || deleteId.getName().contains("Done")) {
+            throw new ApiBadRequestException("Status name '" + deleteId.getName() + "' cannot be deleted");
+        }
+
+        Status transferId = statusRepository.findByBoardIdAndId(boardId, newStatusId)
+                .orElseThrow(() -> new ApiNotFoundException("New status id '" + newStatusId + "' does not exist for board id '" + boardId + "'"));
+
         List<Task> tasks = taskRepository.findByStatus(deleteId);
 
         for (Task task : tasks) {
             task.setStatus(transferId);
         }
+
         taskRepository.saveAllAndFlush(tasks);
         statusRepository.delete(deleteId);
     }
