@@ -807,6 +807,11 @@ tbody {
 footer {
   padding-bottom: 5rem;
 }
+
+.itbkk-board-name, .itbkk-manage-status, .itbkk-board-visibility {
+  user-select: none;
+}
+
 @media screen and (max-width: 820px) {
   table,
   thead,

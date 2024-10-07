@@ -105,9 +105,9 @@ function closeModal() {
   bottom: 0;
   left: 0;
 }
-.bg-opacity-50 {
+/* .bg-opacity-50 {
   background-opacity: 0.5;
-}
+} */
 
 button {
   border-radius: 20px;
@@ -118,5 +118,9 @@ button:hover {
   transform: scale(1.08);
   transition: transform 0.3s ease;
   box-shadow: 5px 5px 5px #c6c6c646;
+}
+
+.itbkk-modal-new, .itbkk-board-name, .itbkk-button-ok, .itbkk-button-cancel {
+  user-select: none;
 }
 </style>
