@@ -61,10 +61,8 @@ function closeModal() {
 </script>
 
 <template>
-  <div
-    class="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center"
-  >
-    <div class="bg-white p-6 rounded shadow-lg">
+  <div class="itbkk-modal-new fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+    <div class="bg-white p-6 rounded-3xl text-center shadow-xlp-6 w-1/3">
       <h2 class="text-lg font-semibold mb-4">Create a new board</h2>
       <div v-if="errorMessage" class="text-red-500 mb-4">
         {{ errorMessage }}
@@ -72,21 +70,21 @@ function closeModal() {
       <input
         v-model="boardName"
         type="text"
-        class="border p-2 w-full mb-4"
+        class="itbkk-board-name border p-2 w-full mb-4"
         placeholder="Enter board name (max 120 characters)"
       />
       <!-- <select v-model="visibility" class="border p-2 w-full mb-4">
         <option value="private">Private</option>
         <option value="public">Public</option>
       </select> -->
-      <div class="flex justify-end">
+      <div class="button-addboard flex justify-center">
         <button
           @click="createBoard"
-          class="bg-blue-500 text-white px-4 py-2 rounded"
+          class="itbkk-button-ok bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2"
         >
           Create
         </button>
-        <button @click="closeModal" class="text-red-500 ml-2">Cancel</button>
+        <button @click="closeModal" class="itbkk-button-cancel bg-gray-300 hover:bg-gray-400 text-gray-600 px-4 py-2 ml-4">Cancel</button>
       </div>
     </div>
   </div>
@@ -104,5 +102,16 @@ function closeModal() {
 }
 .bg-opacity-50 {
   background-opacity: 0.5;
+}
+
+button {
+  border-radius: 20px;
+  transition: transform 0.3s ease-in-out;
+}
+
+button:hover {
+  transform: scale(1.08);
+  transition: transform 0.3s ease;
+  box-shadow: 5px 5px 5px #c6c6c646;
 }
 </style>
