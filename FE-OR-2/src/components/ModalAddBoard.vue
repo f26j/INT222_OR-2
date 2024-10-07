@@ -82,9 +82,14 @@ function closeModal() {
           @click="createBoard"
           class="itbkk-button-ok bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2"
         >
-          Create
+          Save
         </button>
-        <button @click="closeModal" class="itbkk-button-cancel bg-gray-300 hover:bg-gray-400 text-gray-600 px-4 py-2 ml-4">Cancel</button>
+        <button 
+          @click="closeModal" 
+          class="itbkk-button-cancel bg-gray-300 hover:bg-gray-400 text-gray-600 px-4 py-2 ml-4"
+        >
+          Cancel
+        </button>
       </div>
     </div>
   </div>
