@@ -79,8 +79,8 @@ const togglePassword = () => {
     >
       <div class="sm:mx-auto sm:w-full sm:max-w-sm">
         <img
-          class="mx-auto my-2 h-10 w-auto"
-          src="../../public/ORv1.2.ico"
+          class="mx-auto my-2 h-16 w-auto"
+          src="../../public/OR2.png"
           alt="OR-2"
         />
         <h2

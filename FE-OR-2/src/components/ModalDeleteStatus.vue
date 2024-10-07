@@ -195,10 +195,10 @@ defineEmits(["closeModal", "confirmDeleteStatus", "deleteTransfer"]);
   </div>
 </template>
 
-<style>
+<style scoped>
 .modalDelete {
   background-color: #ffffff;
-  color: #47467b;
+  color: black;
   max-width: 600px;
   width: 600px;
   min-height: 200px;

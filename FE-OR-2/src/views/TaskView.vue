@@ -307,17 +307,19 @@ watch(
     <header class="mb-2 max-w-6xl mx-auto">
       <h1 class="text-left text-3xl font-bold">IT-Bangmod Kradan Kanban</h1>
       <div class="flex justify-between items-center mt-2">
-        <h2 class="text-lg font-semibold text-gray-800">
-          <span class="cursor-pointer" @click="router.push({ name: 'board' })"
-            >Board ></span
-          >
-          <span class="b cursor-pointer">{{ boardName }}</span>
+        <h2 class="text-lg font-semibold">
+          <span
+            class="itbkk-boards cursor-pointer"
+            @click="router.push({ name: 'board' })"
+            >Board</span
+          >&nbsp;>&nbsp;
+          <span class="textPink">{{ boardName }}</span>
         </h2>
         <div class="flex space-x-4">
           <!-- ปุ่ม Manage Status -->
           <button
             @click="router.push({ name: 'status-manage' })"
-            class="itbkk-manage-status flex items-center bg-white text-gray-800 px-4 py-2 rounded-full shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
+            class="itbkk-manage-status flex items-center px-4 py-2 rounded-full shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -337,36 +339,13 @@ watch(
             Manage Status
           </button>
 
-          <!-- ปุ่ม Add Task -->
-          <button
-            @click="openModalAdd"
-            class="itbkk-button-add flex items-center bg-white text-gray-800 px-4 py-2 rounded-full shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              fill="currentColor"
-              class="mr-2"
-              viewBox="0 0 16 16"
-            >
-              <path
-                fill="currentColor"
-                fillRule="evenodd"
-                d="M8 1a1 1 0 0 0-2 0v5H1a1 1 0 0 0 0 2h5v5a1 1 0 1 0 2 0V8h5a1 1 0 1 0 0-2H8z"
-                clipRule="evenodd"
-              />
-            </svg>
-            Add Task
-          </button>
-
           <button
             v-if="boardOwnerOid === userStore.oid"
             @click="openModal"
             v-bind:class="{
-              'px-4 py-2 flex items-center bg-red-500 text-white rounded-full':
+              'itbkk-manage-privacy-private px-4 py-2 flex items-center rounded-full shadow hover:shadow-md hover:scale-105 transition-transform duration-300':
                 visibility === 'PRIVATE',
-              'px-4 py-2 flex items-center bg-green-500 text-white rounded-full':
+              'itbkk-manage-privacy-public px-4 py-2 flex items-center rounded-full shadow hover:shadow-md hover:scale-105 transition-transform duration-300':
                 visibility === 'PUBLIC',
             }"
           >
@@ -381,7 +360,7 @@ watch(
               >
                 <path
                   d="M7 10.0288C7.47142 10 8.05259 10 8.8 10H15.2C15.9474 10 16.5286 10 17 10.0288M7 10.0288C6.41168 10.0647 5.99429 10.1455 5.63803 10.327C5.07354 10.6146 4.6146 11.0735 4.32698 11.638C4 12.2798 4 13.1198 4 14.8V16.2C4 17.8802 4 18.7202 4.32698 19.362C4.6146 19.9265 5.07354 20.3854 5.63803 20.673C6.27976 21 7.11984 21 8.8 21H15.2C16.8802 21 17.7202 21 18.362 20.673C18.9265 20.3854 19.3854 19.9265 19.673 19.362C20 18.7202 20 17.8802 20 16.2V14.8C20 13.1198 20 12.2798 19.673 11.638C19.3854 11.0735 18.9265 10.6146 18.362 10.327C18.0057 10.1455 17.5883 10.0647 17 10.0288M7 10.0288V8C7 5.23858 9.23858 3 12 3C14.7614 3 17 5.23858 17 8V10.0288"
-                  stroke="#000000"
+                  stroke="#ad386f"
                   stroke-width="2"
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -400,7 +379,7 @@ watch(
               >
                 <path
                   d="M3 12H21M3 12C3 16.9706 7.02944 21 12 21M3 12C3 7.02944 7.02944 3 12 3M21 12C21 16.9706 16.9706 21 12 21M21 12C21 7.02944 16.9706 3 12 3M12 21C4.75561 13.08 8.98151 5.7 12 3M12 21C19.2444 13.08 15.0185 5.7 12 3"
-                  stroke="#000000"
+                  stroke="#ad386f"
                   stroke-width="2"
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -408,6 +387,29 @@ watch(
               </svg>
               Public
             </template>
+          </button>
+
+          <!-- ปุ่ม Add Task -->
+          <button
+            @click="openModalAdd"
+            class="itbkk-button-add flex items-center px-4 py-2 rounded-full shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              fill="currentColor"
+              class="mr-2"
+              viewBox="0 0 16 16"
+            >
+              <path
+                fill="currentColor"
+                fillRule="evenodd"
+                d="M8 1a1 1 0 0 0-2 0v5H1a1 1 0 0 0 0 2h5v5a1 1 0 1 0 2 0V8h5a1 1 0 1 0 0-2H8z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Add Task
           </button>
         </div>
       </div>
@@ -460,7 +462,7 @@ watch(
                   </svg>
                 </button>
               </th>
-              <th class="text-center" style="text-align: center;">Actions</th>
+              <th class="text-center" style="text-align: center">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -468,15 +470,15 @@ watch(
               <td>{{ index + 1 }}</td>
               <td @click="openModalDetail(task.id)">{{ task.title }}</td>
               <td>{{ task.assignees || "Unassigned" }}</td>
-              <td class="center-td"><Badges style="justify-content: center;"  :status="task.status" /></td>
-
+              <td class="center-td">
+                <Badges style="justify-content: center" :status="task.status" />
+              </td>
 
               <td class="px-4 py-3 flex justify-center space-x-2">
                 <!-- จัดปุ่มให้ดูสมส่วน -->
                 <button
                   class="flex items-center bg-white text-color-purple px-3 py-1.5 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
                   @click="openModalEdit(task.id)"
-                  :disabled="!task.canEdit"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -568,7 +570,11 @@ watch(
 
 h1 {
   font-family: "Ubuntu", sans-serif;
-  color: #47467b;
+  color: black;
+}
+
+h2 {
+  color: black;
 }
 
 h3 {
@@ -581,15 +587,44 @@ h3 {
   justify-content: center;
 }
 
+/* .itbkk-fullname {
+  box-shadow: none;
+} */
+
 .itbkk-manage-status {
   font-style: italic;
-  background-color: #6f418f;
-  color: #f5e2ff;
-  transition: transform 0.3s ease;
+  background-color: rgba(255, 255, 255, 0);
+  color: #ad386f;
+  border: 2px solid #ad386f;
+  transition: background-color 0.5s ease, transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 .itbkk-manage-status:hover {
-  background-color: #6a4581;
-  background-color: #8e5bb1;
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.itbkk-manage-privacy-public {
+  font-style: italic;
+  background-color: rgba(255, 255, 255, 0);
+  color: #ad386f;
+  border: 2px solid #ad386f;
+  border-color: #ad386f;
+  transition: background-color 0.5s ease, transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.itbkk-manage-privacy-public:hover {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.itbkk-manage-privacy-private {
+  font-style: italic;
+  background-color: rgba(255, 255, 255, 0);
+  color: #ad386f;
+  border: 2px solid #ad386f;
+  border-color: #ad386f;
+  transition: background-color 0.5s ease, transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.itbkk-manage-privacy-private:hover {
+  background-color: rgba(255, 255, 255, 0.5);
 }
 
 .itbkk-button-add {
@@ -599,9 +634,9 @@ h3 {
   transition: transform 0.3s ease;
 }
 
-/* .itbkk-fullname {
-  box-shadow: none;
-} */
+.itbkk-boards:hover {
+  color: #47467b;
+}
 
 .itbkk-status-sort {
   box-shadow: none;
@@ -612,11 +647,17 @@ h3 {
   transition: transform 0.3s ease;
   cursor: pointer;
 }
-.a {
-  color: rgb(250, 133, 188);
+
+.textPink {
+  color: #ad386f;
 }
-.b {
-  color: rgb(250, 133, 188);
+
+.textPink:hover {
+  color: #a31a5a;
+}
+
+.textGray {
+  color: #717171;
 }
 .c {
   color: rgb(209, 209, 209);
@@ -729,17 +770,17 @@ th {
   color: rgba(255, 255, 255, 0.748);
 }
 td {
-  color: #47467b;
+  color: black;
   font-family: "Ubuntu", sans-serif;
   font-weight: 600;
   font-style: normal;
-  text-align: left
+  text-align: left;
 }
 td.bgd {
   padding-left: 30px;
 }
 thead th {
-  background-color: #47467b;
+  background-color: #ad386f;
 }
 tbody tr:hover {
   background-color: rgba(255, 255, 255, 0.63);

@@ -5,8 +5,6 @@ import { useTaskStore } from "@/stores/api.js";
 
 // API Endpoint URLs
 const baseUrl = import.meta.env.VITE_API_BOARDS;
-const fetchTask = import.meta.env.VITE_API_BOARD_TASK; // ใช้ URL ตามที่กำหนดใน .env
-const fetchStatus = import.meta.env.VITE_API_BOARD_STATUS; // ใช้ URL ตามที่กำหนดใน .env
 
 // Pinia store for tasks and statuses
 const store = useTaskStore();
@@ -97,7 +95,6 @@ async function openModalDetail() {
   const res = await response.json();
   modalDetail.value = res;
   status.value = { ...modalDetail.value.status };
-
   if (!response.ok) {
     router.push("/");
     setTimeout(() => {
@@ -142,13 +139,13 @@ const closeModal = () => {
               <div class="flex flex-wrap -mx-3 mb-2">
                 <div class="desc w-full md:w-1/3 px-3 mb-6 md:mb-0">
                   <label
-                    class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                    class="block uppercase tracking-wide  text-xs font-bold mb-2"
                     for="grid-city"
                   >
                     Description
                   </label>
                   <textarea
-                    class="itbkk-description descinput appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                    class="itbkk-description descinput appearance-none block w-full bg-gray-200 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                     id="description"
                     type="text"
                     :class="{
@@ -169,13 +166,13 @@ const closeModal = () => {
                 <div class="assign flex flex-wrap -mx-3 mb-2">
                   <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
                     <label
-                      class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                      class="block uppercase tracking-wide text-xs font-bold mb-2"
                       for="grid-city"
                     >
                       Assignees
                     </label>
                     <textarea
-                      class="itbkk-assignees ass appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
+                      class="itbkk-assignees ass appearance-none block w-full bg-gray-200 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
                       id="assign"
                       type="text"
                       :class="{
@@ -193,7 +190,7 @@ const closeModal = () => {
               <div class="itbkk-status text-left">
                 <div class="w-full md:w-1/3 mb-6 md:mb-0">
                   <label
-                    class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                    class="block uppercase tracking-wide text-xs font-bold mb-2"
                     for="grid-state"
                   >
                     Status
@@ -222,10 +219,10 @@ const closeModal = () => {
                   <p>Timezone : {{ localTimeZone }}</p>
                 </div>
                 <div class="itbkk-created-on text-left">
-                  <p>CreatedOn : {{ formatDate(modalDetail.createdOn) }}</p>
+                  <p>CreatedOn : {{ formatDate(modalDetail.created_on) }}</p>
                 </div>
                 <div class="itbkk-updated-on text-left">
-                  <p>UpdatedOn : {{ formatDate(modalDetail.updatedOn) }}</p>
+                  <p>UpdatedOn : {{ formatDate(modalDetail.updated_on) }}</p>
                 </div>
               </div>
             </div>
@@ -244,7 +241,7 @@ const closeModal = () => {
 </template>
 
 
-<style>
+<style scoped>
 @import url("https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono");
 @import url("https://fonts.googleapis.com");
 @import url("https://fonts.gstatic.com");
@@ -252,12 +249,12 @@ const closeModal = () => {
 
 .modals {
   background-color: #bfb8da;
-  color: #47467b;
+  color: black;
   width: 800px;
 }
 
 .details {
-  color: #47467b;
+  color: black;
   font-family: "Ubuntu", sans-serif;
   font-weight: 500;
   font-style: normal;
@@ -297,7 +294,7 @@ const closeModal = () => {
 }
 
 .modal-header {
-  color: #47467b;
+  color: black;
   font-family: "Ubuntu", sans-serif;
   font-weight: 500;
   font-style: normal;
