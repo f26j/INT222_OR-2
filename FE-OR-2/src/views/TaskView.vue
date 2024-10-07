@@ -313,7 +313,7 @@ watch(
             @click="router.push({ name: 'board' })"
             >Board</span
           >&nbsp;>&nbsp;
-          <span class="textPink">{{ boardName }}</span>
+          <span class="itbkk-board-name textPink">{{ boardName }}</span>
         </h2>
         <div class="flex space-x-4">
           <!-- ปุ่ม Manage Status -->
@@ -342,6 +342,7 @@ watch(
           <button
             v-if="boardOwnerOid === userStore.oid"
             @click="openModal"
+            class="itbkk-board-visibility"
             v-bind:class="{
               'itbkk-manage-privacy-private px-4 py-2 flex items-center rounded-full shadow hover:shadow-md hover:scale-105 transition-transform duration-300':
                 visibility === 'PRIVATE',

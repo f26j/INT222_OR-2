@@ -1,0 +1,25 @@
+<script setup>
+import Bg_effect from "./Background.vue";
+</script>
+
+<template>
+  <div class="not-found-page h-screen flex flex-col justify-center items-center p-2 text-gray-600">
+    <div>
+      <!-- <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24">
+        <path fill="currentColor" d="M6 22q-.825 0-1.412-.587T4 20V10q0-.825.588-1.412T6 8h1V6q0-2.075 1.463-3.537T12 1t3.538 1.463T17 6v2h1q.825 0 1.413.588T20 10v10q0 .825-.587 1.413T18 22zm0-2h12V10H6zm6-3q.825 0 1.413-.587T14 15t-.587-1.412T12 13t-1.412.588T10 15t.588 1.413T12 17M9 8h6V6q0-1.25-.875-2.125T12 3t-2.125.875T9 6zM6 20V10z"/>
+      </svg> -->
+      <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24">
+        <path fill="currentColor" d="M18 11c.7 0 1.37.1 2 .29V10c0-1.1-.9-2-2-2h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h6.26A6.995 6.995 0 0 1 18 11M8.9 6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2H8.9z"/><path fill="currentColor" d="M18 13c-2.76 0-5 2.24-5 5s2.24 5 5 5s5-2.24 5-5s-2.24-5-5-5m0 2c.83 0 1.5.67 1.5 1.5S18.83 18 18 18s-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5m0 6c-1.03 0-1.94-.52-2.48-1.32c.73-.42 1.57-.68 2.48-.68s1.75.26 2.48.68c-.54.8-1.45 1.32-2.48 1.32"/>
+      </svg>
+    </div>
+    <div class="text-center font-bold pt-4">
+      <h1 class="text-6xl">403</h1>
+      <h1 class="text-3xl">Forbidden</h1>
+    </div>
+    <p class="text-xl p-6">Access denied, you do not have permission to view this page.</p>
+    <router-link to="/" class="text-2xl text-blue-500 hover:text-blue-600 hover:scale-105 transition-transform duration-300 ease-in-out">Go back to Homepage</router-link>
+  </div>
+  <Bg_effect />
+</template>
+
+<style scoped></style>
