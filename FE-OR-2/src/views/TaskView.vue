@@ -94,6 +94,9 @@ async function fetchWithToken(url, options = {}) {
     userStore.logout(); // Log out user
     router.push("/login"); // Redirect to login
     return null;
+  } else if (response.status === 403) {
+    router.push({ name: "AccessDenied" })
+    return null
   }
 
   return response; // Return the response
