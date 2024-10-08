@@ -41,7 +41,7 @@ const logout = () => {
 
 <template>
   <div class="navbar bg-base-100 bg-opacity-50 shadow-md">
-    <div class="flex-1 ml-2">
+    <div class="itbkk-home flex-1 ml-2">
       <a
         @click="home"
         class="btn btn-ghost normal-case text-xl flex items-center"
@@ -63,7 +63,7 @@ const logout = () => {
         ITBKK
       </a>
     </div>
-    <div class="flex-none mr-2 dropdown dropdown-end">
+    <div class="itbkk-fullname flex-none mr-2 dropdown dropdown-end">
       <a
         href="#"
         class="btn btn-ghost normal-case text-xl flex items-center"
@@ -92,7 +92,7 @@ const logout = () => {
         class="dropdown-content menu bg-white text-[#343365] rounded-box z-[1] w-36 p-2 mt-2 shadow"
       >
         <li>
-          <a @mousedown="logout" class="flex items-center space-x-2 group"> <!-- ใช้ @mousedown -->
+          <a @mousedown="logout" class="itbkk-sign-out flex items-center space-x-2 group"> <!-- ใช้ @mousedown -->
             <svg
               fill="#000000"
               width="20px"
@@ -137,5 +137,9 @@ const logout = () => {
 a {
   color: black;
   transition: color 0.3s ease;
+}
+
+.itbkk-fullname, .itbkk-home, .itbkk-sign-out {
+  user-select: none;
 }
 </style>
