@@ -31,24 +31,28 @@ public class BoardService {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private StatusRepository statusRepository;  // ประกาศ statusRepository
+    private StatusRepository statusRepository;
     @Autowired
     private StatusService statusService;
 
-    public List<Board> getBoards() {
-        return boardRepository.findAll();
+    public List<Board> getBoardsByOwnerOidOrPublic(Long ownerOid) {
+        return boardRepository.findByOwnerOidOrVisibility(ownerOid, "PUBLIC");
     }
 
+
+    // Method สำหรับดึง Board โดยตรวจสอบ Oid และ visibility
     public BoardDto getBoardById(@PathVariable String id) {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new ApiNotFoundException("Board id '" + id + "' not found"));
 
+        // ดึงชื่อผู้ใช้จาก SecurityContext (ผู้ที่กำลังทำงานอยู่)
         String userName = SecurityContextHolder.getContext().getAuthentication().getName();
         boolean isOwner = board.getUser().getUsername().equals(userName);
         boolean isPublic = "PUBLIC".equalsIgnoreCase(board.getVisibility());
 
+        // ถ้าไม่ใช่เจ้าของบอร์ดและบอร์ดไม่ได้เป็น public จะโยนข้อยกเว้น 403 Forbidden
         if (!isOwner && !isPublic) {
-            throw new ApiForbiddenException("Access denied");
+            throw new ApiForbiddenException("Access denied: You are not the owner and the board is private");
         }
 
         return new BoardDto(
@@ -64,12 +68,10 @@ public class BoardService {
 
     @Transactional
     public BoardDto addBoard(@RequestBody @Valid Board board) {
-        // ดึงชื่อผู้ใช้จาก SecurityContext
         String userName = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUsername(userName)
                 .orElseThrow(() -> new ApiBadRequestException("User is required to add a board"));
 
-        // ตั้งค่าผู้ใช้ให้กับบอร์ด
         board.setUser(user);
 
         // ตรวจสอบชื่อบอร์ด
@@ -78,14 +80,12 @@ public class BoardService {
             throw new ApiBadRequestException("Board name cannot be empty or overlength");
         }
 
-        // ตั้งค่า visibility ให้เป็น PRIVATE ถ้าไม่ได้ระบุ
+        // ตั้งค่า visibility เป็น PRIVATE ถ้าไม่ได้ระบุ
         if (board.getVisibility() == null || board.getVisibility().isEmpty()) {
-            board.setVisibility("PRIVATE".toUpperCase().trim());
+            board.setVisibility("PRIVATE");
         }
 
-        // สร้าง id สำหรับบอร์ด (10 ตัวอักษร)
         board.setId(NanoId.generate(10));
-
         Board savedBoard = boardRepository.saveAndFlush(board);
         List<Status> status = statusRepository.findDefaultStatuses();
 
@@ -96,16 +96,15 @@ public class BoardService {
             }
         }
 
-        // ตรวจสอบการตอบกลับ
-        BoardDto responseDto = new BoardDto();
-        responseDto.setId(savedBoard.getId());
-        responseDto.setName(savedBoard.getName());
-        responseDto.setVisibility(savedBoard.getVisibility());
-        responseDto.setOwner(new UserDto(
-                savedBoard.getUser().getOid(),
-                savedBoard.getUser().getUsername()
-        ));
-        return responseDto;
+        return new BoardDto(
+                savedBoard.getId(),
+                savedBoard.getName(),
+                savedBoard.getVisibility(),
+                new UserDto(
+                        savedBoard.getUser().getOid(),
+                        savedBoard.getUser().getUsername()
+                )
+        );
     }
 
     @Transactional
@@ -116,6 +115,7 @@ public class BoardService {
         board.setId(existingBoard.getId());
         board.setUser(existingBoard.getUser());
         boardRepository.saveAndFlush(board);
+
         return new BoardDto(
                 board.getId(),
                 board.getName(),
@@ -143,8 +143,13 @@ public class BoardService {
 
         board.setVisibility(visibility.toUpperCase().trim());
         boardRepository.saveAndFlush(board);
-        return new BoardDto(board.getId(), board.getName(), board.getVisibility(),
-                new UserDto(board.getUser().getOid(), board.getUser().getUsername()));
+
+        return new BoardDto(
+                board.getId(),
+                board.getName(),
+                board.getVisibility(),
+                new UserDto(board.getUser().getOid(), board.getUser().getUsername())
+        );
     }
 
     @Transactional
