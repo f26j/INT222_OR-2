@@ -146,7 +146,8 @@ async function fetchDataStatus() {
   if (!Array.isArray(dataStatus)) {
     throw new TypeError("Fetched status data is not an array")
   }
-
+  
+  console.log(dataStatus)
   return dataStatus
 }
 

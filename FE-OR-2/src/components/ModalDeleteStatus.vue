@@ -49,11 +49,12 @@ async function getStatus() {
     }
 
     const res = await response.json();
-    console.log(res.count);
+    console.log('Response:', res)
+    console.log(res.count)
 
     // ตรวจสอบว่า status สามารถลบได้หรือไม่
     if (res.count > 0) {
-      isDeletable.value = false;
+      isDeletable.value = false; // ไม่สามารถลบ status ได้
     }
     currentStatus.value = res;
   } catch (error) {
@@ -61,8 +62,9 @@ async function getStatus() {
   }
 }
 
-onMounted(() => {
-  getStatus();
+onMounted(async() => {
+  await getStatus();
+  newStatusId.value = store.statuses.value[0]?.id
 });
 
 const props = defineProps({

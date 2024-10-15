@@ -76,6 +76,7 @@ const addStatus = async () => {
     } else {
       store.statuses.value.push(data);  // เพิ่มสถานะใหม่ลงใน store
       toastStore.handleStatusAdded();   // แสดง toast เมื่อเพิ่มสถานะสำเร็จ
+      console.log("New status added:", data);
     }
 
     closeModal();
