@@ -96,7 +96,7 @@ const router = createRouter({
       ],
     },
     {
-      path: "/forbidden", // เส้นทางสำหรับหน้า NotFoundPage
+      path: "/forbidden", // เส้นทางสำหรับหน้า AccessDeniedPage
       name: "AccessDenied",
       component: AccessDeniedPage,
     },

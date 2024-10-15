@@ -63,7 +63,7 @@ function closeModal() {
 <template>
   <div class="itbkk-modal-new fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
     <div class="bg-white p-6 rounded-3xl text-center shadow-xlp-6 w-1/3">
-      <h2 class="text-lg font-semibold mb-4">Create a new board</h2>
+      <h2 class="text-lg font-semibold mb-4">Create New Board</h2>
       <div v-if="errorMessage" class="text-red-500 mb-4">
         {{ errorMessage }}
       </div>
@@ -72,6 +72,7 @@ function closeModal() {
         type="text"
         class="itbkk-board-name border p-2 w-full mb-4"
         placeholder="Enter board name (max 120 characters)"
+        maxlength="120"
       />
       <!-- <select v-model="visibility" class="border p-2 w-full mb-4">
         <option value="private">Private</option>
@@ -80,13 +81,15 @@ function closeModal() {
       <div class="button-addboard flex justify-center">
         <button
           @click="createBoard"
-          class="itbkk-button-ok bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2"
+          :disabled="!boardName"
+          :class="{'bg-gray-300 text-gray-500 cursor-not-allowed': !boardName, 'bg-emerald-500 hover:bg-emerald-600': boardName}"
+          class="itbkk-button-ok text-white px-4 py-2"
         >
-          Save
+          Create
         </button>
         <button 
           @click="closeModal" 
-          class="itbkk-button-cancel bg-gray-300 hover:bg-gray-400 text-gray-600 px-4 py-2 ml-4"
+          class="itbkk-button-cancel bg-gray-300 hover:bg-gray-400 text-gray-500 px-4 py-2 ml-4"
         >
           Cancel
         </button>
@@ -114,7 +117,7 @@ button {
   transition: transform 0.3s ease-in-out;
 }
 
-button:hover {
+button:hover:not(:disabled) {
   transform: scale(1.08);
   transition: transform 0.3s ease;
   box-shadow: 5px 5px 5px #c6c6c646;
