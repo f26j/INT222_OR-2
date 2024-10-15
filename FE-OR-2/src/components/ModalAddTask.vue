@@ -43,6 +43,9 @@ async function fetchWithToken(url, options = {}) {
   if (response.status === 401) {
     router.push("/login"); // Redirect ไปหน้า login เมื่อสถานะเป็น 401
     return null;
+  } else if (response.status === 403) {
+    router.push({ name: "AccessDenied" })
+    return null
   }
 
   return response;
@@ -79,7 +82,7 @@ const addTask = async () => {
   const trimmedDescription = newDescription.value.trim();
   const trimmedAssignees = newAssignees.value.trim();
 
-  const selectedStatus = store.status.value.find(
+  const selectedStatus = store.status?.value?.find(
     (status) => status.name === newStatus.value.name
   );
 
@@ -145,7 +148,7 @@ const closeModal = () => {
 <template>
   <div class="details fixed inset-0 overflow-y-auto bg-black bg-opacity-50">
     <div
-      class="modals rounded-lg text-center shadow-xlp-6 w-min"
+      class="itbkk-modal-task modals rounded-lg text-center shadow-xlp-6 w-min"
       role="dialog"
       aria-modal="true"
     >
@@ -160,7 +163,7 @@ const closeModal = () => {
 
           <div class="modal-body">
             <div class="text-left flex-col">
-              <div class="titlee flex flex-wrap -mx-3 mb-2">
+              <div class="itbkk-title flex flex-wrap -mx-3 mb-2">
                 <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
                   <label
                     class="block uppercase tracking-wide text-xs font-bold mb-2"
@@ -218,7 +221,7 @@ const closeModal = () => {
                 </div>
               </div>
 
-              <div class="itbkk-status text-left">
+              <div class="text-left">
                 <div class="w-full md:w-1/3 mb-6 md:mb-0">
                   <label
                     class="block uppercase tracking-wide text-xs font-bold mb-2"
@@ -226,9 +229,9 @@ const closeModal = () => {
                   >
                     Status
                   </label>
-                  <div class="relative itbkk-status">
+                  <div class="relative">
                     <select
-                      class="statusbx block w-60 bg-gray-200 border border-gray-200 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                      class="itbkk-status block w-60 bg-gray-200 border border-gray-200 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                       id="grid-state"
                       v-model="newStatus.name"
                     >
@@ -251,7 +254,7 @@ const closeModal = () => {
               <button @click="closeModal" class="close border">Cancel</button>
               <button
                 @click="$emit('toastAdd')"
-                class="ok border"
+                class="itbkk-button-confirm border"
                 type="submit"
                 :disabled="newTitle.length === 0"
               >
@@ -288,7 +291,7 @@ const closeModal = () => {
   z-index: 3;
 }
 
-.titlee {
+.itbkk-title {
   padding: 10px;
 }
 
@@ -307,7 +310,7 @@ const closeModal = () => {
   height: 220px;
 }
 
-.ok {
+.itbkk-button-confirm {
   width: 4rem;
   background-color: rgb(179, 236, 168);
   color: rgb(15, 82, 21);
@@ -326,16 +329,16 @@ const closeModal = () => {
   border-radius: 50px;
 }
 
-.ok:hover {
+.itbkk-button-confirm:hover {
   background-color: rgb(28, 126, 36);
   color: rgb(179, 236, 168);
 }
 
-.ok:disabled {
+.itbkk-button-confirm:disabled {
   background-color: #a8a8a8;
   color: #ffffff;
 }
-.ok:disabled:hover {
+.itbkk-button-confirm:disabled:hover {
   transform: scale(1);
 }
 

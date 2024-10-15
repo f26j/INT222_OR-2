@@ -34,6 +34,9 @@ async function fetchWithToken(url, options = {}) {
   if (response.status === 401) {
     router.push("/login"); // Redirect ไปหน้า login
     return null;
+  } else if (response.status === 403) {
+    router.push({ name: "AccessDenied" })
+    return null
   }
 
   return response;

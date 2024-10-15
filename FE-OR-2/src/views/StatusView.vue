@@ -64,7 +64,10 @@ async function fetchWithToken(url, options = {}) {
       console.error("Unauthorized access - Redirecting to login");
       router.push("/login");
       return null;
-    }
+    } else if (response.status === 403) {
+    router.push({ name: "AccessDenied" })
+    return null
+  }
 
     return response;
   } catch (error) {

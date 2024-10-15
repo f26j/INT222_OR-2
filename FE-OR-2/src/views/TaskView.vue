@@ -1,83 +1,83 @@
 <script setup>
 // Import zone
-import { onMounted, ref, watch, computed } from "vue";
-import { useRouter, useRoute } from "vue-router";
-import { storeToRefs } from "pinia";
-import { useBoardStore, useTaskStore } from "@/stores/api.js";
-import { useToastStore } from "@/stores/toast.js";
-import { useUserStore } from "@/stores/users.js";
-import Bg_effect from "../components/css/Background.vue";
-import Badges from "../components/css/Badge.vue";
-import Copyright from "../components/css/Copyright.vue";
-import ToastAdd from "../components/toast/ToastAdd.vue";
-import ToastEdit from "../components/toast/ToastEdit.vue";
-import ModalDelete from "../components/ModalDeleteTask.vue";
-import ToastDelete from "../components/toast/ToastDelete.vue";
-import Navbar from "../components/css/Navbar.vue";
-import ModalVisibilityBoard from "../components/ModalVisibilityBoard.vue";
+import { onMounted, ref, watch, computed } from "vue"
+import { useRouter, useRoute } from "vue-router"
+import { storeToRefs } from "pinia"
+import { useBoardStore, useTaskStore } from "@/stores/api.js"
+import { useToastStore } from "@/stores/toast.js"
+import { useUserStore } from "@/stores/users.js"
+import Bg_effect from "../components/css/Background.vue"
+import Badges from "../components/css/Badge.vue"
+import Copyright from "../components/css/Copyright.vue"
+import ToastAdd from "../components/toast/ToastAdd.vue"
+import ToastEdit from "../components/toast/ToastEdit.vue"
+import ModalDelete from "../components/ModalDeleteTask.vue"
+import ToastDelete from "../components/toast/ToastDelete.vue"
+import Navbar from "../components/css/Navbar.vue"
+import ModalVisibilityBoard from "../components/ModalVisibilityBoard.vue"
 
 // Store,Api zone
-const baseUrl = import.meta.env.VITE_API_BOARDS;
-const router = useRouter();
-const route = useRoute();
-const store = useTaskStore();
-const toastStore = useToastStore();
-const { showToastAdd, showToastEdit, closeToast } = storeToRefs(toastStore);
+const baseUrl = import.meta.env.VITE_API_BOARDS
+const router = useRouter()
+const route = useRoute()
+const store = useTaskStore()
+const toastStore = useToastStore()
+const { showToastAdd, showToastEdit, closeToast } = storeToRefs(toastStore)
 
 // Variable zone
-const boardId = route.params.boardId; // Get boardId from the URL
-const taskId = route.params.id;
-const selectDeleteTaskId = ref("");
-const selectDeleteTaskTitle = ref("");
-const selectDeleteTaskIndex = ref("");
-const originalTasks = ref([]);
-const userStore = useUserStore();
-const boardStore = useBoardStore();
-const boardName = ref("");
-const boardOwnerOid = ref("");
+const boardId = route.params.boardId // Get boardId from the URL
+const taskId = route.params.id
+const selectDeleteTaskId = ref("")
+const selectDeleteTaskTitle = ref("")
+const selectDeleteTaskIndex = ref("")
+const originalTasks = ref([])
+const userStore = useUserStore()
+const boardStore = useBoardStore()
+const boardName = ref("")
+const boardOwnerOid = ref("")
 
-const visibility = ref("PRIVATE");
-const isModalOpen = ref(false);
-const modalTitle = ref("Board Visibility Changed!");
+const visibility = ref("PRIVATE")
+const isModalOpen = ref(false)
+const modalTitle = ref("Board Visibility Changed!")
 const modalMessage = ref(
-  "Do you want to change the board visibility to public?"
-);
+  "Do you want to change board visibility to public?"
+)
 
 const openModal = () => {
   modalMessage.value =
     visibility.value === "PRIVATE"
-      ? "Do you want to change the board visibility to public?"
-      : "Do you want to change the board visibility to private?";
-  isModalOpen.value = true;
-};
+      ? "Do you want to change board visibility to public?"
+      : "Do you want to change board visibility to private?"
+  isModalOpen.value = true
+}
 
 const confirmChange = async () => {
-  const newVisibility = visibility.value === "PRIVATE" ? "PUBLIC" : "PRIVATE";
-  await boardStore.updateVisibility(boardId, newVisibility);
-  visibility.value = newVisibility;
-  isModalOpen.value = false;
-};
+  const newVisibility = visibility.value === "PRIVATE" ? "PUBLIC" : "PRIVATE"
+  await boardStore.updateVisibility(boardId, newVisibility)
+  visibility.value = newVisibility
+  isModalOpen.value = false
+}
 
 // Function zone
 onMounted(async () => {
   try {
-    await fetchBoard();
-    const data = await fetchData();
-    const datastatus = await fetchDataStatus(); // Fetch status data
-    originalTasks.value = [...data];
-    store.tasks.value = [...data];
-    store.status.value = datastatus;
+    await fetchBoard()
+    const data = await fetchData()
+    const datastatus = await fetchDataStatus() // Fetch status data
+    originalTasks.value = [...data]
+    store.tasks.value = [...data]
+    store.status.value = datastatus
   } catch (error) {
-    console.error("Error during data fetch:", error);
+    console.error("Error during data fetch:", error)
   }
-});
+})
 
 async function fetchWithToken(url, options = {}) {
-  const token = localStorage.getItem("jwtToken");
+  const token = localStorage.getItem("jwtToken")
   if (!token) {
-    console.error("No token available");
-    router.push("/login"); // Redirect to login if no token
-    return null;
+    console.error("No token available")
+    router.push("/login") // Redirect to login if no token
+    return null
   }
 
   const response = await fetch(url, {
@@ -87,121 +87,124 @@ async function fetchWithToken(url, options = {}) {
       "Content-Type": "application/json",
       ...options.headers,
     },
-  });
+  })
 
   // Check for 401 Unauthorized
   if (response.status === 401) {
-    userStore.logout(); // Log out user
-    router.push("/login"); // Redirect to login
-    return null;
+    userStore.logout() // Log out user
+    router.push("/login") // Redirect to login
+    return null
+
+  // Check for 403 Forbidden
+  } else if (response.status === 403) {
+    router.push({ name: "AccessDenied" })
+    return null
   }
 
-  return response; // Return the response
+  return response // Return the response
 }
 
 async function fetchData() {
   // Fetch tasks for the specified board
-  const response = await fetchWithToken(
-    `${baseUrl}/v3/boards/${boardId}/tasks`
-  );
-  if (!response) return; // If response is null, return
+  const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}/tasks`)
+  if (!response) return // If response is null, return
 
   if (response.status === 404) {
-    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
-    return;
+    router.push({ name: "NotFound" }) // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    return
   }
 
   if (!response.ok) {
-    throw new Error(`Error fetching tasks: ${response.statusText}`);
+    throw new Error(`Error fetching tasks: ${response.statusText}`)
   }
 
-  const data = await response.json();
+  const data = await response.json()
   if (!Array.isArray(data)) {
-    throw new TypeError("Fetched data is not an array");
+    throw new TypeError("Fetched data is not an array")
   }
 
-  return data;
+  return data
 }
 
 async function fetchDataStatus() {
   // Fetch statuses for the specified board
   const response = await fetchWithToken(
     `${baseUrl}/v3/boards/${boardId}/statuses`
-  );
-  if (!response) return; // If response is null, return
+  )
+  if (!response) return // If response is null, return
 
   if (response.status === 404) {
-    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
-    return;
+    router.push({ name: "NotFound" }) // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    return
   }
 
   if (!response.ok) {
-    throw new Error(`Error fetching status: ${response.statusText}`);
+    throw new Error(`Error fetching status: ${response.statusText}`)
   }
 
-  const dataStatus = await response.json();
+  const dataStatus = await response.json()
   if (!Array.isArray(dataStatus)) {
-    throw new TypeError("Fetched status data is not an array");
+    throw new TypeError("Fetched status data is not an array")
   }
 
-  return dataStatus;
+  return dataStatus
 }
 
 async function fetchBoard() {
-  const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}`);
-  if (!response) return; // ถ้าไม่มี response ให้ return
+  const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}`)
+  if (!response) return // ถ้าไม่มี response ให้ return
 
   if (response.status === 404) {
-    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
-    return;
+    router.push({ name: "NotFound" }) // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    return
   }
 
   if (!response.ok) {
-    throw new Error(`Error fetching board: ${response.statusText}`);
+    throw new Error(`Error fetching board: ${response.statusText}`)
   }
 
-  const data = await response.json();
-  boardName.value = data.name; // เก็บชื่อบอร์ดใน boardName
-  boardOwnerOid.value = data.owner.oid;
-  visibility.value = data.visibility;
+  const data = await response.json()
+  boardName.value = data.name // เก็บชื่อบอร์ดใน boardName
+  boardOwnerOid.value = data.owner.oid
+  visibility.value = data.visibility
 }
 
 // Functions for managing tasks
 const openModalAdd = async () => {
-  router.push({ name: "task-add" });
-};
+  router.push({ name: "task-add" })
+}
 const openModalDetail = async (id) => {
   if (id) {
-    router.push({ name: "task-detail", params: { taskId: id, boardId } });
+    router.push({ name: "task-detail", params: { taskId: id, boardId } })
   } else {
-    console.error("Task ID is missing");
+    console.error("Task ID is missing")
   }
-};
+}
 
 const openModalEdit = async (id) => {
   if (id) {
-    router.push({ name: "task-edit", params: { taskId: id, boardId } });
+    router.push({ name: "task-edit", params: { taskId: id, boardId } })
   } else {
-    console.error("Task ID is missing");
+    console.error("Task ID is missing")
   }
-};
+}
 if (window.location.pathname === `/task/${taskId}`) {
-  openModalDetail(taskId);
+  openModalDetail(taskId)
 } else if (window.location.pathname === `/task/${taskId}/edit`) {
-  openModalEdit(taskId);
+  openModalEdit(taskId)
 }
 
-const showToastDelete = ref(false);
-const deleteSuccess = ref(false);
-const showDelete = ref(false);
-const toastSuccess = ref(false);
+const showToastDelete = ref(false)
+const deleteSuccess = ref(false)
+const showDelete = ref(false)
+const toastSuccess = ref(false)
 
 const openModalDelete = (taskId, title, index) => {
-  showDelete.value = true;
-  selectDeleteTaskId.value = taskId;
-  selectDeleteTaskTitle.value = title;
-  selectDeleteTaskIndex.value = index;
-};
+  showDelete.value = true
+  selectDeleteTaskId.value = taskId
+  selectDeleteTaskTitle.value = title
+  selectDeleteTaskIndex.value = index
+}
 
 async function deleteTask(taskId) {
   const response = await fetchWithToken(
@@ -209,96 +212,96 @@ async function deleteTask(taskId) {
     {
       method: "DELETE",
     }
-  );
+  )
 
-  if (!response) return; // If response is null, return
+  if (!response) return // If response is null, return
 
   if (response.status === 404) {
-    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
-    return;
+    router.push({ name: "NotFound" }) // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    return
   }
 
   if (response.ok) {
     originalTasks.value = originalTasks.value.filter(
       (task) => task.id !== taskId
-    );
-    store.tasks.value = [...originalTasks.value];
-    deleteSuccess.value = true;
+    )
+    store.tasks.value = [...originalTasks.value]
+    deleteSuccess.value = true
   } else {
-    deleteSuccess.value = false;
-    console.error("Failed to delete task");
+    deleteSuccess.value = false
+    console.error("Failed to delete task")
   }
 
-  confirmDelete();
-  showDelete.value = false;
+  confirmDelete()
+  showDelete.value = false
 }
 
 const confirmDelete = async () => {
   try {
-    showToastDelete.value = true;
-    toastSuccess.value = true;
+    showToastDelete.value = true
+    toastSuccess.value = true
     setTimeout(() => {
-      showToastDelete.value = false;
-    }, 5000);
+      showToastDelete.value = false
+    }, 5000)
   } catch (error) {
-    toastSuccess.value = false;
+    toastSuccess.value = false
     setTimeout(() => {
-      showToastDelete.value = false;
-    }, 5000);
-    console.error("Error deleting task:", error);
+      showToastDelete.value = false
+    }, 5000)
+    console.error("Error deleting task:", error)
   }
   return {
     showToastDelete,
     closeModal,
     confirmDelete,
-  };
-};
+  }
+}
 const closeToastDelete = () => {
-  showToastDelete.value = false;
-};
+  showToastDelete.value = false
+}
 const closeModal = () => {
-  showDelete.value = false;
-  isModalOpen.value = false;
-  router.push({ path: `/board/${boardId}` });
-};
+  showDelete.value = false
+  isModalOpen.value = false
+  router.push({ path: `/board/${boardId}` })
+}
 
 // Sorting function
-const sortAscending = ref(undefined);
+const sortAscending = ref(undefined)
 
 const toggleSortOrder = () => {
   if (sortAscending.value === undefined) {
-    sortAscending.value = true;
+    sortAscending.value = true
   } else if (sortAscending.value === true) {
-    sortAscending.value = false;
+    sortAscending.value = false
   } else {
-    sortAscending.value = undefined;
+    sortAscending.value = undefined
   }
-};
+}
 
 const sortedTasks = computed(() => {
   if (sortAscending.value === undefined) {
-    return originalTasks.value;
+    return originalTasks.value
   }
-  return sortTasks([...originalTasks.value], sortAscending.value);
-});
+  return sortTasks([...originalTasks.value], sortAscending.value)
+})
 
 function sortTasks(tasks, ascending) {
-  if (ascending === undefined) return tasks; // No sorting if sort order is undefined
+  if (ascending === undefined) return tasks // No sorting if sort order is undefined
   return tasks.sort((a, b) => {
-    const statusA = a.status.name.toLowerCase();
-    const statusB = b.status.name.toLowerCase();
-    if (statusA < statusB) return ascending ? -1 : 1;
-    if (statusA > statusB) return ascending ? 1 : -1;
-    return 0;
-  });
+    const statusA = a.status.name.toLowerCase()
+    const statusB = b.status.name.toLowerCase()
+    if (statusA < statusB) return ascending ? -1 : 1
+    if (statusA > statusB) return ascending ? 1 : -1
+    return 0
+  })
 }
 
 watch(
   () => sortedTasks.value,
   (newVal) => {
-    store.tasks.value = newVal;
+    store.tasks.value = newVal
   }
-);
+)
 </script>
 
 <template>
@@ -307,7 +310,7 @@ watch(
     <header class="mb-2 max-w-6xl mx-auto">
       <h1 class="text-left text-3xl font-bold">IT-Bangmod Kradan Kanban</h1>
       <div class="flex justify-between items-center mt-2">
-        <h2 class="text-lg font-semibold">
+        <h2 class="text-lg font-semibold pr-20">
           <span
             class="itbkk-boards cursor-pointer"
             @click="router.push({ name: 'board' })"
@@ -467,15 +470,25 @@ watch(
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(task, index) in sortedTasks" :key="task.id">
+            <tr
+              class="itbkk-item"
+              v-for="(task, index) in sortedTasks"
+              :key="task.id"
+            >
               <td>{{ index + 1 }}</td>
-              <td @click="openModalDetail(task.id)">{{ task.title }}</td>
-              <td>{{ task.assignees || "Unassigned" }}</td>
-              <td class="center-td">
+              <td class="itbkk-title" @click="openModalDetail(task.id)">
+                {{ task.title }}
+              </td>
+              <td class="itbkk-assignees">
+                <span :class="{ 'italic': !task.assignees }">
+                  {{ task.assignees || "Unassigned" }}
+                </span>
+              </td>
+              <td class="itbkk-status">
                 <Badges style="justify-content: center" :status="task.status" />
               </td>
 
-              <td class="px-4 py-3 flex justify-center space-x-2">
+              <td class="itbkk-button-action px-4 py-3 flex justify-center space-x-2">
                 <!-- จัดปุ่มให้ดูสมส่วน -->
                 <button
                   class="flex items-center bg-white text-color-purple px-3 py-1.5 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
@@ -597,7 +610,8 @@ h3 {
   background-color: rgba(255, 255, 255, 0);
   color: #ad386f;
   border: 2px solid #ad386f;
-  transition: background-color 0.5s ease, transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.5s ease,
+    transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .itbkk-manage-status:hover {
@@ -610,8 +624,10 @@ h3 {
   color: #ad386f;
   border: 2px solid #ad386f;
   border-color: #ad386f;
-  transition: background-color 0.5s ease, transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.5s ease,
+    transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 .itbkk-manage-privacy-public:hover {
   background-color: rgba(255, 255, 255, 0.5);
 }
@@ -622,8 +638,10 @@ h3 {
   color: #ad386f;
   border: 2px solid #ad386f;
   border-color: #ad386f;
-  transition: background-color 0.5s ease, transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.5s ease,
+    transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 .itbkk-manage-privacy-private:hover {
   background-color: rgba(255, 255, 255, 0.5);
 }
@@ -660,9 +678,11 @@ h3 {
 .textGray {
   color: #717171;
 }
+
 .c {
   color: rgb(209, 209, 209);
 }
+
 .b:hover,
 .a:hover {
   color: rgb(214, 103, 177);
@@ -671,6 +691,7 @@ h3 {
 .c:hover {
   color: rgb(216, 216, 216);
 }
+
 .mntext {
   padding-top: 5px;
   padding-left: 5px;
@@ -687,14 +708,17 @@ h3 {
   font-weight: 10px;
   color: #d1ffca;
 }
+
 .itbkk-button-action {
   padding: 15px 5px 10px;
   display: flex;
 }
+
 .itbkk-button-action svg {
   transition: transform 0.3s ease;
   cursor: pointer;
 }
+
 .itbkk-button-action svg:hover {
   transform: scale(1.08);
   transition: transform 0.3s ease;
@@ -720,21 +744,25 @@ h3 {
   font-style: normal;
   width: auto;
 }
+
 .itbkk-title p {
   transition: transform 0.3s ease;
   color: #ad386f;
 }
+
 .itbkk-title p:hover {
   cursor: pointer;
   transform: scale(1.01);
   color: rgb(250, 133, 188);
 }
+
 .itbkk-item p {
   width: 200px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .unassigned {
   color: gray;
   font-style: italic;
@@ -743,6 +771,7 @@ h3 {
 .kebab {
   color: #939393;
 }
+
 .idkb {
   display: inline;
 }
@@ -752,6 +781,7 @@ h3 {
   width: 100%;
   overflow: auto;
 }
+
 table {
   border-collapse: collapse;
   width: 100%;
@@ -761,15 +791,18 @@ table {
   margin: 0 auto;
   border-radius: 25px;
 }
+
 th,
 td {
   padding: 15px;
   background-color: rgba(255, 254, 255, 0.329);
 }
+
 th {
   text-align: left;
   color: rgba(255, 255, 255, 0.748);
 }
+
 td {
   color: black;
   font-family: "Ubuntu", sans-serif;
@@ -777,18 +810,23 @@ td {
   font-style: normal;
   text-align: left;
 }
+
 td.bgd {
   padding-left: 30px;
 }
+
 thead th {
   background-color: #ad386f;
 }
+
 tbody tr:hover {
   background-color: rgba(255, 255, 255, 0.63);
 }
+
 .bgi {
   display: none;
 }
+
 tbody {
   td {
     position: relative;
@@ -804,11 +842,14 @@ tbody {
     }
   }
 }
+
 footer {
   padding-bottom: 5rem;
 }
 
-.itbkk-board-name, .itbkk-manage-status, .itbkk-board-visibility {
+.itbkk-board-name,
+.itbkk-manage-status,
+.itbkk-board-visibility {
   user-select: none;
 }
 
