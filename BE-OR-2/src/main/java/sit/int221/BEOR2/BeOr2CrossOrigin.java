@@ -12,7 +12,9 @@ import java.lang.annotation.Target;
 @CrossOrigin(origins = {
     "http://localhost:5173",
     "http://ip23or2.sit.kmutt.ac.th",
-    "http://intproj23.sit.kmutt.ac.th"
+    "http://intproj23.sit.kmutt.ac.th",
+    "https://ip23or2.sit.kmutt.ac.th",
+    "https://intproj23.sit.kmutt.ac.th"
 })
 public @interface BeOr2CrossOrigin {
 }
