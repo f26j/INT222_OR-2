@@ -27,20 +27,20 @@ public class WebSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(Customizer.withDefaults())
-                .csrf(AbstractHttpConfigurer::disable) // ปิด CSRF
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/error", "/login/**").permitAll()  // อนุญาตการเข้าถึง /error และ /login โดยไม่ต้อง authenticate
-                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()  // อนุญาตการเข้าถึง Swagger UI โดยไม่ต้อง authenticate
-                        .anyRequest().authenticated())  // ต้อง authenticate สำหรับ request อื่นๆ
+                        .requestMatchers("/error", "/login/**", "/v3/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+                        .anyRequest().authenticated())
                 .exceptionHandling(exceptionHandling -> exceptionHandling
-                        .authenticationEntryPoint(customAuthenticationEntryPoint))  // จัดการข้อผิดพลาดในการ authentication
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))  // ใช้ session แบบ stateless
-                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);  // เพิ่ม JWT filter
+                        .authenticationEntryPoint(customAuthenticationEntryPoint))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
-        return configuration.getAuthenticationManager();  // กำหนด AuthenticationManager
+        return configuration.getAuthenticationManager();
     }
 }

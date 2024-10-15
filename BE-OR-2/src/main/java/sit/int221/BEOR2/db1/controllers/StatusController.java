@@ -26,6 +26,7 @@ public class StatusController {
     @ResponseStatus(HttpStatus.OK)
     public List<StatusDto> getStatuses(@PathVariable String id) {
         List<Status> statuses = statusService.getStatuses(id);
+
         return statuses.stream().map(status -> new StatusDto(
                 status.getId(),
                 status.getName()
@@ -35,20 +36,21 @@ public class StatusController {
     @GetMapping("/{statusId}")
     @ResponseStatus(HttpStatus.OK)
     public StatusSpecificDto getStatusById(@PathVariable String id, @PathVariable Integer statusId) {
+        System.out.println("Controller");
         return statusService.getStatusById(id, statusId);
     }
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public StatusManagementDto addStatus(@PathVariable String id, @Valid @RequestBody Status status) {
+    public StatusManagementDto addStatus(@PathVariable String id, @RequestBody(required = false) Status status) {
         return modelMapper.map(statusService.addStatus(id, status), StatusManagementDto.class);
     }
 
     @PutMapping("/{statusId}")
     @ResponseStatus(HttpStatus.OK)
     public StatusManagementDto editStatus(@PathVariable String id,
-                                @PathVariable Integer statusId,
-                                @Valid @RequestBody Status status) {
+                                          @PathVariable Integer statusId,
+                                          @RequestBody(required = false) Status status) {
         return modelMapper.map(statusService.editStatus(id, statusId, status), StatusManagementDto.class);
     }
 
@@ -66,3 +68,4 @@ public class StatusController {
         statusService.transferStatus(id, statusId, statusNewId);
     }
 }
+

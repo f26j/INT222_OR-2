@@ -4,6 +4,7 @@ import io.viascom.nanoid.NanoId;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,6 +22,7 @@ import sit.int221.BEOR2.exceptions.ApiForbiddenException;
 import sit.int221.BEOR2.exceptions.ApiNotFoundException;
 
 import javax.validation.Valid;
+import java.util.stream.Collectors;
 import java.util.List;
 
 @Service
@@ -35,26 +37,41 @@ public class BoardService {
     @Autowired
     private StatusService statusService;
 
-    public List<Board> getBoardsByOwnerOidOrPublic(Long ownerOid) {
-        return boardRepository.findByOwnerOidOrVisibility(ownerOid, "PUBLIC");
+    public List<Board> getBoards() {
+        return boardRepository.findAll();
     }
 
+    public List<BoardDto> getBoardsByOwnerOidOrPublic() {
+        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(userName)
+                .orElseThrow(() -> new ApiNotFoundException("User not found"));
 
-    // Method สำหรับดึง Board โดยตรวจสอบ Oid และ visibility
+        List<Board> boards = boardRepository.findByOwnerOidOrVisibilityPublic(user.getOid());
+        return boards.stream().map(board -> new BoardDto(
+                board.getId(),
+                board.getName(),
+                board.getVisibility().toString(),
+                new UserDto(
+                        board.getUser().getOid(),
+                        board.getUser().getUsername()
+                )
+        )).collect(Collectors.toList());
+    }
+
     public BoardDto getBoardById(@PathVariable String id) {
+        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(userName).orElse(null);
+
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new ApiNotFoundException("Board id '" + id + "' not found"));
-
-        // ดึงชื่อผู้ใช้จาก SecurityContext (ผู้ที่กำลังทำงานอยู่)
-        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
-        boolean isOwner = board.getUser().getUsername().equals(userName);
-        boolean isPublic = "PUBLIC".equalsIgnoreCase(board.getVisibility());
-
-        // ถ้าไม่ใช่เจ้าของบอร์ดและบอร์ดไม่ได้เป็น public จะโยนข้อยกเว้น 403 Forbidden
-        if (!isOwner && !isPublic) {
-            throw new ApiForbiddenException("Access denied: You are not the owner and the board is private");
+        if (user == null && board.getVisibility().equals("PRIVATE")){
+            throw new ApiForbiddenException("Acess Denied");
+        }else {
+            checkBoardAccess(id);
         }
 
+
+        // Step 4: การตอบกลับปกติ (200 OK)
         return new BoardDto(
                 board.getId(),
                 board.getName(),
@@ -67,35 +84,36 @@ public class BoardService {
     }
 
     @Transactional
-    public BoardDto addBoard(@RequestBody @Valid Board board) {
+    public BoardDto addBoard(Board board) {
         String userName = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUsername(userName)
                 .orElseThrow(() -> new ApiBadRequestException("User is required to add a board"));
 
-        board.setUser(user);
-
-        // ตรวจสอบชื่อบอร์ด
         String boardName = board.getName();
         if (boardName == null || boardName.trim().isEmpty() || boardName.length() > 120) {
             throw new ApiBadRequestException("Board name cannot be empty or overlength");
         }
 
-        // ตั้งค่า visibility เป็น PRIVATE ถ้าไม่ได้ระบุ
-        if (board.getVisibility() == null || board.getVisibility().isEmpty()) {
-            board.setVisibility("PRIVATE");
+        if (board == null){
+            throw new ApiBadRequestException("Nobody Know");
         }
 
+        if (board.getVisibility() == null || board.getVisibility().isEmpty()) {
+            board.setVisibility("PRIVATE".toUpperCase().trim());
+        }
+
+        // Step 4: เพิ่มบอร์ดลงฐานข้อมูล
+        board.setUser(user);
         board.setId(NanoId.generate(10));
         Board savedBoard = boardRepository.saveAndFlush(board);
-        List<Status> status = statusRepository.findDefaultStatuses();
 
-        if (board != null) {
-            for (Status defaultStatus : status) {
-                Status newStatus = new Status(board, defaultStatus.getName(), defaultStatus.getDescription());
-                statusService.addStatus(board.getId(), newStatus);
-            }
+        List<Status> status = statusRepository.findDefaultStatuses();
+        for (Status defaultStatus : status) {
+            Status newStatus = new Status(board, defaultStatus.getName(), defaultStatus.getDescription());
+            statusService.addStatus(board.getId(), newStatus);
         }
 
+        // Step 5: การตอบกลับปกติ (200 OK)
         return new BoardDto(
                 savedBoard.getId(),
                 savedBoard.getName(),
@@ -108,14 +126,31 @@ public class BoardService {
     }
 
     @Transactional
-    public BoardDto editBoard(@PathVariable String id, @RequestBody @Valid Board board) {
+    public BoardDto editBoard(@PathVariable String id, Board board) {
+        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(userName).orElse(null);
+
         Board existingBoard = boardRepository.findById(id)
                 .orElseThrow(() -> new ApiNotFoundException("Board id '" + id + "' not found"));
+        if (user == null && board.getVisibility().equals("PRIVATE")){
+            throw new ApiForbiddenException("Acess Denied");
+        }
 
+        boolean isOwner = existingBoard.getUser().getOid().equals(user.getOid());
+        if (!isOwner) {
+            throw new ApiForbiddenException("Access denied: You do not have permission to edit this board.");
+        }
+
+        if (board == null){
+            throw new ApiBadRequestException("Nobody Know");
+        }
+
+
+
+        // Step 4: การแก้ไขบอร์ดและการตอบกลับปกติ (200 OK)
         board.setId(existingBoard.getId());
         board.setUser(existingBoard.getUser());
         boardRepository.saveAndFlush(board);
-
         return new BoardDto(
                 board.getId(),
                 board.getName(),
@@ -128,13 +163,25 @@ public class BoardService {
     }
 
     @Transactional
-    public BoardDto editBoardVisibility(@PathVariable String id, @RequestBody @Valid String visibility) {
+    public BoardDto editBoardVisibility(@PathVariable String id, String visibility) {
+        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(userName).orElse(null);
+        System.out.println(visibility);
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new ApiNotFoundException("Board id '" + id + "' not found"));
+        boolean isOwner = board.getUser().getOid().equals(user.getOid());
+        if (user == null && board.getVisibility().equals("PRIVATE") || !isOwner){
+            throw new ApiForbiddenException("Acess Denied");
+        }else {
+            checkBoardAccess(id);
+        }
 
-        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
-        if (!board.getUser().getUsername().equals(userName)) {
-            throw new ApiForbiddenException("User is not board owner");
+        if (visibility == null){
+            throw new ApiBadRequestException("Nobody Know");
+        }
+
+        if (!isOwner) {
+            throw new ApiForbiddenException("Access denied: You do not have permission to edit visibility of this board.");
         }
 
         if (!"PRIVATE".equalsIgnoreCase(visibility) && !"PUBLIC".equalsIgnoreCase(visibility)) {
@@ -143,7 +190,6 @@ public class BoardService {
 
         board.setVisibility(visibility.toUpperCase().trim());
         boardRepository.saveAndFlush(board);
-
         return new BoardDto(
                 board.getId(),
                 board.getName(),
@@ -154,10 +200,44 @@ public class BoardService {
 
     @Transactional
     public void deleteBoard(@PathVariable String id) {
+        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(userName).orElse(null);
+
+        Board board = boardRepository.findById(id)
+                .orElseThrow(() -> new ApiNotFoundException("Board id '" + id + "' not found"));
+        if (user == null && board.getVisibility().equals("PRIVATE")){
+            throw new ApiForbiddenException("Acess Denied");
+        }else {
+            checkBoardAccess(id);
+        }
+
         if (!boardRepository.existsById(id)) {
             throw new ApiNotFoundException("Board id '" + id + "' not found");
         }
 
+        if (board == null){
+            throw new ApiBadRequestException("Nobody Know");
+        }
+
+        // Step 2: ลบบอร์ด
         boardRepository.deleteById(id);
+    }
+
+    private void checkBoardAccess(String boardId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new ApiNotFoundException("Board id '" + boardId + "' not found"));
+        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User user = userRepository.findByUsername(userName).orElse(null);
+        if (user != null) {
+            boolean isOwner = board.getUser().getOid().equals(user.getOid());
+            boolean isPublic = "PUBLIC".equalsIgnoreCase(board.getVisibility());
+
+//         ถ้าไม่ใช่เจ้าของและบอร์ดเป็น private ให้ส่ง 403 Forbidden
+        if (!isOwner && !isPublic) {
+            throw new ApiForbiddenException("Access denied: You do not have permission to access this board.");
+        }
+        }
     }
 }
