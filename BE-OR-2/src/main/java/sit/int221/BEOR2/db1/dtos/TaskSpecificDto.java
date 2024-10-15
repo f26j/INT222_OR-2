@@ -7,6 +7,7 @@ import lombok.Setter;
 
 import java.time.ZonedDateTime;
 
+@Deprecated
 @Getter
 @Setter
 @NoArgsConstructor

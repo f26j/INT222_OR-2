@@ -29,23 +29,8 @@ public class BoardController {
 
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
-    public List<BoardDto> getBoardsByOwnerOidOrPublic() {
-        return boardService.getBoardsByOwnerOidOrPublic();
-    }
-
-    @GetMapping("/all")
-    @ResponseStatus(HttpStatus.OK)
-    public List<BoardDto> getAllBoards() {
-        List<Board> boards = boardService.getBoards();  // ดึงบอร์ดทั้งหมด (ไม่กรอง)
-        return boards.stream().map(board -> new BoardDto(
-                board.getId(),
-                board.getName(),
-                board.getVisibility(),
-                new UserDto(
-                        board.getUser().getOid(),
-                        board.getUser().getUsername()
-                )
-        )).toList();
+    public List<BoardDto> getBoards() {
+        return boardService.getBoards();
     }
 
     @GetMapping("/{id}")
