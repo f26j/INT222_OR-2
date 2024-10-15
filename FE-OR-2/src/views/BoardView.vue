@@ -110,7 +110,7 @@ onMounted(() => {
         <h2 class="itbkk-boards text-lg font-semibold">Board List</h2>
         <button
           @click="router.push('/board/add')"
-          class="flex items-center cursor-pointer bg-color-purple text-white px-4 py-2 shadow hover:shadow-md hover:scale-105 transition-transform duration-30 rounded-full"
+          class="itbkk-button-create flex items-center cursor-pointer bg-color-purple text-white px-4 py-2 shadow hover:shadow-md hover:scale-105 transition-transform duration-30 rounded-full"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -150,7 +150,7 @@ onMounted(() => {
         <tbody>
           <!-- ตรวจสอบสถานะการโหลด -->
           <tr v-if="loading">
-            <td colspan="3" class="px-4 py-4 text-center text-color-purple">
+            <td colspan="3" class="px-4 py-4 text-center text-black font-bold ">
               Loading...
             </td>
           </tr>
@@ -171,10 +171,10 @@ onMounted(() => {
             :key="board.id"
             class="border-b last:border-0"
           >
-            <td class="px-4 py-3 text-center text-color-purple">{{ index + 1 }}</td>
+            <td class="px-4 py-3 text-center text-black font-bold">{{ index + 1 }}</td>
             <!-- จัดตรงกลาง -->
             <td
-              class="px-4 py-3 cursor-pointer text-color-purple "
+              class="td-name px-4 py-3 cursor-pointer text-black font-bold"
               @click="router.push(`/board/${board.id}`)"
             >
               {{ board.name }}
@@ -182,7 +182,7 @@ onMounted(() => {
             <td class="px-4 py-3 flex justify-center space-x-4">
               <!-- จัดปุ่มให้ดูสมส่วน -->
               <button
-                class="flex items-center bg-white text-color-purple px-3 py-1.5 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
+                class="flex items-center bg-white text-black font-bold px-3 py-1.5 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
                 @click="editBoard(board.id)"
                 disabled
               >
@@ -205,7 +205,7 @@ onMounted(() => {
               </button>
 
               <button
-                class="flex items-center bg-white text-color-purple px-3 py-1.5 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
+                class="flex items-center bg-white text-black font-bold px-3 py-1.5 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
                 @click="deleteBoard(board.id)"
               >
                 <svg
@@ -275,16 +275,20 @@ table {
   margin: 0 auto;
   border-collapse: separate; /* ป้องกันมุมโค้งที่ทับกัน */
   border-spacing: 0;
-  background-color: #fff;
+  background-color: rgba(255, 254, 255, 0.329);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* เพิ่มเงา */
-  border-radius: 15px; /* โค้งทั้งตาราง */
+  border-radius: 25px;
   overflow: hidden;
 }
 
 th,
 td {
   padding: 15px; /* เพิ่ม padding เล็กน้อยให้ดูโล่งขึ้น */
-  background-color: rgba(255, 254, 255, 0.6); /* ให้พื้นหลังดูสว่าง */
+  background-color: rgba(255, 254, 255, 0.364); /* ให้พื้นหลังดูสว่าง */
+}
+
+tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.63);
 }
 
 th {
@@ -294,19 +298,19 @@ th {
   text-align: center;
 }
 
-td {
-  color: #683c86; /* สีตัวอักษรในตาราง */
+.td-name {
+  color: black;
   font-family: "Ubuntu", sans-serif;
-  font-weight: 500;
-  text-align: center;
+  font-weight: 600;
+  font-style: normal;
+}
+
+.td-name:hover {
+  color: #47467b;
 }
 
 tbody tr {
   transition: background-color 0.3s ease;
-}
-
-tbody tr:hover {
-  background-color: rgba(142, 91, 177, 0.1); /* เปลี่ยนสีเมื่อ hover */
 }
 
 tbody tr:last-child td {

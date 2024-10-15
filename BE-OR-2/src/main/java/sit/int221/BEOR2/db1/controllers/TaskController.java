@@ -13,6 +13,7 @@ import sit.int221.BEOR2.db1.services.TaskService;
 import sit.int221.BEOR2.BeOr2CrossOrigin;
 import sit.int221.BEOR2.exceptions.ApiBadRequestException;
 import org.springframework.validation.annotation.Validated;
+
 import javax.validation.Valid;
 import java.util.List;
 
@@ -30,6 +31,7 @@ public class TaskController {
     @ResponseStatus(HttpStatus.OK)
     public List<TaskDto> getTasks(@PathVariable String id) {
         List<Task> tasks = taskService.getTasks(id);
+
         return tasks.stream().map(task -> new TaskDto(
                 task.getId(),
                 task.getTitle(),
@@ -47,13 +49,9 @@ public class TaskController {
         return taskService.getTaskById(id, taskId);
     }
 
-    // เพิ่ม @Valid เพื่อให้ตรวจสอบข้อมูลที่ส่งมาภายใน Task object
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public TaskManagementDto addTask(@PathVariable String id, @Valid @RequestBody Task task) {
-        if (task.getStatus() == null) {
-            throw new ApiBadRequestException("Task status cannot be null");
-        }
+    public TaskManagementDto addTask(@PathVariable String id, @RequestBody(required = false) Task task) {
         return modelMapper.map(taskService.addTask(id, task), TaskManagementDto.class);
     }
 
@@ -61,10 +59,9 @@ public class TaskController {
     @ResponseStatus(HttpStatus.OK)
     public TaskManagementDto editTask(@PathVariable String id,
                                       @PathVariable Integer taskId,
-                                      @Valid @RequestBody Task task) {
-        if (task.getStatus() == null) {
-            throw new ApiBadRequestException("Task status cannot be null");
-        }
+                                      @RequestBody(required = false) Task task) {
+
+
         return modelMapper.map(taskService.editTask(id, taskId, task), TaskManagementDto.class);
     }
 

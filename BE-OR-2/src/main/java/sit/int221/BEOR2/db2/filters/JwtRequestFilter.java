@@ -11,6 +11,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -18,9 +20,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import sit.int221.BEOR2.db2.entities.Users;
 import sit.int221.BEOR2.db2.repositories.UsersRepository;
 import sit.int221.BEOR2.db2.services.JwtUtil;
+import sit.int221.BEOR2.exceptions.ApiUnauthorizedException;
 import sit.int221.BEOR2.exceptions.CustomAuthenticationEntryPoint;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
@@ -37,20 +43,29 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         String token = null;
 
         try {
-            // ตรวจสอบว่า header มี Bearer token หรือไม่
             if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
                 token = authorizationHeader.substring(7);
             }
 
-            // ตรวจสอบว่า token ถูกต้องและไม่หมดอายุ
             if (token != null && !jwtUtil.isTokenExpired(token)) {
+                System.out.println("1");
                 String oid = jwtUtil.getOid(token);
-                Users users = usersRepository.findByOid(oid);
+                Users user = usersRepository.findByOid(oid);
 
-                // ตั้งค่าการรับรองสิทธิ์ใน SecurityContext
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(users.getUsername(), null, null);
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                if (user != null) {
+                    System.out.println("2");
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(user.getUsername(), null, Collections.emptyList());
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
+            }else {
+                System.out.println("3");
+                if (!request.getMethod().matches("GET")){
+                    System.out.println("4");
+                    handleAuthenticationException(request, response, "No Token");
+                    return;
+                }
             }
         } catch (ExpiredJwtException e) {
             handleAuthenticationException(request, response, "Token is expired");
@@ -63,17 +78,14 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             return;
         }
 
-        // ดำเนินการกรองตามปกติ
         chain.doFilter(request, response);
     }
 
-    // จัดการข้อผิดพลาดเกี่ยวกับการรับรองสิทธิ์
     private void handleAuthenticationException(HttpServletRequest request, HttpServletResponse response, String message) throws IOException {
         request.setAttribute("exception", message);
-        customAuthenticationEntryPoint.commence(request, response, new InsufficientAuthenticationException(null));
+        customAuthenticationEntryPoint.commence(request, response, new InsufficientAuthenticationException(message));
     }
 
-    // ตรวจสอบเส้นทางที่จะไม่ต้องกรอง เช่น เส้นทาง "/login"
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         return request.getServletPath().equals("/login");

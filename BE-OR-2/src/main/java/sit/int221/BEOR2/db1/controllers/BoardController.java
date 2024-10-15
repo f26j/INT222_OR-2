@@ -3,6 +3,7 @@ package sit.int221.BEOR2.db1.controllers;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import sit.int221.BEOR2.BeOr2CrossOrigin;
 import sit.int221.BEOR2.db1.dtos.BoardDto;
@@ -10,6 +11,8 @@ import sit.int221.BEOR2.db1.dtos.UserDto;
 import sit.int221.BEOR2.db1.entities.Board;
 import sit.int221.BEOR2.db1.services.BoardService;
 import org.springframework.validation.annotation.Validated;
+import sit.int221.BEOR2.exceptions.ApiBadRequestException;
+
 import javax.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -26,8 +29,14 @@ public class BoardController {
 
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
-    public List<BoardDto> getBoards() {
-        List<Board> boards = boardService.getBoards();
+    public List<BoardDto> getBoardsByOwnerOidOrPublic() {
+        return boardService.getBoardsByOwnerOidOrPublic();
+    }
+
+    @GetMapping("/all")
+    @ResponseStatus(HttpStatus.OK)
+    public List<BoardDto> getAllBoards() {
+        List<Board> boards = boardService.getBoards();  // ดึงบอร์ดทั้งหมด (ไม่กรอง)
         return boards.stream().map(board -> new BoardDto(
                 board.getId(),
                 board.getName(),
@@ -42,26 +51,31 @@ public class BoardController {
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public BoardDto getBoardById(@PathVariable String id) {
+        System.out.println("222");
         return modelMapper.map(boardService.getBoardById(id), BoardDto.class);
     }
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public BoardDto addBoard(@Valid @RequestBody Board board) {
+    public BoardDto addBoard(@RequestBody(required = false) Board board) {
         return modelMapper.map(boardService.addBoard(board), BoardDto.class);
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public BoardDto editBoard(@PathVariable String id, @Valid @RequestBody Board board) {
+    public BoardDto editBoard(@PathVariable String id, @RequestBody(required = false) Board board) {
         return modelMapper.map(boardService.editBoard(id, board), BoardDto.class);
     }
 
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public BoardDto editBoardVisibility(@PathVariable String id, @RequestBody @Valid Map<String, String> requestBody) {
-        String visibility = requestBody.get("visibility");
-        return boardService.editBoardVisibility(id, visibility);
+    public BoardDto editBoardVisibility(@PathVariable String id, @RequestBody(required = false) Map<String, String> requestBody) {
+        if (requestBody != null) {
+            String visibility = requestBody.get("visibility");
+            return boardService.editBoardVisibility(id, visibility);
+        } else {
+            return boardService.editBoardVisibility(id, null);
+        }
     }
 
     @DeleteMapping("/{id}")
@@ -70,3 +84,4 @@ public class BoardController {
         boardService.deleteBoard(id);
     }
 }
+

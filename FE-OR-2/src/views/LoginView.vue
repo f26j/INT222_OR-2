@@ -212,4 +212,8 @@ const togglePassword = () => {
 div {
   font-family: "Ubuntu", sans-serif;
 }
+
+.itbkk-username, .itbkk-password , .itbkk-button-signin {
+  user-select: none;
+}
 </style>

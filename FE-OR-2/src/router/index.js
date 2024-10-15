@@ -17,6 +17,7 @@ import ModalEditStatus from "../components/ModalEditStatus.vue";
 import ManageStatus from "../components/ManageStatus.vue";
 
 import NotFoundPage from "../components/css/NotFoundPage.vue"
+import AccessDeniedPage from "../components/css/AccessDeniedPage.vue"
 
 // Router Configuration
 const router = createRouter({
@@ -72,7 +73,6 @@ const router = createRouter({
         },
       ],
     },
-
     {
       path: "/board/:boardId/status", // กลุ่มของ Status
       component: StatusView,
@@ -94,6 +94,11 @@ const router = createRouter({
           component: ModalEditStatus,
         },
       ],
+    },
+    {
+      path: "/forbidden", // เส้นทางสำหรับหน้า NotFoundPage
+      name: "AccessDenied",
+      component: AccessDeniedPage,
     },
   ],
 });
