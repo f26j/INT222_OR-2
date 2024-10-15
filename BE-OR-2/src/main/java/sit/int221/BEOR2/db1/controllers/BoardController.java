@@ -38,7 +38,7 @@ public class BoardController {
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public BoardDto addBoard(@RequestBody(required = false) Board board) {
+    public BoardDto addBoard(@RequestBody Board board) {
         return modelMapper.map(boardService.addBoard(board), BoardDto.class);
     }
 
@@ -65,4 +65,3 @@ public class BoardController {
         boardService.deleteBoard(id);
     }
 }
-

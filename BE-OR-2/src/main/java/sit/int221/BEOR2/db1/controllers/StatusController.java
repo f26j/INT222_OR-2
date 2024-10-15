@@ -67,4 +67,3 @@ public class StatusController {
         statusService.transferStatus(id, statusId, statusNewId);
     }
 }
-

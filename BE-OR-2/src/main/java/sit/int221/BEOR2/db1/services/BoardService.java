@@ -101,9 +101,11 @@ public class BoardService {
         Board savedBoard = boardRepository.saveAndFlush(board);
 
         List<Status> status = statusRepository.findDefaultStatuses();
-        for (Status defaultStatus : status) {
-            Status newStatus = new Status(board, defaultStatus.getName(), defaultStatus.getDescription());
-            statusService.addStatus(board.getId(), newStatus);
+        if (board != null) {
+            for (Status defaultStatus : status) {
+                Status newStatus = new Status(board, defaultStatus.getName(), defaultStatus.getDescription());
+                statusService.addStatus(board.getId(), newStatus);
+            }
         }
 
         // Step 5: การตอบกลับปกติ (200 OK)
@@ -131,7 +133,7 @@ public class BoardService {
 
         boolean isOwner = existingBoard.getUser().getOid().equals(user.getOid());
         if (!isOwner) {
-            throw new ApiForbiddenException("Access denied: You do not have permission to edit this board.");
+            throw new ApiForbiddenException("Access denied: You do not have permission to edit this board");
         }
 
         if (board == null) {
@@ -174,7 +176,7 @@ public class BoardService {
         }
 
         if (!isOwner) {
-            throw new ApiForbiddenException("Access denied: You do not have permission to edit visibility of this board.");
+            throw new ApiForbiddenException("Access denied: You do not have permission to edit visibility of this board");
         }
 
         if (!"PRIVATE".equalsIgnoreCase(visibility) && !"PUBLIC".equalsIgnoreCase(visibility)) {
@@ -232,7 +234,7 @@ public class BoardService {
 
             // ถ้าไม่ใช่เจ้าของและบอร์ดเป็น private ให้ส่ง 403 Forbidden
             if (!isOwner && !isPublic) {
-                throw new ApiForbiddenException("Access denied: You do not have permission to access this board.");
+                throw new ApiForbiddenException("Access denied: You do not have permission to access this board");
             }
         }
     }

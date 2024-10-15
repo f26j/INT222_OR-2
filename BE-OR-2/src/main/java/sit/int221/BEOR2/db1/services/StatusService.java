@@ -38,7 +38,7 @@ public class StatusService {
                 .orElseThrow(() -> new ApiNotFoundException("Board id '" + boardId + "' not found"));
 
         if (user == null && board.getVisibility().equals("PRIVATE")) {
-            throw new ApiForbiddenException("Acess Denied");
+            throw new ApiForbiddenException("Access Denied");
         } else {
             checkBoardAccess(boardId);
         }
@@ -55,7 +55,7 @@ public class StatusService {
                 .orElseThrow(() -> new ApiNotFoundException("Board id '" + boardId + "' not found"));
 
         if (user == null && board.getVisibility().equals("PRIVATE")) {
-            throw new ApiForbiddenException("Acess Denied");
+            throw new ApiForbiddenException("Access Denied");
         } else {
             checkBoardAccess(boardId);
         }
@@ -79,7 +79,7 @@ public class StatusService {
 
         boolean isOwner = existingBoard.getUser().getOid().equals(user.getOid());
         if (user == null && existingBoard.getVisibility().equals("PRIVATE") || !isOwner) {
-            throw new ApiForbiddenException("Acess Denied");
+            throw new ApiForbiddenException("Access Denied");
         } else {
             checkBoardAccess(boardId);
         }
@@ -90,7 +90,7 @@ public class StatusService {
 
         // Step 2: ตรวจสอบว่า Status ซ้ำหรือไม่ (400 Bad Request)
         if (statusRepository.existsByNameAndBoardId(status.getName().trim(), boardId)) {
-            throw new ApiBadRequestException("Status name already exists on this board.");
+            throw new ApiBadRequestException("Status name already exists on this board");
         }
 
         status.setBoard(existingBoard);
@@ -108,7 +108,7 @@ public class StatusService {
 
         boolean isOwner = board.getUser().getOid().equals(user.getOid());
         if (user == null && board.getVisibility().equals("PRIVATE") || !isOwner) {
-            throw new ApiForbiddenException("Acess Denied");
+            throw new ApiForbiddenException("Access Denied");
         } else {
             checkBoardAccess(boardId);
         }
@@ -140,7 +140,7 @@ public class StatusService {
 
         boolean isOwner = board.getUser().getOid().equals(user.getOid());
         if (user == null && board.getVisibility().equals("PRIVATE") || !isOwner) {
-            throw new ApiForbiddenException("Acess Denied");
+            throw new ApiForbiddenException("Access Denied");
         } else {
             checkBoardAccess(boardId);
         }
@@ -149,7 +149,7 @@ public class StatusService {
                 .orElseThrow(() -> new ApiNotFoundException("Status id '" + statusId + "' does not exist for board id '" + boardId + "'"));
 
         if (statusToDelete.getName().equalsIgnoreCase("No Status") || statusToDelete.getName().equalsIgnoreCase("Done")) {
-            throw new ApiBadRequestException("The status '" + statusToDelete.getName() + "' cannot be deleted.");
+            throw new ApiBadRequestException("The status '" + statusToDelete.getName() + "' cannot be deleted");
         }
 
         statusRepository.delete(statusToDelete);
@@ -165,13 +165,13 @@ public class StatusService {
 
         boolean isOwner = board.getUser().getOid().equals(user.getOid());
         if (user == null && board.getVisibility().equals("PRIVATE") || !isOwner) {
-            throw new ApiForbiddenException("Acess Denied");
+            throw new ApiForbiddenException("Access Denied");
         } else {
             checkBoardAccess(boardId);
         }
 
         if (statusId.equals(newStatusId)) {
-            throw new ApiBadRequestException("Cannot transfer tasks to the same status.");
+            throw new ApiBadRequestException("Cannot transfer tasks to the same status");
         }
 
         Status oldStatus = statusRepository.findByBoardIdAndId(boardId, statusId)
@@ -181,7 +181,10 @@ public class StatusService {
                 .orElseThrow(() -> new ApiNotFoundException("New status id '" + newStatusId + "' does not exist for board id '" + boardId + "'"));
 
         List<Task> tasks = taskRepository.findByStatus(oldStatus);
-        tasks.forEach(task -> task.setStatus(newStatus));
+        for (Task task : tasks) {
+            task.setStatus(newStatus);
+        }
+
         taskRepository.saveAllAndFlush(tasks);
         statusRepository.delete(oldStatus);
     }
@@ -200,7 +203,7 @@ public class StatusService {
 
             // ถ้าไม่ใช่เจ้าของและบอร์ดเป็น private ให้ส่ง 403 Forbidden
             if (!isOwner && !isPublic) {
-                throw new ApiForbiddenException("Access denied: You do not have permission to access this board.");
+                throw new ApiForbiddenException("Access denied: You do not have permission to access this board");
             }
         }
     }

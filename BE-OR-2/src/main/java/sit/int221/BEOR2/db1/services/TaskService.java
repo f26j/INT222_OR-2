@@ -36,7 +36,7 @@ public class TaskService {
                 .orElseThrow(() -> new ApiNotFoundException("Board id '" + boardId + "' not found"));
 
         if (user == null && board.getVisibility().equals("PRIVATE")) {
-            throw new ApiForbiddenException("Acess Denied");
+            throw new ApiForbiddenException("Access Denied");
         } else {
             checkBoardAccess(boardId);
         }
@@ -52,7 +52,7 @@ public class TaskService {
                 .orElseThrow(() -> new ApiNotFoundException("Board id '" + boardId + "' not found"));
 
         if (user == null && board.getVisibility().equals("PRIVATE")) {
-            throw new ApiForbiddenException("Acess Denied");
+            throw new ApiForbiddenException("Access Denied");
         } else {
             checkBoardAccess(boardId);
         }
@@ -73,7 +73,7 @@ public class TaskService {
 
         boolean isOwner = existingBoard.getUser().getOid().equals(user.getOid());
         if (user == null && existingBoard.getVisibility().equals("PRIVATE") || !isOwner) {
-            throw new ApiForbiddenException("Acess Denied");
+            throw new ApiForbiddenException("Access Denied");
         } else {
             checkBoardAccess(boardId);
         }
@@ -102,7 +102,7 @@ public class TaskService {
 
         boolean isOwner = existingBoard.getUser().getOid().equals(user.getOid());
         if (user == null && existingBoard.getVisibility().equals("PRIVATE") || !isOwner) {
-            throw new ApiForbiddenException("Acess Denied");
+            throw new ApiForbiddenException("Access Denied");
         } else {
             checkBoardAccess(boardId);
         }
@@ -136,7 +136,7 @@ public class TaskService {
 
         boolean isOwner = existingBoard.getUser().getOid().equals(user.getOid());
         if (user == null || !isOwner) {
-            throw new ApiForbiddenException("Acess Denied");
+            throw new ApiForbiddenException("Access Denied");
         } else {
             checkBoardAccess(boardId);
         }
@@ -161,9 +161,8 @@ public class TaskService {
 
             // ถ้าไม่ใช่เจ้าของและบอร์ดเป็น private ให้ส่ง 403 Forbidden
             if (!isOwner && !isPublic) {
-                throw new ApiForbiddenException("Access denied: You do not have permission to access this board.");
+                throw new ApiForbiddenException("Access denied: You do not have permission to access this board");
             }
         }
     }
 }
-
