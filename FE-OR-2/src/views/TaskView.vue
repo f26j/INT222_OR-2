@@ -58,6 +58,8 @@ const confirmChange = async () => {
   isModalOpen.value = false
 }
 
+
+
 // Function zone
 onMounted(async () => {
   try {
@@ -73,36 +75,37 @@ onMounted(async () => {
 })
 
 async function fetchWithToken(url, options = {}) {
-  const token = localStorage.getItem("jwtToken")
+  const token = localStorage.getItem("jwtToken");
   if (!token) {
-    console.error("No token available")
-    router.push("/login") // Redirect to login if no token
-    return null
+    console.warn("No token found.");
+    router.push("/login");
+    return null;
   }
 
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${token}`, // Add JWT token
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-  })
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`, // เพิ่ม Token ใน Header
+    ...options.headers,
+  };
 
-  // Check for 401 Unauthorized
+  const response = await fetch(url, { ...options, headers });
+
   if (response.status === 401) {
-    userStore.logout() // Log out user
-    router.push("/login") // Redirect to login
-    return null
-
-  // Check for 403 Forbidden
-  } else if (response.status === 403) {
-    router.push({ name: "AccessDenied" })
-    return null
+    console.warn("Unauthorized. Token expired or invalid.");
+    userStore.logout();
+    router.push("/login");
+    return null;
   }
 
-  return response // Return the response
+  if (response.status === 403) {
+    console.warn("Access Denied (403).");
+    router.push({ name: "AccessDenied" });
+    return null;
+  }
+
+  return response;
 }
+
 
 async function fetchData() {
   // Fetch tasks for the specified board
@@ -110,7 +113,7 @@ async function fetchData() {
   if (!response) return // If response is null, return
 
   if (response.status === 404) {
-    router.push({ name: "NotFound" }) // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    router.push({ name: "NotFound" })
     return
   }
 
@@ -132,6 +135,8 @@ async function fetchDataStatus() {
     `${baseUrl}/v3/boards/${boardId}/statuses`
   )
   if (!response) return // If response is null, return
+  
+  
 
   if (response.status === 404) {
     router.push({ name: "NotFound" }) // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
@@ -147,28 +152,47 @@ async function fetchDataStatus() {
     throw new TypeError("Fetched status data is not an array")
   }
   
-  console.log(dataStatus)
   return dataStatus
 }
 
 async function fetchBoard() {
-  const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}`)
-  if (!response) return // ถ้าไม่มี response ให้ return
+  try {
+    const response = await fetch(`${baseUrl}/v3/boards/${boardId}`);
 
-  if (response.status === 404) {
-    router.push({ name: "NotFound" }) // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
-    return
+    if (response.status === 403) {
+      console.warn("Access denied to this board.");
+      router.push({ name: "AccessDenied" }); // ไปหน้า Access Denied (403)
+      return;
+    }
+
+    if (response.status === 404) {
+      console.warn("Board not found.");
+      router.push({ name: "NotFound" }); // ไปหน้า Not Found (404)
+      return;
+    }
+
+    if (!response.ok) {
+      throw new Error(`Error fetching board: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    boardName.value = data.name;
+    boardOwnerOid.value = data.owner.oid;
+    visibility.value = data.visibility;
+
+    // หากบอร์ดเป็น public ไม่ต้องใช้ token
+    if (visibility.value === "PUBLIC") {
+      console.log("Board is public.");
+      return;
+    }
+
+  } catch (error) {
+    console.error("Error fetching board:", error);
+    router.push({ name: "NotFound" }); // เปลี่ยนไปหน้า NotFound ในกรณี Error อื่น
   }
-
-  if (!response.ok) {
-    throw new Error(`Error fetching board: ${response.statusText}`)
-  }
-
-  const data = await response.json()
-  boardName.value = data.name // เก็บชื่อบอร์ดใน boardName
-  boardOwnerOid.value = data.owner.oid
-  visibility.value = data.visibility
 }
+
+
 
 // Functions for managing tasks
 const openModalAdd = async () => {
@@ -215,10 +239,9 @@ async function deleteTask(taskId) {
     }
   )
 
-  if (!response) return // If response is null, return
-
+  if (!response) return
   if (response.status === 404) {
-    router.push({ name: "NotFound" }) // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    router.push({ name: "NotFound" })
     return
   }
 

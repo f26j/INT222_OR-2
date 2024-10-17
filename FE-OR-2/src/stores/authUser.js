@@ -36,14 +36,12 @@ export const useUserStore = defineStore("user", {
       }
     },
 
-    // ตั้งค่า token และบันทึกใน LocalStorage
     setToken(token) {
       this.token = token;
       localStorage.setItem("jwtToken", token);
       this.decodeToken();
     },
 
-    // ถอดรหัสข้อมูลจาก JWT token
     decodeToken() {
       try {
         if (this.token) {
@@ -57,7 +55,6 @@ export const useUserStore = defineStore("user", {
       }
     },
 
-    // ตรวจสอบความถูกต้องของ token
     async checkAuth() {
       try {
         this.refreshToken(); // อัปเดต token จาก LocalStorage

@@ -27,7 +27,7 @@ async function fetchWithToken(url, options = {}) {
   const token = localStorage.getItem("jwtToken");
   if (!token) {
     console.error("No token available");
-    router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
+    // router.push("/login"); 
     return null;
   }
 
@@ -41,7 +41,7 @@ async function fetchWithToken(url, options = {}) {
   });
 
   if (response.status === 401) {
-    router.push("/login"); // Redirect ไปหน้า login เมื่อสถานะเป็น 401
+    // router.push("/login"); 
     return null;
   } else if (response.status === 403) {
     router.push({ name: "AccessDenied" })
@@ -268,7 +268,7 @@ const closeModal = () => {
   </div>
 </template>
 
-<style>
+<style scoped>
 @import url("https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono");
 @import url("https://fonts.googleapis.com");
 @import url("https://fonts.gstatic.com");

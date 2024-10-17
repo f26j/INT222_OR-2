@@ -19,7 +19,7 @@ const status = ref({});
 // ฟังก์ชันสำหรับเรียก API พร้อม JWT Token
 async function fetchWithToken(url, options = {}) {
   const token = localStorage.getItem("jwtToken");
-  if (!token) return null; // ถ้าไม่มี token ให้ return null
+  if (!token) return null; 
 
   const response = await fetch(url, {
     ...options,
@@ -32,7 +32,7 @@ async function fetchWithToken(url, options = {}) {
 
   // ตรวจสอบสถานะ 401 Unauthorized
   if (response.status === 401) {
-    router.push("/login"); // Redirect ไปหน้า login
+    // router.push("/login");
     return null;
   } else if (response.status === 403) {
     router.push({ name: "AccessDenied" })

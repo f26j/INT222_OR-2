@@ -31,14 +31,13 @@ const showDelete = ref(false);
 const selectDeleteStatusId = ref("");
 const selectDeleteStatusName = ref("");
 const boardId = route.params.boardId;
-const boardName = ref(""); // Get boardId from the UR
-
+const boardName = ref("");
 // ฟังก์ชันสำหรับดึง Token
 function getToken() {
   const token = localStorage.getItem("jwtToken");
   if (!token) {
     console.error("No token available");
-    router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
+
     return null;
   }
   return token;
@@ -47,8 +46,7 @@ function getToken() {
 // ฟังก์ชันสำหรับดึงข้อมูลพร้อม Token
 async function fetchWithToken(url, options = {}) {
   const token = getToken();
-  if (!token) return null; // ถ้าไม่มี token ให้ return null
-
+  if (!token) return null;
   try {
     const response = await fetch(url, {
       ...options,
@@ -62,7 +60,7 @@ async function fetchWithToken(url, options = {}) {
     // ตรวจสอบสถานะ 401 Unauthorized
     if (response.status === 401) {
       console.error("Unauthorized access - Redirecting to login");
-      router.push("/login");
+
       return null;
     } else if (response.status === 403) {
     router.push({ name: "AccessDenied" })
@@ -78,8 +76,7 @@ async function fetchWithToken(url, options = {}) {
 
 async function fetchBoard() {
   const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}`);
-  if (!response) return; // ถ้าไม่มี response ให้ return
-
+  if (!response) return; 
   if (response.status === 404) {
     router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
     return;

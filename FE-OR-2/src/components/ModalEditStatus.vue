@@ -28,7 +28,7 @@ function getToken() {
   const token = localStorage.getItem("jwtToken");
   if (!token) {
     console.error("No token available");
-    router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
+    // router.push("/login"); 
     return null;
   }
   return token;
@@ -48,7 +48,7 @@ async function fetchWithToken(url, options = {}) {
   });
 
   if (response.status === 401) {
-    router.push("/login"); // Redirect ไปที่ login เมื่อสถานะเป็น 401
+    // router.push("/login");
     return null;
   } else if (response.status === 403) {
     router.push({ name: "AccessDenied" })

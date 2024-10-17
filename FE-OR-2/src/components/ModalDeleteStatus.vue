@@ -16,16 +16,15 @@ function getToken() {
   const token = localStorage.getItem("jwtToken");
   if (!token) {
     console.error("No token available");
-    router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
+    // router.push("/login");
     return null;
   }
   return token;
 }
 
 async function getStatus() {
-  const token = getToken(); // ดึง token จาก localStorage
-  if (!token) return; // ถ้าไม่มี token ให้หยุดการทำงาน
-
+  const token = getToken(); 
+  if (!token) return;
   try {
     const response = await fetch(
       `${baseUrl}/v3/boards/${boardId}/statuses/${props.statusId}`,
@@ -38,13 +37,13 @@ async function getStatus() {
     );
 
     if (response.status === 404) {
-    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    router.push({ name: "NotFound" });
     return;
   }
 
     // ตรวจสอบสถานะ 401 Unauthorized
     if (response.status === 401) {
-      router.push("/login"); // Redirect ไปหน้า login เมื่อสถานะเป็น 401
+      // router.push("/login"); 
       return;
     }
 
@@ -54,7 +53,7 @@ async function getStatus() {
 
     // ตรวจสอบว่า status สามารถลบได้หรือไม่
     if (res.count > 0) {
-      isDeletable.value = false; // ไม่สามารถลบ status ได้
+      isDeletable.value = false;
     }
     currentStatus.value = res;
   } catch (error) {

@@ -21,7 +21,7 @@ async function fetchWithToken(url, options = {}) {
   const token = localStorage.getItem("jwtToken");
   if (!token) {
     console.error("No token available");
-    router.push("/login"); // Redirect ไปที่หน้า Login
+    // router.push("/login");
     return null;
   }
 
@@ -36,7 +36,7 @@ async function fetchWithToken(url, options = {}) {
 
   // ตรวจสอบสถานะ 401 Unauthorized
   if (response.status === 401) {
-    router.push("/login"); // Redirect ไปหน้า login เมื่อสถานะเป็น 401
+    // router.push("/login"); 
     return null;
   } else if (response.status === 403) {
     router.push({ name: "AccessDenied" })
@@ -59,7 +59,7 @@ const addStatus = async () => {
   };
 
   if (!newStatus.name) {
-    return;  // ถ้าไม่มีชื่อ status ให้หยุดการทำงาน
+    return; 
   }
 
   try {
@@ -68,14 +68,13 @@ const addStatus = async () => {
       body: JSON.stringify(newStatus),
     });
 
-    if (!response) return;  // ถ้า response เป็น null ให้หยุดการทำงาน
-
+    if (!response) return; 
     const data = await response.json();
     if (!response.ok) {
       throw new Error("Failed to add new status");
     } else {
-      store.statuses.value.push(data);  // เพิ่มสถานะใหม่ลงใน store
-      toastStore.handleStatusAdded();   // แสดง toast เมื่อเพิ่มสถานะสำเร็จ
+      store.statuses.value.push(data);  
+      toastStore.handleStatusAdded();  
       console.log("New status added:", data);
     }
 

@@ -38,7 +38,7 @@ async function createBoard() {
   if (!token.value || !isTokenValid(token.value)) {
     errorMessage.value = "Your session has expired. Please log in again.";
     userStore.logout(); // Optionally, log the user out
-    router.push("/login");
+    // router.push("/login");
     return;
   }
 
@@ -67,7 +67,7 @@ async function createBoard() {
     } else if (response.status === 401 || response.status === 403) {
       errorMessage.value = "Unauthorized. Please log in again.";
       userStore.logout();
-      router.push("/login");
+      // router.push("/login");
     } else {
       const errorData = await response.json();
       console.error("Failed to create board:", errorData);
