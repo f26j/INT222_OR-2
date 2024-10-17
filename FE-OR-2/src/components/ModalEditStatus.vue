@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { useStatusStore } from "@/stores/api.js";
+import { useStatusStore } from "@/stores/apiController.js";
 import { useToastStore } from "@/stores/toast.js";
 const store = useStatusStore();
 

@@ -2,7 +2,7 @@
 import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useToastStore } from "@/stores/toast.js";
-import { useTaskStore } from "@/stores/api.js";
+import { useTaskStore } from "@/stores/apiController.js";
 
 // Store, API zone
 const baseUrl = import.meta.env.VITE_API_BOARDS;

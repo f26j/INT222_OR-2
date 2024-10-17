@@ -1,8 +1,8 @@
 <script setup>
 import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
-import { useUserStore } from "@/stores/users.js";
-import { useBoardStore } from "@/stores/api.js";
+import { useUserStore } from "@/stores/authUser.js";
+import { useBoardStore } from "@/stores/apiController.js";
 
 const userStore = useUserStore();
 const token = computed(() => userStore.token);
@@ -23,7 +23,25 @@ watch(
   { immediate: true }
 );
 
+function isTokenValid(token) {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const exp = payload.exp * 1000;
+    return Date.now() < exp;
+  } catch {
+    return false;
+  }
+}
+
 async function createBoard() {
+  userStore.initializeStore();
+  if (!token.value || !isTokenValid(token.value)) {
+    errorMessage.value = "Your session has expired. Please log in again.";
+    userStore.logout(); // Optionally, log the user out
+    router.push("/login");
+    return;
+  }
+
   const newBoard = {
     name: boardName.value.trim(),
     owner: fullname.value,
@@ -42,23 +60,31 @@ async function createBoard() {
 
     if (response.ok) {
       const createdBoard = await response.json();
+      console.log(token.value)
       console.log("Board created successfully:", createdBoard);
-      boardStore.addBoard(createdBoard); // เพิ่มบอร์ดลงใน store
+      boardStore.addBoard(createdBoard);
       router.push(`/board/${createdBoard.id}`);
+    } else if (response.status === 401 || response.status === 403) {
+      errorMessage.value = "Unauthorized. Please log in again.";
+      userStore.logout();
+      router.push("/login");
     } else {
-      console.error("Failed to create board:", await response.json());
+      const errorData = await response.json();
+      console.error("Failed to create board:", errorData);
+      errorMessage.value = errorData.message || "Failed to create board.";
     }
   } catch (error) {
     console.error("Error creating board:", error);
+    errorMessage.value = "An unexpected error occurred.";
   }
 }
-
 
 function closeModal() {
   errorMessage.value = "";
   router.push("/board");
 }
 </script>
+
 
 <template>
   <div class="itbkk-modal-new fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
@@ -74,10 +100,6 @@ function closeModal() {
         placeholder="Enter board name (max 120 characters)"
         maxlength="120"
       />
-      <!-- <select v-model="visibility" class="border p-2 w-full mb-4">
-        <option value="private">Private</option>
-        <option value="public">Public</option>
-      </select> -->
       <div class="button-addboard flex justify-center">
         <button
           @click="createBoard"
@@ -108,9 +130,6 @@ function closeModal() {
   bottom: 0;
   left: 0;
 }
-/* .bg-opacity-50 {
-  background-opacity: 0.5;
-} */
 
 button {
   border-radius: 20px;

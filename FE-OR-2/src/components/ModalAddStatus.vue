@@ -2,7 +2,7 @@
 // Import zone
 import { ref } from "vue"
 import { useRouter, useRoute } from "vue-router";
-import { useStatusStore } from "@/stores/api.js"
+import { useStatusStore } from "@/stores/apiController.js"
 import { useToastStore } from "@/stores/toast.js"
 
 // Variable zone

@@ -1,8 +1,8 @@
 <script setup>
 import { onMounted, ref } from "vue"
 import { useRouter } from "vue-router"
-import { useUserStore } from "@/stores/users.js"
-import { useBoardStore } from "@/stores/api.js"
+import { useUserStore } from "@/stores/authUser.js"
+import { useBoardStore } from "@/stores/apiController.js"
 import { storeToRefs } from "pinia"
 import Navbar from "../components/css/Navbar.vue"
 import Bg_effect from "../components/css/Background.vue"
@@ -21,14 +21,14 @@ const router = useRouter()
 // เรียกใช้ userStore เพื่อดึง token
 const userStore = useUserStore()
 const boardStore = useBoardStore()
-const { token, oid } = storeToRefs(userStore) // ดึง oid จาก store เพื่อใช้งานในการตรวจสอบ
+const { token, oid } = storeToRefs(userStore)
 
-// เปลี่ยนฟังก์ชัน fetchBoardApi และปรับ logic ของการกรองบอร์ด
+
 async function fetchBoardApi() {
-  if (!token.value) {
-    router.push("/login")
-    return
-  }
+  // if (!token.value) {
+  //   router.push("/login")
+  //   return
+  // }
 
   try {
     loading.value = true
@@ -44,7 +44,7 @@ async function fetchBoardApi() {
     if (response.status === 401) {
       // ถ้าได้รับสถานะ 401 ให้ logout และเปลี่ยนเส้นทางไปที่หน้า login
       userStore.logout()
-      router.push("/login")
+      // router.push("/login")
       return
     }
 

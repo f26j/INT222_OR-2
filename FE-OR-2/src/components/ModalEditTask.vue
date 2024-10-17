@@ -2,7 +2,7 @@
 // Import zone
 import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useTaskStore } from "@/stores/api.js";
+import { useTaskStore } from "@/stores/apiController.js";
 import { useToastStore } from "@/stores/toast.js";
 
 // Store, API zone
@@ -10,12 +10,10 @@ const route = useRoute();
 const router = useRouter();
 const store = useTaskStore();
 const toastStore = useToastStore();
-const boardId = route.params.boardId; // ดึงค่า boardId จาก URL
-const taskId = route.params.taskId || ""; // ดึงค่า taskId จาก URL
+const boardId = route.params.boardId;
+const taskId = route.params.taskId || "";
 
 const baseUrl = import.meta.env.VITE_API_BOARDS;
-const fetchTask = import.meta.env.VITE_API_BOARD_TASK;
-const fetchStatus = import.meta.env.VITE_API_BOARD_STATUS;
 
 // Variable zone
 const modalEdit = ref(null);

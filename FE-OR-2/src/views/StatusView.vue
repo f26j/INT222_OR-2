@@ -3,7 +3,7 @@
 import { onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { storeToRefs } from "pinia";
-import { useStatusStore } from "@/stores/api.js";
+import { useStatusStore } from "@/stores/apiController.js";
 import { useToastStore } from "@/stores/toast.js";
 import Bg_effect from "../components/css/Background.vue";
 import Copyright from "../components/css/Copyright.vue";

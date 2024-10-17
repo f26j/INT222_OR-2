@@ -1,6 +1,6 @@
 import { reactive, ref } from "vue";
 import { defineStore } from "pinia";
-import { useUserStore } from "@/stores/users.js";
+import { useUserStore } from "@/stores/authUser.js";
 
 // Task Store
 export const useTaskStore = defineStore("apiTask", () => {

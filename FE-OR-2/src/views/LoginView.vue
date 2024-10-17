@@ -2,8 +2,8 @@
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useToastStore } from "@/stores/toast.js";
-import { useUserStore } from "@/stores/users.js";
-import { useBoardStore } from "@/stores/api.js"; // Import the board store
+import { useUserStore } from "@/stores/authUser.js";
+import { useBoardStore } from "@/stores/apiController.js"; // Import the board store
 import { storeToRefs } from "pinia";
 import Bg_effect from "../components/css/Background.vue";
 import Toast_login from "../components/toast/ToastLogin.vue";

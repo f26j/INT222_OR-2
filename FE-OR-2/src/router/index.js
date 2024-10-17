@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
-import { useUserStore } from "../stores/users";
+import { useUserStore } from "../stores/authUser";
 
 // Import Component
 import LoginView from "../views/LoginView.vue";
@@ -105,20 +105,20 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore();
-  if (!userStore.token && to.meta.requiresAuth) {
-    return next({ name: "login" });
-  }
-  if (userStore.token && to.name === "login") {
-    return next({ name: "board" });
-  }
-  if (userStore.token) {
-    try {
-      await userStore.checkAuth();
-    } catch (error) {
-      userStore.logout();
-      return next({ name: "login" });
-    }
-  }
+  // if (!userStore.token && to.meta.requiresAuth) {
+  //   return next({ name: "login" });
+  // }
+  // if (userStore.token && to.name === "login") {
+  //   return next({ name: "board" });
+  // }
+  // if (userStore.token) {
+  //   try {
+  //     await userStore.checkAuth();
+  //   } catch (error) {
+  //     userStore.logout();
+  //     return next({ name: "login" });
+  //   }
+  // }
   next();
 });
 

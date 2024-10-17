@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useTaskStore } from "@/stores/api.js";
+import { useTaskStore } from "@/stores/apiController.js";
 
 // API Endpoint URLs
 const baseUrl = import.meta.env.VITE_API_BOARDS;
