@@ -52,12 +52,15 @@ public class BoardService {
     }
 
     public BoardDto getBoardById(@PathVariable String id) {
+        System.out.println("ID: " + id);
         String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+        System.out.println("board Service");
+        System.out.println(userName);
         User user = userRepository.findByUsername(userName).orElse(null);
 
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new ApiNotFoundException("Board id '" + id + "' not found"));
-
+        System.out.println(user);
         if (user == null && board.getVisibility().equals("PRIVATE")) {
             throw new ApiForbiddenException("Access Denied");
         } else {

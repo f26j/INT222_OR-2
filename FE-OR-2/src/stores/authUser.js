@@ -7,7 +7,7 @@ const fetchLogin = import.meta.env.VITE_API_LOGIN;
 export const useUserStore = defineStore("user", {
   state: () => ({
     token: localStorage.getItem("jwtToken") || null,
-    fullname: "Gust",
+    fullname: "Guest",
     oid: "",
   }),
 

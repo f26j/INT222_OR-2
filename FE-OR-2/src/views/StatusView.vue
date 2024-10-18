@@ -75,7 +75,7 @@ async function fetchWithToken(url, options = {}) {
 }
 
 async function fetchBoard() {
-  const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}`);
+  const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}/statuses`);
   if (!response) return; 
   if (response.status === 404) {
     router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404

@@ -63,97 +63,85 @@ const confirmChange = async () => {
 // Function zone
 onMounted(async () => {
   try {
-    await fetchBoard()
-    const data = await fetchData()
-    const datastatus = await fetchDataStatus() // Fetch status data
-    originalTasks.value = [...data]
-    store.tasks.value = [...data]
-    store.status.value = datastatus
+    const requiresAuth = await fetchBoard(); // ตรวจสอบว่าเป็น Public หรือ Private
+
+    if (requiresAuth) {
+      // หากต้องใช้ Token สำหรับ Private Board
+      const data = await fetchDataWithToken();
+      const datastatus = await fetchDataStatusWithToken();
+      originalTasks.value = [...data];
+      store.tasks.value = [...data];
+      store.status.value = datastatus;
+    } else {
+      // หากเป็น Public Board ไม่ต้องใช้ Token
+      const data = await fetchDataWithoutToken();
+      const datastatus = await fetchDataStatusWithoutToken();
+      originalTasks.value = [...data];
+      store.tasks.value = [...data];
+      store.status.value = datastatus;
+    }
   } catch (error) {
-    console.error("Error during data fetch:", error)
+    console.error("Error during data fetch:", error);
   }
-})
+});
 
-async function fetchWithToken(url, options = {}) {
-  const token = localStorage.getItem("jwtToken");
-  if (!token) {
-    console.warn("No token found.");
-    router.push("/login");
+
+
+async function fetchWithoutToken(url, options = {}) {
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...options.headers,
+      },
+    });
+
+    if (response.status === 403) {
+      console.warn("Access Denied (403). Redirecting to AccessDenied.");
+      router.push({ name: "AccessDenied" });
+      return null;
+    }
+
+    if (response.status === 404) {
+      console.warn("Board not found. Redirecting to NotFound.");
+      router.push({ name: "NotFound" });
+      return null;
+    }
+
+    return response;
+  } catch (error) {
+    console.error("Error fetching data:", error);
     return null;
   }
-
-  const headers = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`, // เพิ่ม Token ใน Header
-    ...options.headers,
-  };
-
-  const response = await fetch(url, { ...options, headers });
-
-  if (response.status === 401) {
-    console.warn("Unauthorized. Token expired or invalid.");
-    userStore.logout();
-    router.push("/login");
-    return null;
-  }
-
-  if (response.status === 403) {
-    console.warn("Access Denied (403).");
-    router.push({ name: "AccessDenied" });
-    return null;
-  }
-
-  return response;
 }
 
 
-async function fetchData() {
-  // Fetch tasks for the specified board
-  const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}/tasks`)
-  if (!response) return // If response is null, return
 
-  if (response.status === 404) {
-    router.push({ name: "NotFound" })
-    return
-  }
+async function fetchDataWithoutToken() {
+  const response = await fetchWithoutToken(`${baseUrl}/v3/boards/${boardId}/tasks`);
+  if (!response) return;
 
-  if (!response.ok) {
-    throw new Error(`Error fetching tasks: ${response.statusText}`)
-  }
-
-  const data = await response.json()
+  const data = await response.json();
   if (!Array.isArray(data)) {
-    throw new TypeError("Fetched data is not an array")
+    throw new TypeError("Fetched data is not an array");
   }
 
-  return data
+  return data;
 }
 
-async function fetchDataStatus() {
-  // Fetch statuses for the specified board
-  const response = await fetchWithToken(
-    `${baseUrl}/v3/boards/${boardId}/statuses`
-  )
-  if (!response) return // If response is null, return
-  
-  
+async function fetchDataStatusWithoutToken() {
+  const response = await fetchWithoutToken(`${baseUrl}/v3/boards/${boardId}/statuses`);
+  if (!response) return;
 
-  if (response.status === 404) {
-    router.push({ name: "NotFound" }) // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
-    return
-  }
-
-  if (!response.ok) {
-    throw new Error(`Error fetching status: ${response.statusText}`)
-  }
-
-  const dataStatus = await response.json()
+  const dataStatus = await response.json();
   if (!Array.isArray(dataStatus)) {
-    throw new TypeError("Fetched status data is not an array")
+    throw new TypeError("Fetched status data is not an array");
   }
-  
-  return dataStatus
+
+  return dataStatus;
 }
+
 
 async function fetchBoard() {
   try {
@@ -161,13 +149,13 @@ async function fetchBoard() {
 
     if (response.status === 403) {
       console.warn("Access denied to this board.");
-      router.push({ name: "AccessDenied" }); // ไปหน้า Access Denied (403)
+      router.push({ name: "AccessDenied" });
       return;
     }
 
     if (response.status === 404) {
       console.warn("Board not found.");
-      router.push({ name: "NotFound" }); // ไปหน้า Not Found (404)
+      router.push({ name: "NotFound" });
       return;
     }
 
@@ -180,17 +168,20 @@ async function fetchBoard() {
     boardOwnerOid.value = data.owner.oid;
     visibility.value = data.visibility;
 
-    // หากบอร์ดเป็น public ไม่ต้องใช้ token
     if (visibility.value === "PUBLIC") {
       console.log("Board is public.");
-      return;
+      return false; // Public board ไม่ต้องใช้ Token
     }
+
+    return true; // Private board ต้องใช้ Token
 
   } catch (error) {
     console.error("Error fetching board:", error);
-    router.push({ name: "NotFound" }); // เปลี่ยนไปหน้า NotFound ในกรณี Error อื่น
+    router.push({ name: "NotFound" });
   }
 }
+
+
 
 
 

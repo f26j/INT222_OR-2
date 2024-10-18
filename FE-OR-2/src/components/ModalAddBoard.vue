@@ -38,7 +38,7 @@ async function createBoard() {
   if (!token.value || !isTokenValid(token.value)) {
     errorMessage.value = "Your session has expired. Please log in again.";
     userStore.logout(); // Optionally, log the user out
-    // router.push("/login");
+    router.push("/login");
     return;
   }
 

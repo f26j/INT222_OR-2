@@ -32,6 +32,7 @@ public class StatusService {
     // ดึงสถานะทั้งหมดของ Board ที่ระบุ
     public List<Status> getStatuses(String boardId) {
         String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+        System.out.println("Status" + userName);
         User user = userRepository.findByUsername(userName).orElse(null);
 
         Board board = boardRepository.findById(boardId)
@@ -50,7 +51,7 @@ public class StatusService {
     public Status getStatusById(String boardId, Integer statusId) {
         String userName = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUsername(userName).orElse(null);
-
+        System.out.println("Status" + userName);
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new ApiNotFoundException("Board id '" + boardId + "' not found"));
 

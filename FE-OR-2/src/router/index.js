@@ -107,29 +107,31 @@
 
   router.beforeEach(async (to, from, next) => {
     const userStore = useUserStore();
-  
     const requiresAuth = to.meta.requiresAuth;
     const isBoardPath = to.path.startsWith("/board/");
+    const boardId = to.params.boardId;
   
-    // กรณีที่ไม่มี Token และต้องการเข้าถึง /board/:boardId
-    if (!userStore.token && isBoardPath && to.params.boardId) {
+    // ตรวจสอบว่าไม่มี Token และเข้าถึง Public Board ได้
+    if (!userStore.token && isBoardPath && boardId) {
       try {
-        const boardId = to.params.boardId;
         const response = await fetch(`${baseUrl}/v3/boards/${boardId}`);
-        
+  
         if (response.ok) {
           const board = await response.json();
   
-          // ตรวจสอบว่าเป็น public หรือไม่
           if (board.visibility === "PUBLIC") {
-            return next(); // อนุญาตให้เข้าถึง
+            console.log("Board is public.");
+            return next(); // ให้ไปต่อ
           } else {
             console.warn("Board is private. Redirecting to login.");
-            return next({ name: "login" }); // หากไม่ใช่ public ให้ไปที่ login
+            return next({ name: "login" });
           }
-        } else {
+        } else if (response.status === 404) {
           console.warn("Board not found. Redirecting to NotFound.");
-          return next({ name: "NotFound" }); // ไม่พบบอร์ด
+          return next({ name: "NotFound" });
+        } else if (response.status === 403) {
+          console.warn("Access denied. Redirecting to AccessDenied.");
+          return next({ name: "AccessDenied" });
         }
       } catch (error) {
         console.error("Error fetching board visibility:", error);
@@ -137,27 +139,30 @@
       }
     }
   
-    // ตรวจสอบ Token หากเส้นทางต้องการ Auth แต่ไม่มี Token
+    // ตรวจสอบ Token สำหรับเส้นทางที่ต้องการ Auth
     if (requiresAuth && !userStore.token) {
+      console.warn("This route requires authentication. Redirecting to login.");
       return next({ name: "login" });
     }
   
-    // หากมี Token และพยายามเข้า /login ให้ redirect ไป /board
+    // หากมี Token และพยายามเข้า /login ให้ redirect ไปหน้า board
     if (userStore.token && to.name === "login") {
+      console.log("User already logged in. Redirecting to board.");
       return next({ name: "board" });
     }
   
-    // ตรวจสอบ Token ถ้ามี แต่เกิดข้อผิดพลาด (เช่น Token หมดอายุ)
+    // ตรวจสอบ Token หากมี แต่เกิดข้อผิดพลาด (เช่น Token หมดอายุ)
     if (userStore.token) {
       try {
-        await userStore.checkAuth();
+        await userStore.checkAuth(); // ตรวจสอบความถูกต้องของ Token
       } catch (error) {
+        console.warn("Token expired or invalid. Redirecting to login.");
         userStore.logout();
         return next({ name: "login" });
       }
     }
   
-    next(); // อนุญาตให้เข้าถึงเส้นทาง
+    next(); // ให้ไปต่อในเส้นทางที่ต้องการ
   });
   
   

@@ -32,7 +32,8 @@ public class BoardController {
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public BoardDto getBoardById(@PathVariable String id) {
-        System.out.println("222");
+        System.out.println("board Controller");
+        System.out.println(id);
         return modelMapper.map(boardService.getBoardById(id), BoardDto.class);
     }
 

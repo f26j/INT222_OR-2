@@ -7,6 +7,7 @@ import { useBoardStore } from "@/stores/apiController.js"; // Import the board s
 import { storeToRefs } from "pinia";
 import Bg_effect from "../components/css/Background.vue";
 import Toast_login from "../components/toast/ToastLogin.vue";
+import Navbar from "@/components/css/Navbar.vue";
 
 const toastStore = useToastStore();
 const { showToastLogin, closeToast } = storeToRefs(toastStore);
@@ -71,6 +72,7 @@ const togglePassword = () => {
 </script>
 
 <template>
+  <Navbar />
   <div
     class="flex min-h-full flex-col justify-center items-center px-6 py-32 lg:px-8"
   >
