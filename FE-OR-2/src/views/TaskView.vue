@@ -62,29 +62,79 @@ const confirmChange = async () => {
 
 // Function zone
 onMounted(async () => {
+  onMounted(async () => {
   try {
-    const requiresAuth = await fetchBoard(); // ตรวจสอบว่าเป็น Public หรือ Private
+    const hasToken = localStorage.getItem("jwtToken");
 
-    if (requiresAuth) {
-      // หากต้องใช้ Token สำหรับ Private Board
-      const data = await fetchDataWithToken();
-      const datastatus = await fetchDataStatusWithToken();
-      originalTasks.value = [...data];
-      store.tasks.value = [...data];
-      store.status.value = datastatus;
+    let tasksResponse, statusesResponse;
+    let data = [];
+    let datastatus = [];
+
+    if (hasToken) {
+      tasksResponse = await fetchDataWithToken(`${baseUrl}/v3/boards/${boardId}/tasks`);
+      statusesResponse = await fetchDataWithToken(`${baseUrl}/v3/boards/${boardId}/statuses`);
     } else {
-      // หากเป็น Public Board ไม่ต้องใช้ Token
-      const data = await fetchDataWithoutToken();
-      const datastatus = await fetchDataStatusWithoutToken();
-      originalTasks.value = [...data];
-      store.tasks.value = [...data];
-      store.status.value = datastatus;
+      tasksResponse = await fetchWithoutToken(`${baseUrl}/v3/boards/${boardId}/tasks`);
+      statusesResponse = await fetchWithoutToken(`${baseUrl}/v3/boards/${boardId}/statuses`);
     }
+
+    data = await tasksResponse.json();
+    datastatus = await statusesResponse.json();
+
+    console.log("Fetched tasks:", data);
+    console.log("Fetched statuses:", datastatus);
+
+    if (!Array.isArray(data) || !Array.isArray(datastatus)) {
+      throw new TypeError("Fetched data or status is not an array");
+    }
+
+    originalTasks.value = [...data];
+    store.tasks.value = [...data];
+    store.status.value = datastatus;
+
   } catch (error) {
     console.error("Error during data fetch:", error);
   }
 });
 
+});
+
+async function fetchDataWithToken(url, options = {}) {
+  const token = localStorage.getItem("jwtToken");
+  if (!token) {
+    console.warn("No token found. Redirecting to login.");
+    router.push("/login");
+    return [];
+  }
+
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+    ...options.headers,
+  };
+
+  const response = await fetch(url, { ...options, headers });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      console.warn("Unauthorized. Redirecting to login.");
+      userStore.logout();
+      router.push("/login");
+    } else if (response.status === 403) {
+      console.warn("Access Denied (403). Redirecting to AccessDenied.");
+      router.push({ name: "AccessDenied" });
+    }
+    return [];
+  }
+
+  const data = await response.json();
+  if (!Array.isArray(data)) {
+    console.error("Fetched data is not an array.");
+    return [];
+  }
+
+  return data;
+}
 
 
 async function fetchWithoutToken(url, options = {}) {
@@ -115,75 +165,6 @@ async function fetchWithoutToken(url, options = {}) {
     return null;
   }
 }
-
-
-
-async function fetchDataWithoutToken() {
-  const response = await fetchWithoutToken(`${baseUrl}/v3/boards/${boardId}/tasks`);
-  if (!response) return;
-
-  const data = await response.json();
-  if (!Array.isArray(data)) {
-    throw new TypeError("Fetched data is not an array");
-  }
-
-  return data;
-}
-
-async function fetchDataStatusWithoutToken() {
-  const response = await fetchWithoutToken(`${baseUrl}/v3/boards/${boardId}/statuses`);
-  if (!response) return;
-
-  const dataStatus = await response.json();
-  if (!Array.isArray(dataStatus)) {
-    throw new TypeError("Fetched status data is not an array");
-  }
-
-  return dataStatus;
-}
-
-
-async function fetchBoard() {
-  try {
-    const response = await fetch(`${baseUrl}/v3/boards/${boardId}`);
-
-    if (response.status === 403) {
-      console.warn("Access denied to this board.");
-      router.push({ name: "AccessDenied" });
-      return;
-    }
-
-    if (response.status === 404) {
-      console.warn("Board not found.");
-      router.push({ name: "NotFound" });
-      return;
-    }
-
-    if (!response.ok) {
-      throw new Error(`Error fetching board: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    boardName.value = data.name;
-    boardOwnerOid.value = data.owner.oid;
-    visibility.value = data.visibility;
-
-    if (visibility.value === "PUBLIC") {
-      console.log("Board is public.");
-      return false; // Public board ไม่ต้องใช้ Token
-    }
-
-    return true; // Private board ต้องใช้ Token
-
-  } catch (error) {
-    console.error("Error fetching board:", error);
-    router.push({ name: "NotFound" });
-  }
-}
-
-
-
-
 
 // Functions for managing tasks
 const openModalAdd = async () => {

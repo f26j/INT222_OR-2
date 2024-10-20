@@ -21,7 +21,6 @@ async function fetchWithToken(url, options = {}) {
   const token = localStorage.getItem("jwtToken");
   if (!token) {
     console.error("No token available");
-    // router.push("/login");
     return null;
   }
 
@@ -36,7 +35,6 @@ async function fetchWithToken(url, options = {}) {
 
   // ตรวจสอบสถานะ 401 Unauthorized
   if (response.status === 401) {
-    // router.push("/login"); 
     return null;
   } else if (response.status === 403) {
     router.push({ name: "AccessDenied" })

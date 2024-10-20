@@ -25,11 +25,6 @@ const { token, oid } = storeToRefs(userStore)
 
 
 async function fetchBoardApi() {
-  // if (!token.value) {
-  //   router.push("/login")
-  //   return
-  // }
-
   try {
     loading.value = true
     const response = await fetch(`${baseUrl}/v3/boards`, {
@@ -91,7 +86,6 @@ const deleteBoard = async (boardId) => {
   }
 }
 
-// เมื่อโหลด component ให้ดึงบอร์ดจาก backend
 onMounted(() => {
   fetchBoardApi()
 })
@@ -135,19 +129,14 @@ onMounted(() => {
   <main>
     <div class="p-4 bg-gradient-to-r to-pink-100 rounded-lg">
       <table class="w-full text-left table-fixed">
-        <!-- ใช้ table-fixed เพื่อจัดความกว้างคอลัมน์ -->
         <thead class="bg-violet-500">
           <tr>
             <th class="px-4 py-3 w-1/12 text-center font-semibold">No</th>
-            <!-- จัดตรงกลางและปรับขนาด -->
             <th class="px-4 py-3 w-6/12 text-left font-semibold">Name</th>
-            <!-- ปรับขนาดให้ยืดได้ -->
             <th class="px-4 py-3 w-5/12 text-center font-semibold">Action</th>
-            <!-- จัดตรงกลางและปรับขนาด -->
           </tr>
         </thead>
         <tbody>
-          <!-- ตรวจสอบสถานะการโหลด -->
           <tr v-if="loading">
             <td colspan="3" class="px-4 py-4 text-center text-black font-bold">
               Loading...
@@ -159,12 +148,10 @@ onMounted(() => {
             </td>
           </tr>
 
-          <!-- แสดงข้อความหากไม่มีบอร์ด -->
           <tr v-if="boards.length === 0 && !loading && !error">
             <td colspan="3" class="px-4 py-4 text-center">No Board Added</td>
           </tr>
 
-          <!-- แสดงข้อมูลบอร์ด -->
           <tr
             v-for="(board, index) in boards"
             :key="board.id"
@@ -173,7 +160,6 @@ onMounted(() => {
             <td class="px-4 py-3 text-center text-black font-bold">
               {{ index + 1 }}
             </td>
-            <!-- จัดตรงกลาง -->
             <td
               class="td-name px-4 py-3 cursor-pointer text-black font-bold break-words"
               @click="router.push(`/board/${board.id}`)"
@@ -182,7 +168,6 @@ onMounted(() => {
             </td>
             <td class="px-4 py-3 space-x-4">
               <div class="flex justify-center gap-4">
-                <!-- จัดปุ่มให้ดูสมส่วน -->
                 <button
                   class="flex items-center bg-white text-black font-bold px-3 py-1.5 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
                   @click="editBoard(board.id)"

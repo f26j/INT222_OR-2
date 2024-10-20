@@ -55,7 +55,7 @@ const handleSubmit = async (event) => {
         // ถ้าผู้ใช้มีบอร์ดอยู่แล้ว ให้เปลี่ยนเส้นทางไปยังบอร์ดนั้นโดยอัตโนมัติ
         router.push(`/board/${userBoards[0].id}`);
       } else {
-        // ถ้าไม่มีบอร์ดหรือมีมากกว่า 1 บอร์ด ให้เปลี่ยนเส้นทางไปที่หน้า Board
+
         router.push("/board");
       }
     } else {

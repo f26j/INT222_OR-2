@@ -27,21 +27,19 @@ async function fetchWithToken(url, options = {}) {
   const token = localStorage.getItem("jwtToken");
   if (!token) {
     console.error("No token available");
-    // router.push("/login"); 
     return null;
   }
 
   const response = await fetch(url, {
     ...options,
     headers: {
-      Authorization: `Bearer ${token}`, // ส่ง JWT Token
+      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
       ...options.headers,
     },
   });
 
   if (response.status === 401) {
-    // router.push("/login"); 
     return null;
   } else if (response.status === 403) {
     router.push({ name: "AccessDenied" })
@@ -55,11 +53,11 @@ async function fetchWithToken(url, options = {}) {
 async function fetchDataStatus() {
   const response = await fetchWithToken(
     (`${baseUrl}/v3/boards/${boardId}/statuses`)
-  ); // ใช้ fetchWithToken
-  if (!response) return; // ถ้า response เป็น null ให้ return
+  ); 
+  if (!response) return
 
   if (response.status === 404) {
-    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    router.push({ name: "NotFound" });
     return;
   }
 
