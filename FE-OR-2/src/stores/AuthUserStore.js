@@ -1,4 +1,4 @@
-// stores/user.js
+// stores/AuthUserStore.js
 import { defineStore } from "pinia";
 import jwtDecode from "vue-jwt-decode";
 
@@ -16,7 +16,6 @@ export const useUserStore = defineStore("user", {
   },
 
   actions: {
-    // ฟังก์ชัน Login
     async fetchUserData(username, password) {
       try {
         const response = await fetch(fetchLogin, {
@@ -27,12 +26,16 @@ export const useUserStore = defineStore("user", {
           body: JSON.stringify({ userName: username, password: password }),
         });
 
-        if (!response.ok) throw new Error("Failed to fetch token");
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || "Failed to fetch token");
+        }
 
         const data = await response.json();
         this.setToken(data.access_token);
       } catch (error) {
-        console.error("Error fetching user data:", error);
+        console.error("Error fetching user data:", error.message);
+        throw error;
       }
     },
 
@@ -46,8 +49,8 @@ export const useUserStore = defineStore("user", {
       try {
         if (this.token) {
           const decodedToken = jwtDecode.decode(this.token);
-          this.fullname = decodedToken.name || "Unknown";
-          this.oid = decodedToken.oid || "";
+          this.fullname = decodedToken.name || "Guest";
+          this.oid = decodedToken.oid || null;
         }
       } catch (error) {
         console.error("Error decoding token:", error);
@@ -57,7 +60,7 @@ export const useUserStore = defineStore("user", {
 
     async checkAuth() {
       try {
-        this.refreshToken(); // อัปเดต token จาก LocalStorage
+        this.refreshToken();
         if (!this.token) throw new Error("No token found");
 
         const decodedToken = jwtDecode.decode(this.token);
@@ -68,7 +71,7 @@ export const useUserStore = defineStore("user", {
           throw new Error("Token has expired");
         }
 
-        this.fullname = decodedToken.name || "Unknown";
+        this.fullname = decodedToken.name || "Guest";
         this.oid = decodedToken.oid || "";
       } catch (error) {
         console.error("Authentication check failed:", error);
@@ -76,7 +79,6 @@ export const useUserStore = defineStore("user", {
       }
     },
 
-    // ดึง token จาก LocalStorage เพื่ออัปเดต state
     refreshToken() {
       const token = localStorage.getItem("jwtToken");
       if (token !== this.token) {
@@ -85,7 +87,6 @@ export const useUserStore = defineStore("user", {
       }
     },
 
-    // ลบ token ออกจาก state และ LocalStorage
     logout() {
       this.token = null;
       this.fullname = "";
@@ -93,11 +94,9 @@ export const useUserStore = defineStore("user", {
       localStorage.removeItem("jwtToken");
     },
 
-    // ตรวจสอบการเปลี่ยนแปลงของ LocalStorage
     initializeStore() {
       this.checkAuth();
 
-      // ตรวจจับการเปลี่ยนแปลงใน LocalStorage
       window.addEventListener("storage", (event) => {
         if (event.key === "jwtToken") {
           console.log("Token changed, updating store...");

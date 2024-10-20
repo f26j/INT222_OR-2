@@ -15,6 +15,7 @@ export const useToastStore = defineStore("toast", () => {
   // Timeout references
   let toastAddTimeout = null;
   let toastEditTimeout = null;
+  
   let toastAddStatusTimeout = null;
   let toastEditStatusTimeout = null;
   let toastDeleteStatusTimeout = null;

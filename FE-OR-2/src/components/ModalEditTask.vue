@@ -3,7 +3,7 @@
 import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useTaskStore } from "@/stores/apiController.js";
-import { useToastStore } from "@/stores/toast.js";
+import { useToastStore } from "@/stores/ToastStore.js";
 
 // Store, API zone
 const route = useRoute();

@@ -1,70 +1,59 @@
 <script setup>
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
-import { useToastStore } from "@/stores/toast.js";
-import { useUserStore } from "@/stores/authUser.js";
-import { useBoardStore } from "@/stores/apiController.js"; // Import the board store
+import { useToastStore } from "@/stores/ToastStore.js";
+import { useUserStore } from "@/stores/AuthUserStore.js";
+import { useBoardStore } from "@/stores/apiController.js";
 import { storeToRefs } from "pinia";
-import Bg_effect from "../components/css/Background.vue";
-import Toast_login from "../components/toast/ToastLogin.vue";
-import Navbar from "@/components/css/Navbar.vue";
 
-const toastStore = useToastStore();
-const { showToastLogin, closeToast } = storeToRefs(toastStore);
 const router = useRouter();
+const toastStore = useToastStore();
+const userStore = useUserStore();
+const boardStore = useBoardStore();
+const { showToastLogin, closeToast } = storeToRefs(toastStore);
+const { boards } = storeToRefs(boardStore);
 
 const username = ref("");
 const password = ref("");
 const showPassword = ref(false);
+const isLoading = ref(false);
 
 const isLoginValid = computed(() => {
   return username.value.trim() !== "" && password.value.trim() !== "";
 });
 
-const userStore = useUserStore();
-const boardStore = useBoardStore(); // Use the board store
-const { boards } = storeToRefs(boardStore);
-
-// ฟังก์ชันจัดการล็อกอินและตรวจสอบบอร์ด
 const handleSubmit = async (event) => {
   event.preventDefault();
 
   if (!isLoginValid.value) {
-    // แสดง toast เมื่อข้อมูล login ไม่ถูกต้อง
-    userStore.showLoginError();
+    console.log("Triggering Toast"); // Debug log
+    toastStore.addToast("Login failed!", "error");
     return;
   }
 
+  isLoading.value = true;
+
   try {
-    // ทำการล็อกอิน
     await userStore.fetchUserData(username.value, password.value);
+    await boardStore.fetchBoards();
 
-    if (userStore.token) {
-      // เก็บ token ไว้ใน localStorage
-      localStorage.setItem("jwtToken", userStore.token);
+    const userBoards = boards.value.filter(
+      (board) => board.owner?.oid === userStore.oid
+    );
 
-      // ดึงข้อมูลบอร์ดทั้งหมด
-      await boardStore.fetchBoards();
-
-      // ตรวจสอบว่าผู้ใช้มีบอร์ดหรือไม่
-      const userBoards = boards.value.filter(
-        (board) => board.owner.oid === userStore.oid
-      );
-
-      if (userBoards.length === 1) {
-        // ถ้าผู้ใช้มีบอร์ดอยู่แล้ว ให้เปลี่ยนเส้นทางไปยังบอร์ดนั้นโดยอัตโนมัติ
-        router.push(`/board/${userBoards[0].id}`);
-      } else {
-
-        router.push("/board");
-      }
+    if (userBoards.length === 1) {
+      router.push(`/board/${userBoards[0].id}`);
     } else {
-      toastStore.handleLogin();
+      router.push("/board");
     }
   } catch (error) {
-    userStore.showLoginError();
+    console.log("Triggering Toast on Error"); // Debug log
+    toastStore.addToast("Login failed!", "error");
+  } finally {
+    isLoading.value = false;
   }
 };
+
 
 const togglePassword = () => {
   showPassword.value = !showPassword.value;
@@ -72,7 +61,6 @@ const togglePassword = () => {
 </script>
 
 <template>
-  <Navbar />
   <div
     class="flex min-h-full flex-col justify-center items-center px-6 py-32 lg:px-8"
   >
@@ -189,20 +177,17 @@ const togglePassword = () => {
 
           <div>
             <button
-              :class="{ disabled: !isLoginValid }"
-              class="itbkk-button-signin disabled:cursor-not-allowed disabled:bg-gray-400 disabled:hover:scale-100 flex w-full justify-center rounded-md bg-[#8e5bb1] px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-[#6a4581] hover:scale-105 transition-transform duration-300 ease-in-out"
-              type="submit"
-              :disabled="!isLoginValid"
-            >
-              Sign in
-            </button>
+          :disabled="!isLoginValid || isLoading"
+          class="itbkk-button-signin w-full py-2 rounded-md text-white bg-[#8e5bb1] hover:bg-[#6a4581] transition"
+        >
+          <span v-if="isLoading">Loading...</span>
+          <span v-else>Sign in</span>
+        </button>
           </div>
         </form>
       </div>
     </div>
   </div>
-  <Bg_effect />
-  <Toast_login v-if="showToastLogin" @close="closeToast"></Toast_login>
 </template>
 
 <style scope>

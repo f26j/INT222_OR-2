@@ -1,5 +1,4 @@
 <script setup>
-import Bg_effect from "./Background.vue";
 </script>
 
 <template>
@@ -16,7 +15,6 @@ import Bg_effect from "./Background.vue";
     <p class="text-xl p-6">The page you are looking for is not available.</p>
     <router-link to="/" class="text-2xl text-blue-500 hover:text-blue-600 hover:scale-105 transition-transform duration-300 ease-in-out">Go back to Homepage</router-link>
   </div>
-  <Bg_effect />
 </template>
 
 <style scoped></style>

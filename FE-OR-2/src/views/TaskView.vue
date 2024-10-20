@@ -4,9 +4,8 @@ import { onMounted, ref, watch, computed } from "vue"
 import { useRouter, useRoute } from "vue-router"
 import { storeToRefs } from "pinia"
 import { useBoardStore, useTaskStore } from "@/stores/apiController.js"
-import { useToastStore } from "@/stores/toast.js"
-import { useUserStore } from "@/stores/authUser.js"
-import Bg_effect from "../components/css/Background.vue"
+import { useToastStore } from "@/stores/Toast.js"
+import { useUserStore } from "@/stores/AuthUserStore.js"
 import Badges from "../components/css/Badge.vue"
 import Copyright from "../components/css/Copyright.vue"
 import ToastAdd from "../components/toast/ToastAdd.vue"
@@ -567,7 +566,6 @@ watch(
     <footer>
       <Copyright />
     </footer>
-    <Bg_effect />
   </div>
   <router-view />
 </template>

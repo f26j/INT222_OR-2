@@ -1,20 +1,20 @@
 <script setup>
 import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
-import { useUserStore } from "@/stores/authUser.js";
-import { useBoardStore } from "@/stores/apiController.js";
+import { useUserStore } from "@/stores/AuthUserStore.js";
+import { useBoardStore } from "@/stores/BoardStore.js";
 
 const userStore = useUserStore();
-const token = computed(() => userStore.token);
-const fullname = computed(() => userStore.fullname);
+const fullname = computed(() => userStore.fullname); // ดึงข้อมูลชื่อผู้ใช้
+const router = useRouter();
 const visibility = ref("private");
 const errorMessage = ref("");
-const router = useRouter();
-
-const boardStore = useBoardStore();
 const boardName = ref("");
-const baseUrl = import.meta.env.VITE_API_BOARDS;
 
+// เรียก BoardStore มาใช้
+const boardStore = useBoardStore();
+
+// กำหนดชื่อบอร์ดให้ตรงกับชื่อผู้ใช้โดยอัตโนมัติ
 watch(
   fullname,
   (newFullname) => {
@@ -23,68 +23,31 @@ watch(
   { immediate: true }
 );
 
-function isTokenValid(token) {
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    const exp = payload.exp * 1000;
-    return Date.now() < exp;
-  } catch {
-    return false;
-  }
-}
-
 async function createBoard() {
-  userStore.initializeStore();
-  if (!token.value || !isTokenValid(token.value)) {
-    errorMessage.value = "Your session has expired. Please log in again.";
-    userStore.logout(); // Optionally, log the user out
-    router.push("/login");
-    return;
-  }
-
-  const newBoard = {
-    name: boardName.value.trim(),
-    owner: fullname.value,
-    visibility: visibility.value,
-  };
-
   try {
-    const response = await fetch(`${baseUrl}/v3/boards`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token.value}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(newBoard),
-    });
+    const newBoard = {
+      name: boardName.value.trim(),
+      owner: fullname.value,
+      visibility: visibility.value,
+    };
 
-    if (response.ok) {
-      const createdBoard = await response.json();
-      console.log(token.value)
-      console.log("Board created successfully:", createdBoard);
-      boardStore.addBoard(createdBoard);
-      router.push(`/board/${createdBoard.id}`);
-    } else if (response.status === 401 || response.status === 403) {
-      errorMessage.value = "Unauthorized. Please log in again.";
-      userStore.logout();
-      // router.push("/login");
-    } else {
-      const errorData = await response.json();
-      console.error("Failed to create board:", errorData);
-      errorMessage.value = errorData.message || "Failed to create board.";
-    }
+    const createdBoard = await boardStore.createBoard(newBoard);
+
+    console.log("Board created successfully:", createdBoard);
+    router.push(`/board/${createdBoard.id}`);
   } catch (error) {
     console.error("Error creating board:", error);
-    errorMessage.value = "An unexpected error occurred.";
+    errorMessage.value = error.message || "An unexpected error occurred.";
   }
 }
 
+
+// ปิด Modal
 function closeModal() {
   errorMessage.value = "";
   router.push("/board");
 }
 </script>
-
 
 <template>
   <div class="itbkk-modal-new fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
@@ -100,7 +63,7 @@ function closeModal() {
         placeholder="Enter board name (max 120 characters)"
         maxlength="120"
       />
-        <select v-model="visibility" class="border p-2 w-full mb-4">
+      <select v-model="visibility" class="border p-2 w-full mb-4">
         <option value="private">Private</option>
         <option value="public">Public</option>
       </select>
@@ -108,7 +71,10 @@ function closeModal() {
         <button
           @click="createBoard"
           :disabled="!boardName"
-          :class="{'bg-gray-300 text-gray-500 cursor-not-allowed': !boardName, 'bg-emerald-500 hover:bg-emerald-600': boardName}"
+          :class="{
+            'bg-gray-300 text-gray-500 cursor-not-allowed': !boardName,
+            'bg-emerald-500 hover:bg-emerald-600': boardName
+          }"
           class="itbkk-button-ok text-white px-4 py-2"
         >
           Create

@@ -3,7 +3,7 @@
 import { ref } from "vue"
 import { useRouter, useRoute } from "vue-router";
 import { useStatusStore } from "@/stores/apiController.js"
-import { useToastStore } from "@/stores/toast.js"
+import { useToastStore } from "@/stores/ToastStore.js"
 
 // Variable zone
 const store = useStatusStore()

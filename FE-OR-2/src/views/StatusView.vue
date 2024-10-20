@@ -4,8 +4,7 @@ import { onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { storeToRefs } from "pinia";
 import { useStatusStore } from "@/stores/apiController.js";
-import { useToastStore } from "@/stores/toast.js";
-import Bg_effect from "../components/css/Background.vue";
+import { useToastStore } from "@/stores/Toast.js";
 import Copyright from "../components/css/Copyright.vue";
 import ToastAddStatus from "../components/toast/ToastAddStatus.vue";
 import ToastEditStatus from "../components/toast/ToastEditStatus.vue";
@@ -404,7 +403,6 @@ const closeModal = () => {
     <footer>
       <Copyright />
     </footer>
-    <Bg_effect />
   </div>
   <router-view></router-view>
 </template>

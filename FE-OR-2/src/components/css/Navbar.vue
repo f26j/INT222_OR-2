@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
-import { useUserStore } from "@/stores/authUser";
+import { useUserStore } from "@/stores/AuthUserStore";
 import { useRouter } from "vue-router";
 
 const userStore = useUserStore();

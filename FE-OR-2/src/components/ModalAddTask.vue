@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useToastStore } from "@/stores/toast.js";
+import { useToastStore } from "@/stores/ToastStore.js";
 import { useTaskStore } from "@/stores/apiController.js";
 
 // Store, API zone

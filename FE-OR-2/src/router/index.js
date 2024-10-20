@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
-import { useUserStore } from "../stores/authUser";
+import { useUserStore } from "../stores/AuthUserStore";
 
 // Import Component
 import LoginView from "../views/LoginView.vue";
@@ -21,101 +21,61 @@ import AccessDeniedPage from "../components/css/AccessDeniedPage.vue";
 
 const baseUrl = import.meta.env.VITE_API_BOARDS;
 
-// Router Configuration
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    { path: "/login", name: "login", component: LoginView },
+    { path: "/", redirect: "/board" },
     {
-      path: "/login",
-      name: "login",
-      component: LoginView,
-    },
-    {
-      path: "/",
-      redirect: "/board",
-    },
-    {
-      path: "/board", // กลุ่มของ Board
+      path: "/board",
       name: "board",
       component: BoardView,
-      meta: { requiresAuth: false },
-      children: [
-        {
-          path: "add", // เพิ่ม Board
-          name: "board-add",
-          component: ModalAddBoard,
-        },
-      ],
+      meta: { requiresAuth: true },
+      children: [{ path: "add", name: "board-add", component: ModalAddBoard }],
     },
+    { path: "/:pathMatch(.*)*", name: "NotFound", component: NotFoundPage },
     {
-      path: "/:pathMatch(.*)*", // เส้นทางสำหรับหน้า NotFoundPage
-      name: "NotFound",
-      component: NotFoundPage,
-    },
-    {
-      path: "/board/:boardId", // กลุ่มของ Task
+      path: "/board/:boardId",
       name: "board-tasks",
-      component: TaskView, // ใช้ TaskView สำหรับการแสดง Task หลัก
+      component: TaskView,
       meta: { requiresAuth: false },
       children: [
+        { path: "task/add", name: "task-add", component: ModalAddTask },
         {
-          path: "task/add", // เพิ่ม Task ใหม่
-          name: "task-add",
-          component: ModalAddTask,
-        },
-        {
-          path: "task/:taskId", // รายละเอียด Task
+          path: "task/:taskId",
           name: "task-detail",
           component: ModalDetailTask,
         },
         {
-          path: "task/:taskId/edit", // แก้ไข Task
+          path: "task/:taskId/edit",
           name: "task-edit",
           component: ModalEditTask,
         },
       ],
     },
     {
-      path: "/board/:boardId/status", // กลุ่มของ Status
+      path: "/board/:boardId/status",
       component: StatusView,
       meta: { requiresAuth: false },
       children: [
-        {
-          path: "manage", // จัดการ Status
-          name: "status-manage",
-          component: ManageStatus,
-        },
-        {
-          path: "add", // เพิ่ม Status ใหม่
-          name: "status-add",
-          component: ModalAddStatus,
-        },
-        {
-          path: ":statusId/edit", // แก้ไข Status
-          name: "status-edit",
-          component: ModalEditStatus,
-        },
+        { path: "manage", name: "status-manage", component: ManageStatus },
+        { path: "add", name: "status-add", component: ModalAddStatus },
+        { path: ":statusId/edit", name: "status-edit", component: ModalEditStatus },
       ],
     },
-    {
-      path: "/forbidden", // เส้นทางสำหรับหน้า AccessDeniedPage
-      name: "AccessDenied",
-      component: AccessDeniedPage,
-    },
+    { path: "/forbidden", name: "AccessDenied", component: AccessDeniedPage },
   ],
 });
 
 router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore();
+  await userStore.refreshToken(); // Ensure token is refreshed
+  const hasToken = !!userStore.token;
   const requiresAuth = to.meta.requiresAuth;
   const boardId = to.params.boardId;
 
-  // ตรวจสอบว่าผู้ใช้มี Token หรือไม่
-  userStore.refreshToken();
-  const hasToken = !!userStore.token;
-
-  if (to.path.startsWith("/board/") && boardId) {
-    try {
+  try {
+    if (to.path.startsWith("/board/") && boardId) {
       const response = await fetch(`${baseUrl}/v3/boards/${boardId}`, {
         headers: {
           "Content-Type": "application/json",
@@ -125,14 +85,9 @@ router.beforeEach(async (to, from, next) => {
 
       if (response.ok) {
         const board = await response.json();
-
-        // ตรวจสอบสถานะการมองเห็นของบอร์ด
         if (board.visibility === "PRIVATE" && !hasToken) {
           console.warn("Access denied. Redirecting to login.");
           return next({ name: "login" });
-        } else {
-          console.log("Access to board granted.");
-          return next();
         }
       } else if (response.status === 403) {
         console.warn("Access denied (403). Redirecting to AccessDenied.");
@@ -141,23 +96,22 @@ router.beforeEach(async (to, from, next) => {
         console.warn("Board not found. Redirecting to NotFound.");
         return next({ name: "NotFound" });
       }
-    } catch (error) {
-      console.error("Error fetching board visibility:", error);
-      return next({ name: "NotFound" });
     }
-  }
 
-  if (requiresAuth && !hasToken) {
-    console.warn("Authentication required. Redirecting to login.");
-    return next({ name: "login" });
-  }
+    if (requiresAuth && !hasToken) {
+      console.warn("Authentication required. Redirecting to login.");
+      return next({ name: "login" });
+    }
 
-  // ถ้าผู้ใช้มี Token แต่พยายามไปหน้า login ให้ Redirect ไปหน้า board
-  if (hasToken && to.name === "login") {
-    return next({ name: "board" });
-  }
+    if (hasToken && to.name === "login") {
+      return next({ name: "board" });
+    }
 
-  next();
+    next();
+  } catch (error) {
+    console.error("Error during navigation:", error);
+    next({ name: "NotFound" });
+  }
 });
 
 export default router;
