@@ -26,22 +26,22 @@ export const useTaskStore = defineStore("apiTask", () => {
 });
 
 // Status Store
-export const useStatusStore = defineStore("apiStatus", () => {
-  const statuses = ref([]);
+// export const useStatusStore = defineStore("apiStatus", () => {
+//   const statuses = ref([]);
 
-  const updateStatus = (updatedStatus) => {
-    const index = statuses.value.findIndex(
-      (status) => parseInt(status.id) === parseInt(updatedStatus.id)
-    );
-    if (index !== -1) {
-      statuses.value[index] = updatedStatus;
-    } else {
-      console.error("Status not found in store");
-    }
-  };
+//   const updateStatus = (updatedStatus) => {
+//     const index = statuses.value.findIndex(
+//       (status) => parseInt(status.id) === parseInt(updatedStatus.id)
+//     );
+//     if (index !== -1) {
+//       statuses.value[index] = updatedStatus;
+//     } else {
+//       console.error("Status not found in store");
+//     }
+//   };
 
-  return { statuses, updateStatus };
-});
+//   return { statuses, updateStatus };
+// });
 
 // // Board Store
 // export const useBoardStore = defineStore("apiBoard", () => {

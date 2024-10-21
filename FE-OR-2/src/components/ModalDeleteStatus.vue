@@ -1,77 +1,46 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { useStatusStore } from "@/stores/apiController.js";
+import { useStatusStore } from "@/stores/StatusStore.js"; // ใช้ StatusStore
 
-const baseUrl = import.meta.env.VITE_API_BOARDS;
+// Store และ Router
 const store = useStatusStore();
-const isDeletable = ref(true);
-const currentStatus = ref({});
-const newStatusId = ref(1);
 const router = useRouter();
 const route = useRoute();
-const boardId = route.params.boardId; 
 
-function getToken() {
-  const token = localStorage.getItem("jwtToken");
-  if (!token) {
-    console.error("No token available");
-    // router.push("/login");
-    return null;
-  }
-  return token;
-}
-
-async function getStatus() {
-  const token = getToken(); 
-  if (!token) return;
-  try {
-    const response = await fetch(
-      `${baseUrl}/v3/boards/${boardId}/statuses/${props.statusId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`, // ส่ง JWT Token
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    if (response.status === 404) {
-    router.push({ name: "NotFound" });
-    return;
-  }
-
-    // ตรวจสอบสถานะ 401 Unauthorized
-    if (response.status === 401) {
-      // router.push("/login"); 
-      return;
-    }
-
-    const res = await response.json();
-    console.log('Response:', res)
-    console.log(res.count)
-
-    // ตรวจสอบว่า status สามารถลบได้หรือไม่
-    if (res.count > 0) {
-      isDeletable.value = false;
-    }
-    currentStatus.value = res;
-  } catch (error) {
-    console.error("Error fetching status:", error);
-  }
-}
-
-onMounted(async() => {
-  await getStatus();
-  newStatusId.value = store.statuses.value[0]?.id
-});
-
+// Props สำหรับข้อมูลที่รับจาก Component หลัก
 const props = defineProps({
   showModal: Boolean,
   statusId: Number,
   name: String,
 });
-defineEmits(["closeModal", "confirmDeleteStatus", "deleteTransfer"]);
+
+defineEmits(["closeModal", "confirmDeleteStatus", "deleteTransfer"]); // Emit event
+
+// State สำหรับ modal
+const isDeletable = ref(true);
+const currentStatus = ref({});
+const newStatusId = ref(null); // สำหรับเลือก Status ที่จะโอน task ไป
+
+// ดึงค่า boardId จาก Route
+const boardId = route.params.boardId;
+
+// ฟังก์ชันดึงข้อมูล Status
+const getStatus = async () => {
+  try {
+    const status = await store.getStatus(boardId, props.statusId); // ใช้ store
+    if (!status) throw new Error("Status not found");
+
+    currentStatus.value = status;
+    isDeletable.value = status.count === 0; // ถ้า count > 0 จะต้องโอนย้าย tasks
+    newStatusId.value = store.statuses[0]?.id; // เลือก Status ใหม่ (อันแรกใน Store)
+  } catch (error) {
+    console.error("Error fetching status:", error.message);
+  }
+};
+
+// เมื่อ Component ถูก mounted
+onMounted(getStatus);
 </script>
 
 <template>
@@ -82,16 +51,8 @@ defineEmits(["closeModal", "confirmDeleteStatus", "deleteTransfer"]);
       role="dialog"
       aria-modal="true"
     >
-      <div
-        class="confirmModal-content flex flex-col justify-center items-center"
-      >
-        <svg
-          class="mb-3"
-          xmlns="http://www.w3.org/2000/svg"
-          width="50"
-          height="50"
-          viewBox="0 0 24 24"
-        >
+      <div class="confirmModal-content flex flex-col justify-center items-center">
+        <svg class="mb-3" xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24">
           <path
             fill="#e05555"
             d="M12 21a9 9 0 1 1 9-9a9 9 0 0 1-9 9m0-16.5a7.5 7.5 0 1 0 7.5 7.5A7.5 7.5 0 0 0 12 4.5"
@@ -102,75 +63,50 @@ defineEmits(["closeModal", "confirmDeleteStatus", "deleteTransfer"]);
           />
         </svg>
         <span class="text-2xl font-bold mb-4">Delete a Status</span>
-        <div
-          class="itbkk-message w-10/12 break-all text-ellipsis overflow-hidden"
-        >
-          Do you want to delete the
-          <span :style="{ color: '#ad386f' }">{{ name }}</span> status?
+        <div class="itbkk-message w-10/12 break-all text-ellipsis overflow-hidden">
+          Do you want to delete the <span :style="{ color: '#ad386f' }">{{ name }}</span> status?
         </div>
-        <div
-          class="Button h-32 flex justify-center items-center gap-10 rounded-full"
-        >
+        <div class="Button h-32 flex justify-center items-center gap-10 rounded-full">
           <button class="itbkk-button-cancel" @click="$emit('closeModal')">
             Cancel
           </button>
-          <button
-            class="itbkk-button-confirm"
-            @click="$emit('confirmDeleteStatus', statusId)"
-          >
+          <button class="itbkk-button-confirm" @click="$emit('confirmDeleteStatus', props.statusId)">
             Confirm
           </button>
         </div>
       </div>
     </div>
+
     <div
       v-else
       class="modalDelete rounded-lg text-center shadow-xlp-6 w-min"
       role="dialog"
       aria-modal="true"
     >
-      <div
-        class="confirmModal-content flex flex-col justify-center items-center"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="50"
-          height="50"
-          viewBox="0 0 24 24"
-        >
+      <div class="confirmModal-content flex flex-col justify-center items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24">
           <path
             fill="#e05555"
             d="M19.75 16c0 .41-.34.75-.75.75H6.81l1.22 1.22c.29.29.29.77 0 1.06c-.15.15-.34.22-.53.22s-.38-.07-.53-.22l-2.5-2.5a.8.8 0 0 1-.16-.24a.7.7 0 0 1 0-.57c.04-.09.09-.17.16-.24l2.5-2.5c.29-.29.77-.29 1.06 0s.29.77 0 1.06l-1.22 1.22H19c.41 0 .75.34.75.75ZM5 8.75h12.19l-1.22 1.22c-.29.29-.29.77 0 1.06c.15.15.34.22.53.22s.38-.07.53-.22l2.5-2.5c.07-.07.12-.15.16-.24c.08-.18.08-.39 0-.57a.8.8 0 0 0-.16-.24l-2.5-2.5c-.29-.29-.77-.29-1.06 0s-.29.77 0 1.06l1.22 1.22H5c-.41 0-.75.34-.75.75s.34.75.75.75Z"
           />
         </svg>
         <span class="text-2xl font-bold mt-3 mb-4">Transfer a Status</span>
-        <div
-          class="itbkk-message w-10/12 break-all text-ellipsis overflow-hidden"
-        >
+        <div class="itbkk-message w-10/12 break-all text-ellipsis overflow-hidden">
           <p class="mb-3">
             There {{ currentStatus.count === 1 ? "is" : "are" }}
             <span :style="{ color: '#ad386f' }">{{ currentStatus.count }}</span>
             {{ currentStatus.count === 1 ? "task" : "tasks" }} in
-            <span :style="{ color: '#ad386f' }">{{ currentStatus.name }}</span>
-            status.
+            <span :style="{ color: '#ad386f' }">{{ currentStatus.name }}</span> status.
           </p>
           <p class="mb-5">
-            In order to delete this status, the system must transfer task in
-            this status to existing status.
+            To delete this status, transfer the tasks to another status.
           </p>
           <div class="transfer-tasks-to flex justify-center items-center gap-5">
-            <p>
-              Transfer {{ currentStatus.count === 1 ? "a task" : "tasks" }} to
-            </p>
-            <select
-              class="statusbx block w-60 bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-              id="grid-state"
-              v-model="newStatusId"
-            >
+            <p>Transfer tasks to</p>
+            <select v-model="newStatusId" class="statusbx">
               <option
-                v-for="(status, index) in store.statuses.value.filter(
-                  (status) => status.id != currentStatus.id
-                )"
+                v-for="status in store.statuses.filter(s => s.id !== currentStatus.id)"
+                :key="status.id"
                 :value="status.id"
               >
                 {{ status.name }}
@@ -178,16 +114,9 @@ defineEmits(["closeModal", "confirmDeleteStatus", "deleteTransfer"]);
             </select>
           </div>
         </div>
-        <div
-          class="Button h-32 flex justify-center items-center gap-10 rounded-full"
-        >
-          <button class="itbkk-button-cancel" @click="$emit('closeModal')">
-            Cancel
-          </button>
-          <button
-            class="itbkk-button-transfer"
-            @click="$emit('deleteTransfer', currentStatus.id, newStatusId)"
-          >
+        <div class="Button h-32 flex justify-center items-center gap-10 rounded-full">
+          <button class="itbkk-button-cancel" @click="$emit('closeModal')">Cancel</button>
+          <button class="itbkk-button-transfer" @click="$emit('deleteTransfer', currentStatus.id, newStatusId)">
             Transfer and Delete
           </button>
         </div>

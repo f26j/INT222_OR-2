@@ -18,7 +18,7 @@ export const useBoardStore = defineStore("apiBoard", () => {
 
   const fetchBoards = async () => {
     try {
-      const token = checkToken(); // ตรวจสอบ token
+      const token = checkToken();
 
       const response = await fetch(`${baseUrl}/v3/boards`, {
         method: "GET",
@@ -38,21 +38,23 @@ export const useBoardStore = defineStore("apiBoard", () => {
 
   const getBoard = async (boardId) => {
     try {
-      const token = checkToken(); // ตรวจสอบ token
-
-      console.log(`Fetching board with ID: ${boardId}`);
-      console.log(`Using token: ${token}`);
-
+      const headers = { "Content-Type": "application/json" };
+  
+      // ตรวจสอบว่ามี Token ไหม ถ้ามีให้เพิ่มลงใน headers
+      const token = userStore.token;
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      } else {
+        console.log("No token, fetching as public access");
+      }
+  
       const response = await fetch(`${baseUrl}/v3/boards/${boardId}`, {
         method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+        headers,
       });
-
+  
       if (!response.ok) throw new Error(`Failed to fetch board. Status: ${response.status}`);
-
+  
       const boardData = await response.json();
       currentBoard.value = boardData; // เก็บข้อมูลบอร์ดใน state
       return boardData;
@@ -61,6 +63,7 @@ export const useBoardStore = defineStore("apiBoard", () => {
       throw error;
     }
   };
+  
 
   const createBoard = async (newBoard) => {
     try {

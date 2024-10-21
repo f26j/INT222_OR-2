@@ -7,7 +7,7 @@ import { useBoardStore, useTaskStore } from "@/stores/apiController.js"
 import { useToastStore } from "@/stores/ToastStore.js"
 import { useUserStore } from "@/stores/AuthUserStore.js"
 import Badges from "../components/css/Badge.vue"
-import Copyright from "../components/css/Copyright.vue"
+
 import ToastAdd from "../components/toast/ToastAdd.vue"
 import ToastEdit from "../components/toast/ToastEdit.vue"
 import ModalDelete from "../components/ModalDeleteTask.vue"

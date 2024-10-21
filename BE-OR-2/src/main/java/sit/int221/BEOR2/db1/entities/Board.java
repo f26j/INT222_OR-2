@@ -27,6 +27,7 @@ public class Board {
 
     @ManyToOne
     @JoinColumn(name = "owner_id", nullable = false)
+    @JsonIgnore
     private User user;
 
     @Column(name = "created_on", nullable = false, updatable = false)

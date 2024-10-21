@@ -1,89 +1,50 @@
 <script setup>
 // Import zone
-import { ref } from "vue"
+import { ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { useStatusStore } from "@/stores/apiController.js"
-import { useToastStore } from "@/stores/ToastStore.js"
+import { useStatusStore } from "@/stores/StatusStore.js"; // ใช้ StatusStore
+import { useToastStore } from "@/stores/ToastStore.js";
 
 // Variable zone
-const store = useStatusStore()
-const toastStore = useToastStore()
-const baseUrl = import.meta.env.VITE_API_BOARDS;
+const store = useStatusStore();
+const toastStore = useToastStore();
 const router = useRouter();
 const route = useRoute();
-const newName = ref("")
-const newDescription = ref("")
-const statuses = ref([])
+const newName = ref("");
+const newDescription = ref("");
 const boardId = route.params.boardId;
 
-// Function zone
-async function fetchWithToken(url, options = {}) {
-  const token = localStorage.getItem("jwtToken");
-  if (!token) {
-    console.error("No token available");
-    return null;
-  }
-
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${token}`,  // ส่ง JWT Token
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-  });
-
-  // ตรวจสอบสถานะ 401 Unauthorized
-  if (response.status === 401) {
-    return null;
-  } else if (response.status === 403) {
-    router.push({ name: "AccessDenied" })
-    return null
-  }
-
-  return response;
-}
-
+// ปิด Modal และกลับไปหน้า Status Management
 const closeModal = () => {
-  router.push({ name: "status-manage" })
-}
+  router.push({ name: "status-manage" });
+};
 
+// ฟังก์ชันเพิ่ม Status ใหม่
 const addStatus = async () => {
   const trimmedName = newName.value.trim();
   const trimmedDescription = newDescription.value.trim();
+
+  if (!trimmedName) return; // ถ้าไม่มีชื่อ Status ไม่ให้ดำเนินการต่อ
+
   const newStatus = {
-    name: trimmedName === "" ? null : trimmedName,
-    description: trimmedDescription === "" ? null : trimmedDescription,
+    name: trimmedName,
+    description: trimmedDescription || null, // หากไม่มีคำอธิบายจะกำหนดเป็น null
   };
 
-  if (!newStatus.name) {
-    return; 
-  }
-
   try {
-    const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}/statuses`, {
-      method: "POST",
-      body: JSON.stringify(newStatus),
-    });
-
-    if (!response) return; 
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error("Failed to add new status");
-    } else {
-      store.statuses.value.push(data);  
-      toastStore.handleStatusAdded();  
-      console.log("New status added:", data);
-    }
-
+    await store.addStatus(boardId, newStatus);
+    toastStore.addToast("The status has been added", "success");
     closeModal();
   } catch (error) {
-    toastStore.handleStatusAddedF();
     console.error("Error adding new status:", error.message);
+    toastStore.addToast(
+      "An error has occurred, the status could not be added.",
+      "error"
+    );
     closeModal();
   }
 
-  newName.value = "";  
+  newName.value = "";
   newDescription.value = "";
 };
 </script>

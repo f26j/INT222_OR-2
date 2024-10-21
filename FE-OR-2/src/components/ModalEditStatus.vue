@@ -1,155 +1,92 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { useStatusStore } from "@/stores/apiController.js";
+import { useStatusStore } from "@/stores/StatusStore.js";
 import { useToastStore } from "@/stores/ToastStore.js";
-const store = useStatusStore();
 
-const baseUrl = import.meta.env.VITE_API_BOARDS;
-const route = useRoute();
-const router = useRouter();
+const store = useStatusStore();
 const toastStore = useToastStore();
+const router = useRouter();
+const route = useRoute();
+
 const newName = ref("");
 const newDescription = ref("");
-const statuses = ref([]);
-const id = route.params.id;
+const originalName = ref("");
+const originalDescription = ref("");
+const isLoaded = ref(false);
+
 const boardId = route.params.boardId;
 const statusId = route.params.statusId;
 
-const originalName = ref("");
-const originalDescription = ref("");
-
 const closeModal = () => {
-  router.push({ name: "status-manage" });
+  store.fetchStatuses(boardId);
+  router.push({ name: "board-status", params: { boardId } });
 };
 
-// ฟังก์ชันสำหรับดึง Token
-function getToken() {
-  const token = localStorage.getItem("jwtToken");
-  if (!token) {
-    console.error("No token available");
-    // router.push("/login"); 
-    return null;
+const getStatus = async () => {
+  try {
+    if (isLoaded.value) return;
+
+    await store.fetchStatuses(boardId);
+    const status = store.statuses.find((s) => s.id === parseInt(statusId));
+    if (!status) throw new Error(`Status with ID ${statusId} not found.`);
+
+    newName.value = status.name;
+    newDescription.value = status.description;
+    originalName.value = status.name;
+    originalDescription.value = status.description;
+
+    isLoaded.value = true;
+  } catch (error) {
+    console.error(error.message);
+    toastStore.addToast(
+      "An error has occurred, the status could not be loaded.",
+      "error"
+    );
+    router.push({ name: "board-status", params: { boardId } });
   }
-  return token;
-}
-
-async function fetchWithToken(url, options = {}) {
-  const token = getToken(); // ดึง JWT Token
-  if (!token) return null; // ถ้าไม่มี Token ให้ return null
-
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${token}`, // ส่ง JWT Token
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-  });
-
-  if (response.status === 401) {
-    // router.push("/login");
-    return null;
-  } else if (response.status === 403) {
-    router.push({ name: "AccessDenied" })
-    return null
-  }
-
-  return response; // ส่ง response กลับไปใช้งาน
-}
-
-async function getStatus() {
-  const response = await fetchWithToken(
-    `${baseUrl}/v3/boards/${boardId}/statuses/${statusId}`
-  ); // ใช้ fetchWithToken
-  if (!response) return; // ถ้า response เป็น null ให้หยุดการทำงาน
-
-  if (response.status === 404) {
-    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
-    return;
-  }
-
-  const res = await response.json();
-  // const selectId = res.find((status) => status.id == id);
-  if (!res) {
-    router.push({ name: "status-manage" });
-    setTimeout(() => {
-      alert("An error has occurred, the status does not exist");
-    }, 500);
-    return;
-  }
-
-  newName.value = res.name;
-  newDescription.value = res.description;
-  originalName.value = res.name;
-  originalDescription.value = res.description;
-}
+};
 
 onMounted(() => {
   getStatus();
 });
 
-const editSuccess = ref(false);
 const editStatus = async () => {
   const trimmedName = newName.value.trim();
   const trimmedDescription = newDescription.value.trim();
-  const newStatus = {
-    id: id,
-    name: trimmedName === "" ? null : trimmedName,
-    description: trimmedDescription === "" ? null : trimmedDescription,
-  };
 
-  if (!newStatus.name) {
+  if (!trimmedName) {
+    toastStore.addToast("Name is required.", "error");
     return;
   }
 
+  const updatedStatus = {
+    id: statusId,
+    name: trimmedName,
+    description: trimmedDescription || null,
+  };
+
   try {
-    const response = await fetchWithToken(
-      `${baseUrl}/v3/boards/${boardId}/statuses/${statusId}`,
-      {
-        method: "PUT",
-        body: JSON.stringify(newStatus),
-      }
-    );
-
-    if (!response) return; // ถ้า response เป็น null ให้หยุดการทำงาน
-
-    if (response.status === 404) {
-      router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
-      return;
-    }
-
-    const data = await response.json();
-    if (!response.ok) {
-      toastStore.handleStatusEditedF();
-      throw new Error("Failed to edit new status");
-    } else {
-      const statusIndex = store.statuses.value.findIndex(
-        (status) => status.id == id
-      );
-      toastStore.handleStatusEdited();
-      store.statuses.value.splice(statusIndex, 1, data);
-    }
-
-    router.push({ name: "status-manage" }).catch(() => {});
+    await store.updateStatus(boardId, statusId, updatedStatus);
+    store.updateStatusInStore(updatedStatus); // อัปเดต Store
+    toastStore.addToast("The status has been edited", "success");
+    closeModal();
   } catch (error) {
-    editSuccess.value = false;
-    toastStore.handleStatusEditedF();
     console.error("Error editing status:", error.message);
+    toastStore.addToast(
+      "An error has occurred, the status could not be edited.",
+      "error"
+    );
   }
 };
 </script>
+
+
 <template>
-  <div
-    class="details fixed inset-0 overflow-y-auto bg-black bg-opacity-50 z-[999]"
-  >
-    <div
-      class="modalsAddStt rounded-lg text-center shadow-xlp-6 w-min"
-      role="dialog"
-      aria-modal="true"
-    >
+  <div class="details fixed inset-0 overflow-y-auto bg-black bg-opacity-50 z-[999]">
+    <div class="modalsAddStt rounded-lg text-center shadow-xlp-6 w-min" role="dialog" aria-modal="true">
       <div class="itbkk-modal-status">
-        <form @submit.prevent="addStatus">
+        <form @submit.prevent="editStatus">
           <div class="modal-header">
             <div class="itbkktitle text-left">
               <h4>Edit Status</h4>
@@ -161,18 +98,12 @@ const editStatus = async () => {
             <div class="text-left flex-col">
               <div class="titlee flex flex-wrap -mx-3 mb-2">
                 <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
-                  <label
-                    class="block uppercase tracking-wide text-xs font-bold mb-2"
-                    for="grid-city"
-                  >
-                    Name
-                  </label>
+                  <label for="name" class="block uppercase tracking-wide text-xs font-bold mb-2">Name</label>
                   <textarea
-                    class="itbkk-status-name ttitle-stt appearance-none block w-full bg-gray-200 border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
                     id="name"
-                    type="text"
-                    placeholder="Enter name... (Required)"
                     v-model="newName"
+                    class="itbkk-status-name ttitle-stt appearance-none block w-full bg-gray-200 border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
+                    placeholder="Enter name... (Required)"
                     maxlength="50"
                   ></textarea>
                 </div>
@@ -181,17 +112,12 @@ const editStatus = async () => {
               <div class="text-left">
                 <div class="flex flex-wrap -mx-3 mb-2">
                   <div class="desc w-full md:w-1/3 px-3 mb-6 md:mb-0">
-                    <label
-                      class="block uppercase tracking-wide text-xs font-bold mb-2"
-                      for="grid-city"
-                      >Description
-                    </label>
+                    <label for="description" class="block uppercase tracking-wide text-xs font-bold mb-2">Description</label>
                     <textarea
-                      class="itbkk-status-description itbkkdesc-stt appearance-none block w-full bg-gray-200 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                       id="description"
-                      type="text"
-                      placeholder="Enter description..."
                       v-model="newDescription"
+                      class="itbkk-status-description itbkkdesc-stt appearance-none block w-full bg-gray-200 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                      placeholder="Enter description..."
                       maxlength="200"
                     ></textarea>
                   </div>
@@ -203,21 +129,14 @@ const editStatus = async () => {
           <div class="modal-footer">
             <div class="itbkk-button">
               <hr />
-              <button
-                @click="closeModal"
-                class="itbkk-button-cancel close border"
-              >
+              <button type="button" @click="closeModal" class="itbkk-button-cancel close border">
                 Cancel
               </button>
               <button
-                @click="editStatus"
                 class="itbkk-button-confirm ok border"
                 type="submit"
-                :disabled="
-                  newName?.length === 0 ||
-                  (newName === originalName &&
-                    newDescription === originalDescription)
-                "
+                :disabled="newName.trim().length === 0 || 
+                            (newName === originalName && newDescription === originalDescription)"
               >
                 Save
               </button>
@@ -228,6 +147,8 @@ const editStatus = async () => {
     </div>
   </div>
 </template>
+
+
 
 <style scoped>
 @import url("https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono");

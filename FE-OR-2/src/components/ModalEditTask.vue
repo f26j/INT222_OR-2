@@ -5,17 +5,16 @@ import { useRoute, useRouter } from "vue-router";
 import { useTaskStore } from "@/stores/apiController.js";
 import { useToastStore } from "@/stores/ToastStore.js";
 
-// Store, API zone
+// Store and Router
 const route = useRoute();
 const router = useRouter();
 const store = useTaskStore();
 const toastStore = useToastStore();
 const boardId = route.params.boardId;
 const taskId = route.params.taskId || "";
-
 const baseUrl = import.meta.env.VITE_API_BOARDS;
 
-// Variable zone
+// Variables
 const modalEdit = ref(null);
 const localTimeZone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone);
 const newTitle = ref("");
@@ -28,41 +27,44 @@ const originalAssignee = ref("");
 const originalDescription = ref("");
 const originalStatus = ref({});
 
-// ฟังก์ชันสำหรับดึง Token และเรียก API พร้อม Token
+// Fetch with Token
 async function fetchWithToken(url, options = {}) {
   const token = localStorage.getItem("jwtToken");
   if (!token) return null;
 
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-  });
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        ...options.headers,
+      },
+    });
 
-  // ตรวจสอบสถานะ 401 Unauthorized
-  if (response.status === 401) {
-    // router.push("/login");
+    if (response.status === 401) {
+      router.push("/login");
+      return null;
+    } else if (response.status === 403) {
+      router.push({ name: "AccessDenied" });
+      return null;
+    }
+
+    return response;
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    toastStore.addToast("Failed to fetch data", "error");
     return null;
-  } else if (response.status === 403) {
-    router.push({ name: "AccessDenied" })
-    return null
   }
-
-  return response;
 }
 
-// ฟังก์ชันดึงข้อมูล Status
+// Fetch Status Data
 async function fetchDataStatus() {
-  const response = await fetchWithToken(
-    `${baseUrl}/v3/boards/${boardId}/statuses`
-  );
+  const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}/statuses`);
   if (!response) return;
 
   if (response.status === 404) {
-    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
+    router.push({ name: "NotFound" });
     return;
   }
 
@@ -74,107 +76,81 @@ async function fetchDataStatus() {
   return dataStatus;
 }
 
-// ฟังก์ชันสำหรับฟอร์แมตวันที่
-function formatDate(date) {
-  if (!date) {
-    return "N/A";
-  }
-
-  const d = new Date(date);
-  if (isNaN(d)) {
-    return "Invalid Date";
-  }
-
-  return d
-    .toLocaleString("en-GB", { timeZone: localTimeZone.value })
-    .split(",")
-    .join(" ");
-}
-
-// ฟังก์ชันเปิด Modal สำหรับแก้ไข Task
+// Open Modal and Fetch Task Data
 const openModalEdit = async () => {
   if (!taskId) {
     console.error("Task ID is missing");
     return;
   }
 
-  const response = await fetchWithToken(
-    `${baseUrl}/v3/boards/${boardId}/tasks/${taskId}`
-  );
+  const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}/tasks/${taskId}`);
   if (!response) return;
 
-  const res = await response.json();
   if (!response.ok) {
+    toastStore.addToast("The requested task does not exist", "error");
     router.push("/");
-    setTimeout(() => {
-      alert("The requested task does not exist");
-    }, 500);
     return;
   }
 
+  const res = await response.json();
   modalEdit.value = res;
-  newTitle.value = modalEdit.value.title || "";
-  newDescription.value = modalEdit.value.description || "";
-  newAssignees.value = modalEdit.value.assignees || "";
-  newStatus.value = { ...modalEdit.value.status };
+  newTitle.value = res.title || "";
+  newDescription.value = res.description || "";
+  newAssignees.value = res.assignees || "";
+  newStatus.value = { ...res.status };
 
-  originalTitle.value = modalEdit.value.title || "";
-  originalAssignee.value = modalEdit.value.assignees || "";
-  originalDescription.value = modalEdit.value.description || "";
-  originalStatus.value = { ...modalEdit.value.status };
+  originalTitle.value = res.title || "";
+  originalAssignee.value = res.assignees || "";
+  originalDescription.value = res.description || "";
+  originalStatus.value = { ...res.status };
 };
 
-// เมื่อ component mount
-onMounted(async () => {
-  openModalEdit();
-  const datastatus = await fetchDataStatus();
-  store.status.value = datastatus;
-});
-
-// ฟังก์ชันแก้ไข Task
+// Edit Task
 const editTask = async () => {
   const editedTask = {
     id: taskId,
     title: newTitle.value.trim(),
     description: newDescription.value.trim(),
     assignees: newAssignees.value.trim(),
-    status: store.status.value.find(
-      (status) => status.name === newStatus.value.name
-    ),
+    status: store.status.value.find((status) => status.name === newStatus.value.name),
   };
 
   if (!editedTask.title) {
+    toastStore.addToast("Title is required", "error");
     return;
   }
 
   try {
-    const response = await fetchWithToken(
-      `${baseUrl}/v3/boards/${boardId}/tasks/${taskId}`,
-      {
-        method: "PUT",
-        body: JSON.stringify(editedTask),
-      }
-    );
+    const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}/tasks/${taskId}`, {
+      method: "PUT",
+      body: JSON.stringify(editedTask),
+    });
 
     if (!response.ok) {
       throw new Error("Failed to edit task");
     }
 
     store.updateTask({ ...editedTask });
-
     closeModal();
-    toastStore.handleTaskEdited();
+    toastStore.addToast("Task edited successfully", "success");
   } catch (error) {
     console.error("Error editing task:", error.message);
+    toastStore.addToast("Failed to edit task", "error");
   }
 };
 
-// ฟังก์ชันปิด Modal
+// Close Modal
 const closeModal = () => {
   router.push({ name: "board-tasks", params: { boardId } });
 };
-</script>
 
+// On Component Mount
+onMounted(async () => {
+  await openModalEdit();
+  const statuses = await fetchDataStatus();
+  store.status.value = statuses;
+});
+</script>
 <template>
   <div
     v-if="modalEdit"

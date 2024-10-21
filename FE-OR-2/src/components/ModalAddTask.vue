@@ -1,152 +1,94 @@
 <script setup>
-import { ref, onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
+// Import zone
+import { ref } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import { useStatusStore } from "@/stores/StatusStore.js"; // ใช้ StatusStore
 import { useToastStore } from "@/stores/ToastStore.js";
-import { useTaskStore } from "@/stores/TaskStore.js";
 
+// Variable zone
+const store = useStatusStore();
+const toastStore = useToastStore();
 const router = useRouter();
 const route = useRoute();
-const taskStore = useTaskStore(); 
-const toastStore = useToastStore();
-
+const newName = ref("");
+const newDescription = ref("");
 const boardId = route.params.boardId;
 
-// Form Data
-const newTitle = ref("");
-const newDescription = ref("");
-const newAssignees = ref("");
-const newStatus = ref({ id: 1, name: "No Status" });
+// ปิด Modal และกลับไปหน้า Status Management
+const closeModal = () => {
+  router.push({ name: "status-manage" });
+};
 
-// Fetch statuses when component is mounted
-onMounted(async () => {
-  try {
-    await taskStore.fetchTasks(boardId); // Fetch tasks using TaskStore
-    const statuses = await taskStore.fetchTasks(boardId);
-    if (statuses.length) {
-      newStatus.value = statuses[0];
-    }
-  } catch (error) {
-    console.error("Error fetching tasks:", error);
-  }
-});
+// ฟังก์ชันเพิ่ม Status ใหม่
+const addStatus = async () => {
+  const trimmedName = newName.value.trim();
+  const trimmedDescription = newDescription.value.trim();
 
-// Add new task logic
-const addTask = async () => {
-  if (!newTitle.value.trim()) {
-    toastStore.addToast("Title is required", "error");
-    return;
-  }
+  if (!trimmedName) return; // ถ้าไม่มีชื่อ Status ไม่ให้ดำเนินการต่อ
 
-  const taskData = {
-    title: newTitle.value.trim(),
-    description: newDescription.value.trim() || null,
-    assignees: newAssignees.value.trim() || null,
-    status: { id: newStatus.value.id },
+  const newStatus = {
+    name: trimmedName,
+    description: trimmedDescription || null, // หากไม่มีคำอธิบายจะกำหนดเป็น null
   };
 
   try {
-    await taskStore.addTask(boardId, taskData); // Use TaskStore to add task
-    toastStore.addToast("Task added successfully", "success");
-    router.push({ name: "board-tasks", params: { boardId } });
+    await store.addStatus(boardId, newStatus); // เพิ่ม Status ผ่าน Store
+    toastStore.handleStatusAdded(); // แสดงข้อความ Toast ว่าการเพิ่มสำเร็จ
+    closeModal(); // ปิด Modal หลังจากเพิ่มเสร็จสิ้น
   } catch (error) {
-    console.error("Error adding task:", error);
-    toastStore.addToast("Failed to add task", "error");
+    console.error("Error adding new status:", error.message);
+    toastStore.handleStatusAddedF(); // แสดงข้อความ Toast ว่าการเพิ่มล้มเหลว
+    closeModal();
   }
 
-  // Reset form
-  newTitle.value = "";
+  // รีเซ็ตฟิลด์หลังจากเพิ่มเสร็จ
+  newName.value = "";
   newDescription.value = "";
-  newAssignees.value = "";
-  newStatus.value = { id: 1, name: "No Status" };
-};
-
-// Close modal
-const closeModal = () => {
-  router.push({ name: "board-tasks", params: { boardId } }).catch(() => {});
 };
 </script>
 
 <template>
-  <div class="details fixed inset-0 overflow-y-auto bg-black bg-opacity-50">
-    <div
-      class="itbkk-modal-task modals rounded-lg text-center shadow-xl w-min"
-      role="dialog"
-      aria-modal="true"
-    >
-      <div class="modal-content">
-        <form @submit.prevent="addTask">
+  <div class="details fixed inset-0 overflow-y-auto bg-black bg-opacity-50 z-[999]">
+    <div class="modalsAddStt rounded-lg text-center shadow-xlp-6 w-min" role="dialog" aria-modal="true">
+      <div class="itbkk-modal-status">
+        <form @submit.prevent="addStatus">
           <div class="modal-header">
             <div class="itbkktitle text-left">
-              <h4>Add New Task</h4>
+              <h4>Add New Status</h4>
             </div>
           </div>
           <hr />
 
           <div class="modal-body">
             <div class="text-left flex-col">
-              <div class="itbkk-title flex flex-wrap -mx-3 mb-2">
+              <div class="titlee flex flex-wrap -mx-3 mb-2">
                 <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
-                  <label class="block uppercase tracking-wide text-xs font-bold mb-2">
-                    Title
+                  <label class="block uppercase tracking-wide text-xs font-bold mb-2" for="name">
+                    Name
                   </label>
                   <textarea
-                    class="ttitle block w-full bg-gray-200 border rounded py-3 px-4 leading-tight focus:bg-white"
-                    placeholder="Enter title..."
-                    v-model="newTitle"
+                    id="name"
+                    class="itbkk-status-name ttitle-stt appearance-none block w-full bg-gray-200 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
+                    placeholder="Enter name... (Required)"
+                    v-model="newName"
+                    maxlength="50"
                   ></textarea>
                 </div>
               </div>
 
-              <div class="itbkk-description text-left">
+              <div class="text-left">
                 <div class="flex flex-wrap -mx-3 mb-2">
-                  <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
-                    <label class="block uppercase tracking-wide text-xs font-bold mb-2">
+                  <div class="desc w-full md:w-1/3 px-3 mb-6 md:mb-0">
+                    <label class="block uppercase tracking-wide text-xs font-bold mb-2" for="description">
                       Description
                     </label>
                     <textarea
-                      class="itbkkdesc block w-full bg-gray-200 border rounded py-3 px-4 leading-tight focus:bg-white"
+                      id="description"
+                      class="itbkk-status-description itbkkdesc-stt appearance-none block w-full bg-gray-200 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                       placeholder="Enter description..."
                       v-model="newDescription"
+                      maxlength="200"
                     ></textarea>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="detailright flex-col">
-              <div class="text-left">
-                <div class="assign flex flex-wrap -mx-3 mb-2">
-                  <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
-                    <label class="block uppercase tracking-wide text-xs font-bold mb-2">
-                      Assignees
-                    </label>
-                    <textarea
-                      class="itbkkassignees block w-full bg-gray-200 border rounded py-3 px-4 leading-tight focus:bg-white"
-                      placeholder="Enter assignees..."
-                      v-model="newAssignees"
-                    ></textarea>
-                  </div>
-                </div>
-              </div>
-
-              <div class="text-left">
-                <div class="w-full md:w-1/3 mb-6">
-                  <label class="block uppercase tracking-wide text-xs font-bold mb-2">
-                    Status
-                  </label>
-                  <div class="relative">
-                    <select
-                      class="itbkk-status block w-60 bg-gray-200 border py-3 px-4 pr-8 rounded focus:bg-white"
-                      v-model="newStatus"
-                    >
-                      <option
-                        v-for="status in taskStore.tasks"
-                        :key="status.id"
-                        :value="status"
-                      >
-                        {{ status.name }}
-                      </option>
-                    </select>
                   </div>
                 </div>
               </div>
@@ -156,11 +98,11 @@ const closeModal = () => {
           <div class="modal-footer">
             <div class="itbkk-button">
               <hr />
-              <button @click="closeModal" class="close">Cancel</button>
+              <button @click="closeModal" class="itbkk-button-cancel close border">Cancel</button>
               <button
-                class="itbkk-button-confirm"
+                class="itbkk-button-confirm ok border"
                 type="submit"
-                :disabled="!newTitle.length"
+                :disabled="newName.length === 0"
               >
                 Save
               </button>
