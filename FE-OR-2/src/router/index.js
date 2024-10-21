@@ -38,25 +38,15 @@ const router = createRouter({
       path: "/board/:boardId",
       name: "board-tasks",
       component: TaskView,
-      meta: { requiresAuth: false },
       children: [
         { path: "task/add", name: "task-add", component: ModalAddTask },
-        {
-          path: "task/:taskId",
-          name: "task-detail",
-          component: ModalDetailTask,
-        },
-        {
-          path: "task/:taskId/edit",
-          name: "task-edit",
-          component: ModalEditTask,
-        },
+        { path: "task/:taskId", name: "task-detail", component: ModalDetailTask },
+        { path: "task/:taskId/edit", name: "task-edit", component: ModalEditTask },
       ],
     },
     {
       path: "/board/:boardId/status",
       component: StatusView,
-      meta: { requiresAuth: false },
       children: [
         { path: "manage", name: "status-manage", component: ManageStatus },
         { path: "add", name: "status-add", component: ModalAddStatus },
@@ -67,15 +57,34 @@ const router = createRouter({
   ],
 });
 
+// Navigation Guard
 router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore();
-  await userStore.refreshToken(); // Ensure token is refreshed
+  await userStore.refreshToken(); // รีเฟรช Token
+
   const hasToken = !!userStore.token;
-  const requiresAuth = to.meta.requiresAuth;
+  const requiresAuth = to.meta.requiresAuth; 
   const boardId = to.params.boardId;
 
   try {
-    if (to.path.startsWith("/board/") && boardId) {
+    // ถ้าต้องการ Auth แต่ไม่มี Token ให้ Redirect ไป Login
+    if (requiresAuth && !hasToken) {
+      console.warn("Authentication required. Redirecting to login.");
+      return next({ name: "login" });
+    }
+
+    // ถ้า Login อยู่แล้วไม่ให้เข้าหน้า Login อีก
+    if (hasToken && to.name === "login") {
+      return next({ name: "board" });
+    }
+
+    // ข้ามการตรวจสอบสำหรับ TaskView และ StatusView รวมถึง children
+    if (to.name?.startsWith('board-tasks') || to.path.includes('/status')) {
+      return next();
+    }
+
+    // ตรวจสอบสิทธิ์การเข้าถึง Board ปกติ
+    if (boardId) {
       const response = await fetch(`${baseUrl}/v3/boards/${boardId}`, {
         headers: {
           "Content-Type": "application/json",
@@ -90,7 +99,7 @@ router.beforeEach(async (to, from, next) => {
           return next({ name: "login" });
         }
       } else if (response.status === 403) {
-        console.warn("Access denied (403). Redirecting to AccessDenied.");
+        console.warn("Access Denied (403). Redirecting to AccessDenied.");
         return next({ name: "AccessDenied" });
       } else if (response.status === 404) {
         console.warn("Board not found. Redirecting to NotFound.");
@@ -98,20 +107,12 @@ router.beforeEach(async (to, from, next) => {
       }
     }
 
-    if (requiresAuth && !hasToken) {
-      console.warn("Authentication required. Redirecting to login.");
-      return next({ name: "login" });
-    }
-
-    if (hasToken && to.name === "login") {
-      return next({ name: "board" });
-    }
-
-    next();
+    next(); // อนุญาตให้ Navigate ได้ตามปกติ
   } catch (error) {
     console.error("Error during navigation:", error);
-    next({ name: "NotFound" });
+    next({ name: "NotFound" }); // ส่งไปหน้า NotFound หากมีข้อผิดพลาด
   }
 });
+
 
 export default router;

@@ -3,14 +3,13 @@ import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useToastStore } from "@/stores/ToastStore.js";
 import { useUserStore } from "@/stores/AuthUserStore.js";
-import { useBoardStore } from "@/stores/apiController.js";
+import { useBoardStore } from "@/stores/BoardStore.js";
 import { storeToRefs } from "pinia";
 
 const router = useRouter();
 const toastStore = useToastStore();
 const userStore = useUserStore();
 const boardStore = useBoardStore();
-const { showToastLogin, closeToast } = storeToRefs(toastStore);
 const { boards } = storeToRefs(boardStore);
 
 const username = ref("");
@@ -27,7 +26,7 @@ const handleSubmit = async (event) => {
 
   if (!isLoginValid.value) {
     console.log("Triggering Toast"); // Debug log
-    toastStore.addToast("Login failed!", "error");
+    toastStore.addToast("Username or Password is incorrect.", "error");
     return;
   }
 
@@ -48,7 +47,7 @@ const handleSubmit = async (event) => {
     }
   } catch (error) {
     console.log("Triggering Toast on Error"); // Debug log
-    toastStore.addToast("Login failed!", "error");
+    toastStore.addToast("Username or Password is incorrect.", "error");
   } finally {
     isLoading.value = false;
   }

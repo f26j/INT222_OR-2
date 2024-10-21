@@ -116,7 +116,7 @@ const logout = () => {
   top: 0; /* ให้ชิดด้านบน */
   left: 0;
   right: 0;
-  z-index: 50; /* กำหนด z-index เพื่อให้แน่ใจว่าอยู่เหนือเนื้อหาอื่นๆ */
+  z-index: 99999;
 }
   
 .hover-red-icon {

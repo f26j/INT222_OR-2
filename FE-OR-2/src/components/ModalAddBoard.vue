@@ -3,16 +3,17 @@ import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useUserStore } from "@/stores/AuthUserStore.js";
 import { useBoardStore } from "@/stores/BoardStore.js";
+import { useToastStore } from "@/stores/ToastStore.js";
 
 const userStore = useUserStore();
-const fullname = computed(() => userStore.fullname); // ดึงข้อมูลชื่อผู้ใช้
+const boardStore = useBoardStore();
+const toastStore = useToastStore();
+const fullname = computed(() => userStore.fullname);
 const router = useRouter();
 const visibility = ref("private");
 const errorMessage = ref("");
 const boardName = ref("");
 
-// เรียก BoardStore มาใช้
-const boardStore = useBoardStore();
 
 // กำหนดชื่อบอร์ดให้ตรงกับชื่อผู้ใช้โดยอัตโนมัติ
 watch(
@@ -32,10 +33,11 @@ async function createBoard() {
     };
 
     const createdBoard = await boardStore.createBoard(newBoard);
-
+    toastStore.addToast("The board has been successfully created.", "success");
     console.log("Board created successfully:", createdBoard);
     router.push(`/board/${createdBoard.id}`);
   } catch (error) {
+    toastStore.addToast("Error creating board", "error");
     console.error("Error creating board:", error);
     errorMessage.value = error.message || "An unexpected error occurred.";
   }
@@ -53,9 +55,6 @@ function closeModal() {
   <div class="itbkk-modal-new fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
     <div class="bg-white p-6 rounded-3xl text-center shadow-xlp-6 w-1/3">
       <h2 class="text-lg font-semibold mb-4">Create New Board</h2>
-      <div v-if="errorMessage" class="text-red-500 mb-4">
-        {{ errorMessage }}
-      </div>
       <input
         v-model="boardName"
         type="text"

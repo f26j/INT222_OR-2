@@ -3,12 +3,14 @@ import { onMounted, ref, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useBoardStore } from "@/stores/BoardStore.js";
 import { storeToRefs } from "pinia";
+import { useToastStore } from "@/stores/ToastStore.js";
 import Navbar from "../components/css/Navbar.vue";
 import Copyright from "../components/css/Copyright.vue";
 import ModalAddBoard from "../components/ModalAddBoard.vue";
 
 const boardStore = useBoardStore();
 const { boards } = storeToRefs(boardStore);
+const toastStore = useToastStore();
 const loading = ref(true);
 const error = ref(false);
 const isModalOpen = ref(false);
@@ -32,8 +34,10 @@ const deleteBoard = async (boardId) => {
   try {
     await boardStore.deleteBoard(boardId);
     console.log("Board deleted successfully:", boardId);
+    toastStore.addToast("Board deleted successfully.", "success");
   } catch (error) {
     console.error("Error deleting board:", error);
+    toastStore.addToast("You do not have permission to delete this board.", "error");
     alert("You do not have permission to delete this board.");
   }
 };

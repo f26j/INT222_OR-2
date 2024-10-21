@@ -7,16 +7,12 @@ export const useToastStore = defineStore("toast", () => {
 
   const addToast = (message, type = "success", duration = 5000) => {
     const id = nextId++;
-    console.log("Adding Toast:", { id, message, type });
-    toasts.value.push({ id, message, type });
-  
+    toasts.value.push({ id, message, type, duration });
 
     setTimeout(() => {
-      console.log("Removing Toast:", id);
       removeToast(id);
     }, duration);
   };
-  
 
   const removeToast = (id) => {
     toasts.value = toasts.value.filter((toast) => toast.id !== id);

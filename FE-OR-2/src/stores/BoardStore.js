@@ -4,12 +4,22 @@ import { useUserStore } from "@/stores/AuthUserStore.js";
 
 export const useBoardStore = defineStore("apiBoard", () => {
   const boards = ref([]);
+  const currentBoard = ref(null); // เก็บบอร์ดที่โหลด
   const baseUrl = import.meta.env.VITE_API_BOARDS;
   const userStore = useUserStore();
 
+  // ฟังก์ชันตรวจสอบและรีเฟรช token ถ้าหมดอายุ
+  const checkToken = () => {
+    if (!userStore.token) {
+      throw new Error("Authentication required");
+    }
+    return userStore.token;
+  };
+
   const fetchBoards = async () => {
     try {
-      const token = localStorage.getItem("jwtToken");
+      const token = checkToken(); // ตรวจสอบ token
+
       const response = await fetch(`${baseUrl}/v3/boards`, {
         method: "GET",
         headers: {
@@ -18,7 +28,7 @@ export const useBoardStore = defineStore("apiBoard", () => {
         },
       });
 
-      if (!response.ok) throw new Error("Failed to fetch boards");
+      if (!response.ok) throw new Error(`Failed to fetch boards. Status: ${response.status}`);
 
       boards.value = await response.json();
     } catch (error) {
@@ -26,9 +36,36 @@ export const useBoardStore = defineStore("apiBoard", () => {
     }
   };
 
+  const getBoard = async (boardId) => {
+    try {
+      const token = checkToken(); // ตรวจสอบ token
+
+      console.log(`Fetching board with ID: ${boardId}`);
+      console.log(`Using token: ${token}`);
+
+      const response = await fetch(`${baseUrl}/v3/boards/${boardId}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) throw new Error(`Failed to fetch board. Status: ${response.status}`);
+
+      const boardData = await response.json();
+      currentBoard.value = boardData; // เก็บข้อมูลบอร์ดใน state
+      return boardData;
+    } catch (error) {
+      console.error("Error fetching board:", error.message);
+      throw error;
+    }
+  };
+
   const createBoard = async (newBoard) => {
     try {
-      const token = localStorage.getItem("jwtToken");
+      const token = checkToken();
+
       const response = await fetch(`${baseUrl}/v3/boards`, {
         method: "POST",
         headers: {
@@ -37,27 +74,21 @@ export const useBoardStore = defineStore("apiBoard", () => {
         },
         body: JSON.stringify(newBoard),
       });
-  
-      if (!response.ok) throw new Error("Failed to create board");
-  
+
+      if (!response.ok) throw new Error(`Failed to create board. Status: ${response.status}`);
+
       const createdBoard = await response.json();
-  
-      if (createdBoard.id) {
-        boards.value.push(createdBoard); // เพิ่ม Board ใหม่พร้อม ID
-        console.log("Board created successfully:", createdBoard);
-        return createdBoard; // ส่งข้อมูลกลับไปใช้
-      } else {
-        throw new Error("Board ID is missing.");
-      }
+      boards.value.push(createdBoard);
+      console.log("Board created successfully:", createdBoard);
+      return createdBoard;
     } catch (error) {
       console.error("Error creating board:", error.message);
-      throw error; // ให้ส่ง error กลับไปแสดงใน component
+      throw error;
     }
   };
-  
 
-  const updateBoard = (updatedBoard) => {
-    const index = boards.value.findIndex(board => board.id === updatedBoard.id);
+  const updateBoard = async (boardId, updatedBoard) => {
+    const index = boards.value.findIndex((board) => board.id === boardId);
     if (index !== -1) {
       boards.value[index] = updatedBoard;
       console.log("Board updated successfully:", updatedBoard);
@@ -68,7 +99,8 @@ export const useBoardStore = defineStore("apiBoard", () => {
 
   const updateVisibility = async (boardId, newVisibility) => {
     try {
-      const token = localStorage.getItem("jwtToken");
+      const token = checkToken();
+
       const response = await fetch(`${baseUrl}/v3/boards/${boardId}`, {
         method: "PATCH",
         headers: {
@@ -78,9 +110,9 @@ export const useBoardStore = defineStore("apiBoard", () => {
         body: JSON.stringify({ visibility: newVisibility }),
       });
 
-      if (!response.ok) throw new Error("Failed to update visibility");
+      if (!response.ok) throw new Error(`Failed to update visibility. Status: ${response.status}`);
 
-      const board = boards.value.find(board => board.id === boardId);
+      const board = boards.value.find((board) => board.id === boardId);
       if (board) board.visibility = newVisibility;
 
       console.log("Visibility updated successfully:", newVisibility);
@@ -91,9 +123,9 @@ export const useBoardStore = defineStore("apiBoard", () => {
 
   const deleteBoard = async (boardId) => {
     try {
-      const token = localStorage.getItem("jwtToken");
-      const board = boards.value.find(board => board.id === boardId);
+      const token = checkToken();
 
+      const board = boards.value.find((board) => board.id === boardId);
       if (!board) throw new Error("Board not found");
       if (board.owner.oid !== userStore.oid) throw new Error("Permission denied");
 
@@ -105,9 +137,9 @@ export const useBoardStore = defineStore("apiBoard", () => {
         },
       });
 
-      if (!response.ok) throw new Error("Failed to delete board");
+      if (!response.ok) throw new Error(`Failed to delete board. Status: ${response.status}`);
 
-      boards.value = boards.value.filter(b => b.id !== boardId);
+      boards.value = boards.value.filter((b) => b.id !== boardId);
       console.log("Board deleted successfully:", boardId);
     } catch (error) {
       console.error("Error deleting board:", error.message);
@@ -116,7 +148,9 @@ export const useBoardStore = defineStore("apiBoard", () => {
 
   return {
     boards,
+    currentBoard,
     fetchBoards,
+    getBoard,
     createBoard,
     updateBoard,
     updateVisibility,

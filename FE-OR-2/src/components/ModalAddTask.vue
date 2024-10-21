@@ -2,151 +2,74 @@
 import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useToastStore } from "@/stores/ToastStore.js";
-import { useTaskStore } from "@/stores/apiController.js";
+import { useTaskStore } from "@/stores/TaskStore.js";
 
-// Store, API zone
-const baseUrl = import.meta.env.VITE_API_BOARDS;
 const router = useRouter();
-const store = useTaskStore();
-const toastStore = useToastStore();
 const route = useRoute();
-const boardId = route.params.boardId; // ดึงค่า boardId จาก URL
+const taskStore = useTaskStore(); 
+const toastStore = useToastStore();
 
-// Variable zone
+const boardId = route.params.boardId;
+
+// Form Data
 const newTitle = ref("");
 const newDescription = ref("");
 const newAssignees = ref("");
-const newStatus = ref({
-  id: 1,
-  name: "No Status",
-  description: "The default status",
-});
+const newStatus = ref({ id: 1, name: "No Status" });
 
-// ฟังก์ชันสำหรับดึง Token และเรียก API พร้อม Token
-async function fetchWithToken(url, options = {}) {
-  const token = localStorage.getItem("jwtToken");
-  if (!token) {
-    console.error("No token available");
-    return null;
-  }
-
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-  });
-
-  if (response.status === 401) {
-    return null;
-  } else if (response.status === 403) {
-    router.push({ name: "AccessDenied" })
-    return null
-  }
-
-  return response;
-}
-
-// ดึงข้อมูล Status ของ Board
-async function fetchDataStatus() {
-  const response = await fetchWithToken(
-    (`${baseUrl}/v3/boards/${boardId}/statuses`)
-  ); 
-  if (!response) return
-
-  if (response.status === 404) {
-    router.push({ name: "NotFound" });
-    return;
-  }
-
-  const dataStatus = await response.json();
-  if (!Array.isArray(dataStatus)) {
-    throw new TypeError("Fetched status data is not an array");
-  }
-  return dataStatus;
-}
-
-// OnMounted ดึงข้อมูล Status เมื่อ component ถูก mount
+// Fetch statuses when component is mounted
 onMounted(async () => {
-  const datastatus = await fetchDataStatus();
-  store.status.value = datastatus;
+  try {
+    await taskStore.fetchTasks(boardId); // Fetch tasks using TaskStore
+    const statuses = await taskStore.fetchTasks(boardId);
+    if (statuses.length) {
+      newStatus.value = statuses[0];
+    }
+  } catch (error) {
+    console.error("Error fetching tasks:", error);
+  }
 });
 
-// ฟังก์ชันสำหรับเพิ่ม Task ใหม่
+// Add new task logic
 const addTask = async () => {
-  const trimmedTitle = newTitle.value.trim();
-  const trimmedDescription = newDescription.value.trim();
-  const trimmedAssignees = newAssignees.value.trim();
-
-  const selectedStatus = store.status?.value?.find(
-    (status) => status.name === newStatus.value.name
-  );
-
-  // ตรวจสอบให้แน่ใจว่า status ถูกต้อง
-  if (!selectedStatus || !selectedStatus.id) {
-    console.error("Task status cannot be null");
+  if (!newTitle.value.trim()) {
+    toastStore.addToast("Title is required", "error");
     return;
   }
 
-  const newTask = {
-    title: trimmedTitle,
-    description: trimmedDescription === "" ? null : trimmedDescription,
-    assignees: trimmedAssignees === "" ? null : trimmedAssignees,
-    status: { id: selectedStatus.id }, // ส่ง id ของ status
+  const taskData = {
+    title: newTitle.value.trim(),
+    description: newDescription.value.trim() || null,
+    assignees: newAssignees.value.trim() || null,
+    status: { id: newStatus.value.id },
   };
 
-  if (!newTask.title) {
-    return;
-  }
-
   try {
-    const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}/tasks`, {
-      // ใช้ URL ที่รวม boardId
-      method: "POST",
-      body: JSON.stringify(newTask),
-    });
-
-    if (!response) return; // ถ้า response เป็น null ให้ return
-
-    const data = await response.json();
-    if (!response.ok) {
-      console.error("Server Error:", data); // ตรวจสอบข้อผิดพลาดจากเซิร์ฟเวอร์
-      throw new Error("Failed to add new task");
-    } else {
-      store.tasks.value.push(data);
-    }
-
-    toastStore.handleTaskAdded();
-    // เปลี่ยนจาก name: "task" เป็น name: "board-tasks"
-    router.push({ name: "board-tasks", params: { boardId } }).catch(() => {});
+    await taskStore.addTask(boardId, taskData); // Use TaskStore to add task
+    toastStore.addToast("Task added successfully", "success");
+    router.push({ name: "board-tasks", params: { boardId } });
   } catch (error) {
-    console.error("Error adding new task:", error.message);
+    console.error("Error adding task:", error);
+    toastStore.addToast("Failed to add task", "error");
   }
 
-  // Reset fields
+  // Reset form
   newTitle.value = "";
   newDescription.value = "";
   newAssignees.value = "";
-  newStatus.value = {
-    statusID: 1,
-    name: "NO_STATUS",
-    description: "The default status",
-  };
+  newStatus.value = { id: 1, name: "No Status" };
 };
 
+// Close modal
 const closeModal = () => {
-  router
-    .push({ name: "board-tasks", params: { boardId: boardId } })
-    .catch(() => {});
+  router.push({ name: "board-tasks", params: { boardId } }).catch(() => {});
 };
 </script>
 
 <template>
   <div class="details fixed inset-0 overflow-y-auto bg-black bg-opacity-50">
     <div
-      class="itbkk-modal-task modals rounded-lg text-center shadow-xlp-6 w-min"
+      class="itbkk-modal-task modals rounded-lg text-center shadow-xl w-min"
       role="dialog"
       aria-modal="true"
     >
@@ -163,16 +86,11 @@ const closeModal = () => {
             <div class="text-left flex-col">
               <div class="itbkk-title flex flex-wrap -mx-3 mb-2">
                 <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
-                  <label
-                    class="block uppercase tracking-wide text-xs font-bold mb-2"
-                    for="grid-city"
-                  >
+                  <label class="block uppercase tracking-wide text-xs font-bold mb-2">
                     Title
                   </label>
                   <textarea
-                    class="ttitle appearance-none block w-full bg-gray-200 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
-                    id="assign"
-                    type="text"
+                    class="ttitle block w-full bg-gray-200 border rounded py-3 px-4 leading-tight focus:bg-white"
                     placeholder="Enter title..."
                     v-model="newTitle"
                   ></textarea>
@@ -181,16 +99,12 @@ const closeModal = () => {
 
               <div class="itbkk-description text-left">
                 <div class="flex flex-wrap -mx-3 mb-2">
-                  <div class="desc w-full md:w-1/3 px-3 mb-6 md:mb-0">
-                    <label
-                      class="block uppercase tracking-wide text-xs font-bold mb-2"
-                      for="grid-city"
-                      >Description
+                  <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
+                    <label class="block uppercase tracking-wide text-xs font-bold mb-2">
+                      Description
                     </label>
                     <textarea
-                      class="itbkkdesc appearance-none block w-full bg-gray-200 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                      id="description"
-                      type="text"
+                      class="itbkkdesc block w-full bg-gray-200 border rounded py-3 px-4 leading-tight focus:bg-white"
                       placeholder="Enter description..."
                       v-model="newDescription"
                     ></textarea>
@@ -198,20 +112,16 @@ const closeModal = () => {
                 </div>
               </div>
             </div>
+
             <div class="detailright flex-col">
               <div class="text-left">
                 <div class="assign flex flex-wrap -mx-3 mb-2">
                   <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
-                    <label
-                      class="block uppercase tracking-wide text-xs font-bold mb-2"
-                      for="grid-city"
-                    >
+                    <label class="block uppercase tracking-wide text-xs font-bold mb-2">
                       Assignees
                     </label>
                     <textarea
-                      class="itbkkassignees appearance-none block w-full bg-gray-200 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
-                      id="assign"
-                      type="text"
+                      class="itbkkassignees block w-full bg-gray-200 border rounded py-3 px-4 leading-tight focus:bg-white"
                       placeholder="Enter assignees..."
                       v-model="newAssignees"
                     ></textarea>
@@ -220,22 +130,19 @@ const closeModal = () => {
               </div>
 
               <div class="text-left">
-                <div class="w-full md:w-1/3 mb-6 md:mb-0">
-                  <label
-                    class="block uppercase tracking-wide text-xs font-bold mb-2"
-                    for="grid-state"
-                  >
+                <div class="w-full md:w-1/3 mb-6">
+                  <label class="block uppercase tracking-wide text-xs font-bold mb-2">
                     Status
                   </label>
                   <div class="relative">
                     <select
-                      class="itbkk-status block w-60 bg-gray-200 border border-gray-200 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                      id="grid-state"
-                      v-model="newStatus.name"
+                      class="itbkk-status block w-60 bg-gray-200 border py-3 px-4 pr-8 rounded focus:bg-white"
+                      v-model="newStatus"
                     >
                       <option
-                        v-for="(status, index) in store.status.value"
-                        :key="index"
+                        v-for="status in taskStore.tasks"
+                        :key="status.id"
+                        :value="status"
                       >
                         {{ status.name }}
                       </option>
@@ -249,12 +156,11 @@ const closeModal = () => {
           <div class="modal-footer">
             <div class="itbkk-button">
               <hr />
-              <button @click="closeModal" class="close border">Cancel</button>
+              <button @click="closeModal" class="close">Cancel</button>
               <button
-                @click="$emit('toastAdd')"
-                class="itbkk-button-confirm border"
+                class="itbkk-button-confirm"
                 type="submit"
-                :disabled="newTitle.length === 0"
+                :disabled="!newTitle.length"
               >
                 Save
               </button>

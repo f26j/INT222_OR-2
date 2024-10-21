@@ -1,33 +1,41 @@
-// stores/TaskStore.js
 import { ref } from "vue";
 import { defineStore } from "pinia";
+import { useUserStore } from "@/stores/AuthUserStore.js";
 
-export const useTaskStore = defineStore("apiTask", () => {
+export const useTaskStore = defineStore("taskStore", () => {
   const tasks = ref([]);
-
   const baseUrl = import.meta.env.VITE_API_BOARDS;
+  const userStore = useUserStore(); // เรียก user store
 
-  // ฟังก์ชัน Fetch Tasks (ไม่ต้องใช้ Token)
   const fetchTasks = async (boardId) => {
     try {
+      const token = userStore.token; // ใช้ token จาก store
+
       const response = await fetch(`${baseUrl}/v3/boards/${boardId}/tasks`, {
-        headers: { "Content-Type": "application/json" },
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
       });
 
-      if (!response.ok) throw new Error("Failed to fetch tasks");
+      if (!response.ok) {
+        if (response.status === 403) {
+          throw new Error("Access forbidden. Board might be private.");
+        }
+        throw new Error("Failed to fetch tasks");
+      }
 
       tasks.value = await response.json();
-      console.log("Tasks fetched successfully:", tasks.value);
     } catch (error) {
-      console.error("Error fetching tasks:", error);
+      console.error("Error fetching tasks:", error.message);
+      throw error;
     }
   };
 
-  // ฟังก์ชันเพิ่ม Task (ต้องใช้ Token)
   const addTask = async (boardId, newTask) => {
     try {
-      const token = localStorage.getItem("jwtToken");
-      if (!token) throw new Error("No token available");
+      const token = userStore.token;
 
       const response = await fetch(`${baseUrl}/v3/boards/${boardId}/tasks`, {
         method: "POST",
@@ -44,24 +52,25 @@ export const useTaskStore = defineStore("apiTask", () => {
       tasks.value.push(task);
       console.log("Task added successfully:", task);
     } catch (error) {
-      console.error("Error adding task:", error);
+      console.error("Error adding task:", error.message);
     }
   };
 
-  // ฟังก์ชันอัปเดต Task (ต้องใช้ Token)
   const updateTask = async (boardId, taskId, updatedTask) => {
     try {
-      const token = localStorage.getItem("jwtToken");
-      if (!token) throw new Error("No token available");
+      const token = userStore.token;
 
-      const response = await fetch(`${baseUrl}/v3/boards/${boardId}/tasks/${taskId}`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedTask),
-      });
+      const response = await fetch(
+        `${baseUrl}/v3/boards/${boardId}/tasks/${taskId}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatedTask),
+        }
+      );
 
       if (!response.ok) throw new Error("Failed to update task");
 
@@ -69,30 +78,30 @@ export const useTaskStore = defineStore("apiTask", () => {
       if (index !== -1) tasks.value[index] = updatedTask;
       console.log("Task updated successfully:", updatedTask);
     } catch (error) {
-      console.error("Error updating task:", error);
+      console.error("Error updating task:", error.message);
     }
   };
 
-  // ฟังก์ชันลบ Task (ต้องใช้ Token)
   const deleteTask = async (boardId, taskId) => {
     try {
-      const token = localStorage.getItem("jwtToken");
-      if (!token) throw new Error("No token available");
+      const token = userStore.token;
 
-      const response = await fetch(`${baseUrl}/v3/boards/${boardId}/tasks/${taskId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await fetch(
+        `${baseUrl}/v3/boards/${boardId}/tasks/${taskId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (!response.ok) throw new Error("Failed to delete task");
 
       tasks.value = tasks.value.filter((task) => task.id !== taskId);
       console.log("Task deleted successfully:", taskId);
     } catch (error) {
-      console.error("Error deleting task:", error);
+      console.error("Error deleting task:", error.message);
     }
   };
 

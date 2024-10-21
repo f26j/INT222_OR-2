@@ -1,124 +1,47 @@
 <script setup>
-import { onMounted, ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useTaskStore } from "@/stores/apiController.js";
+import { useTaskStore } from "@/stores/TaskStore.js"; // ใช้ TaskStore จาก Pinia
 
-// API Endpoint URLs
-const baseUrl = import.meta.env.VITE_API_BOARDS;
-
-// Pinia store for tasks and statuses
-const store = useTaskStore();
+// Router
 const route = useRoute();
 const router = useRouter();
+const taskStore = useTaskStore(); // Pinia Store
+
+// ตัวแปรสำหรับเก็บข้อมูลและการจัดการ
 const boardId = route.params.boardId; // ดึงค่า boardId จาก URL
-const taskId = route.params.taskId; // ดึงค่า id ของ task
+const taskId = route.params.taskId; // ดึง taskId จาก URL
+const modalDetail = ref({}); // เก็บข้อมูลรายละเอียด Task
 const localTimeZone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone);
-const modalDetail = ref({});
-const status = ref({});
 
-// ฟังก์ชันสำหรับเรียก API พร้อม JWT Token
-async function fetchWithToken(url, options = {}) {
-  const token = localStorage.getItem("jwtToken");
-  if (!token) return null; 
-
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${token}`, // ส่ง JWT Token
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-  });
-
-  // ตรวจสอบสถานะ 401 Unauthorized
-  if (response.status === 401) {
-    // router.push("/login");
-    return null;
-  } else if (response.status === 403) {
-    router.push({ name: "AccessDenied" })
-    return null
+// ฟังก์ชันสำหรับดึงรายละเอียด Task
+async function fetchTaskDetail() {
+  try {
+    const task = await taskStore.fetchTaskDetail(boardId, taskId); // เรียกจาก TaskStore
+    if (!task) {
+      router.push({ name: "NotFound" });
+    }
+    modalDetail.value = task;
+  } catch (error) {
+    console.error("Error fetching task details:", error);
+    router.push("/");
   }
-
-  return response;
-}
-
-// ฟังก์ชันดึงข้อมูล Status ของบอร์ดปัจจุบัน
-async function fetchDataStatus() {
-  const response = await fetchWithToken(
-    `${baseUrl}/v3/boards/${boardId}/statuses` // ใช้ fetchWithToken พร้อม boardId
-  );
-  if (!response) return; // ถ้า response เป็น null ให้ return
-
-  if (response.status === 404) {
-    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
-    return;
-  }
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch status: ${response.statusText}`);
-  }
-
-  const dataStatus = await response.json();
-  if (!Array.isArray(dataStatus)) {
-    throw new TypeError("Fetched status data is not an array");
-  }
-
-  return dataStatus;
 }
 
 // ฟังก์ชันฟอร์แมตวันที่
 function formatDate(date) {
-  if (!date) {
-    return "N/A"; // กรณีที่ไม่มีวันที่ส่งเข้ามา
-  }
-
+  if (!date) return "N/A";
   const d = new Date(date);
-  if (isNaN(d)) {
-    return "Invalid Date"; // กรณีที่วันที่ไม่ถูกต้อง
-  }
-
-  return d
-    .toLocaleString("en-GB", { timeZone: localTimeZone.value })
-    .split(",")
-    .join(" ");
+  return d.toLocaleString("en-GB", { timeZone: localTimeZone.value }).split(",").join(" ");
 }
-
-// ฟังก์ชันเปิด Modal สำหรับแสดงรายละเอียดของ Task
-async function openModalDetail() {
-  const response = await fetchWithToken(
-    `${baseUrl}/v3/boards/${boardId}/tasks/${taskId}` // ใช้ fetchWithToken สำหรับ task ที่เลือก
-  );
-  if (!response) return; // ถ้า response เป็น null ให้ return
-
-  if (response.status === 404) {
-    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
-    return;
-  }
-
-  const res = await response.json();
-  modalDetail.value = res;
-  status.value = { ...modalDetail.value.status };
-  if (!response.ok) {
-    router.push("/");
-    setTimeout(() => {
-      alert("The requested task does not exist");
-    }, 500);
-  }
-}
-
-// ฟังก์ชันที่เรียกเมื่อ component ถูก mounted
-onMounted(async () => {
-  const datastatus = await fetchDataStatus(); // ดึงข้อมูล status
-  if (datastatus) {
-    store.status.value = datastatus;
-  }
-  await openModalDetail(); // ดึงรายละเอียด task
-});
 
 // ฟังก์ชันปิด Modal
 const closeModal = () => {
-  router.push({ name: "board-tasks", params: { boardId: boardId } }).catch(() => {});
+  router.push({ name: "board-tasks", params: { boardId } });
 };
+
+// เรียกฟังก์ชันเมื่อ component mount
+onMounted(fetchTaskDetail);
 </script>
 
 <template>
