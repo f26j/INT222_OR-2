@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sit.int221.BEOR2.db1.entities.User;
 import sit.int221.BEOR2.db1.repositories.UserRepository;
+import sit.int221.BEOR2.db2.dtos.JwtRefreshTokenResponse;
 import sit.int221.BEOR2.db2.dtos.JwtResponse;
 import sit.int221.BEOR2.db2.entities.Users;
 import sit.int221.BEOR2.db2.repositories.UsersRepository;
@@ -59,6 +60,10 @@ public class UsersService {
                 user.get().getRole()
         );
 
-        return new JwtResponse(token);
+        String refreshToken = jwtUtil.generateRefreshToken(
+                user.get().getOid()
+        );
+
+        return new JwtResponse(token, refreshToken);
     }
 }

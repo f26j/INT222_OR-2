@@ -21,24 +21,42 @@ public class JwtUtil {
     @Value("${jwt.expiration.time}")
     private long EXPIRATION_TIME; // 30 นาที
 
+    @Value("${jwt.refresh.time}")
+    private long REFRESH_TIME; // 24 ชั่วโมง
+
     @SneakyThrows
     private Key getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(this.SECRET_KEY);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    @SuppressWarnings("deprecation")
-    private String createToken(Map<String, Object> claims) {
+    private String getIssuerUrl() {
         UriComponents uriComponents = ServletUriComponentsBuilder.fromCurrentRequestUri().build();
         String host = uriComponents.getHost();
         String basePath = (host.equals("intproj23.sit.kmutt.ac.th") || host.equals("ip23or2.sit.kmutt.ac.th")) ? "or2/" : "";
-        String issuerUrl = uriComponents.getScheme() + "://" + host + "/" + basePath;
+        return uriComponents.getScheme() + "://" + host + "/" + basePath;
+    }
+
+    @SuppressWarnings("deprecation")
+    private String createToken(Map<String, Object> claims) {
         return Jwts.builder()
                 .setHeaderParam("typ", "JWT")
                 .setClaims(claims)
-                .setIssuer(issuerUrl)
+                .setIssuer(getIssuerUrl())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    @SuppressWarnings("deprecation")
+    private String createRefreshToken(Map<String, Object> claims) {
+        return Jwts.builder()
+                .setHeaderParam("typ", "JWT")
+                .setClaims(claims)
+                .setIssuer(getIssuerUrl())
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + REFRESH_TIME))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -50,6 +68,12 @@ public class JwtUtil {
         claims.put("email", email);
         claims.put("role", role);
         return createToken(claims);
+    }
+
+    public String generateRefreshToken(String oid) {
+        Map<String, Object> claims = new LinkedHashMap<>();
+        claims.put("oid", oid);
+        return createRefreshToken(claims);
     }
 
     public String getOid(String token) {
