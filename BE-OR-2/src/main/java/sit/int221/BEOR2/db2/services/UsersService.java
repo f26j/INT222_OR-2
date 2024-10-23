@@ -1,12 +1,16 @@
 package sit.int221.BEOR2.db2.services;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sit.int221.BEOR2.db1.entities.User;
 import sit.int221.BEOR2.db1.repositories.UserRepository;
-import sit.int221.BEOR2.db2.dtos.JwtRefreshTokenResponse;
+import sit.int221.BEOR2.db2.dtos.AccessTokenResponse;
 import sit.int221.BEOR2.db2.dtos.JwtResponse;
 import sit.int221.BEOR2.db2.entities.Users;
 import sit.int221.BEOR2.db2.repositories.UsersRepository;
@@ -65,5 +69,35 @@ public class UsersService {
         );
 
         return new JwtResponse(token, refreshToken);
+    }
+
+    @Transactional
+    public AccessTokenResponse refreshToken(String refreshToken) {
+        try {
+            String oid = jwtUtil.getOid(refreshToken.trim());
+            Optional<Users> findUser = Optional.ofNullable(usersRepository.findByOid(oid));
+            if (findUser.isEmpty()) {
+                throw new ApiUnauthorizedException("User not found");
+            }
+
+            Users user = findUser.get();
+            String token = jwtUtil.generateToken(
+                    user.getName(),
+                    user.getOid(),
+                    user.getEmail(),
+                    user.getRole()
+            );
+
+            return new AccessTokenResponse(token);
+
+        } catch (ExpiredJwtException e) {
+            throw new ApiUnauthorizedException("Refresh token is expired");
+        } catch (MalformedJwtException e) {
+            throw new ApiUnauthorizedException("Refresh token is not well-formed JWT");
+        } catch (SignatureException | UnsupportedJwtException e) {
+            throw new ApiUnauthorizedException("Refresh token has been tampered with");
+        } catch (IllegalArgumentException e) {
+            throw new ApiUnauthorizedException("Invalid refresh token");
+        }
     }
 }

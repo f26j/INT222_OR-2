@@ -9,6 +9,6 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class JwtRefreshTokenResponse {
+public class AccessTokenResponse {
     private String access_token;
 }

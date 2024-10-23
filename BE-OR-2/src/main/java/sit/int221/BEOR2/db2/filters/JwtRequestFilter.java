@@ -75,8 +75,15 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             handleAuthenticationException(request, response, "Token is not well-formed JWT");
             return;
         } catch (SignatureException | UnsupportedJwtException e) {
-            handleAuthenticationException(request, response, "Token has been tampered");
+            handleAuthenticationException(request, response, "Token has been tampered with");
             return;
+        } catch (IllegalArgumentException e) {
+            handleAuthenticationException(request, response, "Invalid token");
+            return;
+        }
+
+        if (request.getServletPath().equals("/token")) {
+            request.setAttribute("refreshToken", token);
         }
 
         chain.doFilter(request, response);

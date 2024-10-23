@@ -15,7 +15,7 @@ public class SwaggerConfig {
     public GroupedOpenApi api() {
         return GroupedOpenApi.builder()
                 .group("controllers")
-                .pathsToMatch("/login/**", "/v3/**")
+                .pathsToMatch("/login/**", "/v3/**", "/token/**")
                 .build();
     }
 
