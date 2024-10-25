@@ -3,17 +3,13 @@ package sit.int221.BEOR2.db1.controllers;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import sit.int221.BEOR2.BeOr2CrossOrigin;
 import sit.int221.BEOR2.db1.dtos.BoardDto;
-import sit.int221.BEOR2.db1.dtos.UserDto;
 import sit.int221.BEOR2.db1.entities.Board;
 import sit.int221.BEOR2.db1.services.BoardService;
 import org.springframework.validation.annotation.Validated;
-import sit.int221.BEOR2.exceptions.ApiBadRequestException;
 
-import javax.validation.Valid;
 import java.util.List;
 import java.util.Map;
 
@@ -29,23 +25,8 @@ public class BoardController {
 
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
-    public List<BoardDto> getBoardsByOwnerOidOrPublic() {
-        return boardService.getBoardsByOwnerOidOrPublic();
-    }
-
-    @GetMapping("/all")
-    @ResponseStatus(HttpStatus.OK)
-    public List<BoardDto> getAllBoards() {
-        List<Board> boards = boardService.getBoards();  // ดึงบอร์ดทั้งหมด (ไม่กรอง)
-        return boards.stream().map(board -> new BoardDto(
-                board.getId(),
-                board.getName(),
-                board.getVisibility(),
-                new UserDto(
-                        board.getUser().getOid(),
-                        board.getUser().getUsername()
-                )
-        )).toList();
+    public List<BoardDto> getBoards() {
+        return boardService.getBoards();
     }
 
     @GetMapping("/{id}")
@@ -57,7 +38,7 @@ public class BoardController {
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public BoardDto addBoard(@RequestBody(required = false) Board board) {
+    public BoardDto addBoard(@RequestBody Board board) {
         return modelMapper.map(boardService.addBoard(board), BoardDto.class);
     }
 
@@ -84,4 +65,3 @@ public class BoardController {
         boardService.deleteBoard(id);
     }
 }
-

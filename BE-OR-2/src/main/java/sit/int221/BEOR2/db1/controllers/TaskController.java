@@ -7,14 +7,11 @@ import org.springframework.web.bind.annotation.*;
 import sit.int221.BEOR2.db1.dtos.StatusDto;
 import sit.int221.BEOR2.db1.dtos.TaskManagementDto;
 import sit.int221.BEOR2.db1.dtos.TaskDto;
-import sit.int221.BEOR2.db1.dtos.TaskSpecificDto;
 import sit.int221.BEOR2.db1.entities.Task;
 import sit.int221.BEOR2.db1.services.TaskService;
 import sit.int221.BEOR2.BeOr2CrossOrigin;
-import sit.int221.BEOR2.exceptions.ApiBadRequestException;
 import org.springframework.validation.annotation.Validated;
 
-import javax.validation.Valid;
 import java.util.List;
 
 @Validated
@@ -38,14 +35,15 @@ public class TaskController {
                 task.getAssignees(),
                 new StatusDto(
                         task.getStatus().getId(),
-                        task.getStatus().getName()
+                        task.getStatus().getName(),
+                        task.getStatus().getDescription()
                 )
         )).toList();
     }
 
     @GetMapping("/{taskId}")
     @ResponseStatus(HttpStatus.OK)
-    public TaskSpecificDto getTaskById(@PathVariable String id, @PathVariable Integer taskId) {
+    public Task getTaskById(@PathVariable String id, @PathVariable Integer taskId) {
         return taskService.getTaskById(id, taskId);
     }
 
@@ -60,8 +58,6 @@ public class TaskController {
     public TaskManagementDto editTask(@PathVariable String id,
                                       @PathVariable Integer taskId,
                                       @RequestBody(required = false) Task task) {
-
-
         return modelMapper.map(taskService.editTask(id, taskId, task), TaskManagementDto.class);
     }
 

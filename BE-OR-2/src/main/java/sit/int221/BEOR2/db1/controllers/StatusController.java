@@ -5,12 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import sit.int221.BEOR2.db1.dtos.StatusDto;
-import sit.int221.BEOR2.db1.dtos.StatusManagementDto;
-import sit.int221.BEOR2.db1.dtos.StatusSpecificDto;
 import sit.int221.BEOR2.db1.entities.Status;
 import sit.int221.BEOR2.db1.services.StatusService;
 import sit.int221.BEOR2.BeOr2CrossOrigin;
-import javax.validation.Valid;
+
 import java.util.List;
 
 @RestController
@@ -29,29 +27,30 @@ public class StatusController {
 
         return statuses.stream().map(status -> new StatusDto(
                 status.getId(),
-                status.getName()
+                status.getName(),
+                status.getDescription()
         )).toList();
     }
 
     @GetMapping("/{statusId}")
     @ResponseStatus(HttpStatus.OK)
-    public StatusSpecificDto getStatusById(@PathVariable String id, @PathVariable Integer statusId) {
+    public Status getStatusById(@PathVariable String id, @PathVariable Integer statusId) {
         System.out.println("Controller");
         return statusService.getStatusById(id, statusId);
     }
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public StatusManagementDto addStatus(@PathVariable String id, @RequestBody(required = false) Status status) {
-        return modelMapper.map(statusService.addStatus(id, status), StatusManagementDto.class);
+    public StatusDto addStatus(@PathVariable String id, @RequestBody(required = false) Status status) {
+        return modelMapper.map(statusService.addStatus(id, status), StatusDto.class);
     }
 
     @PutMapping("/{statusId}")
     @ResponseStatus(HttpStatus.OK)
-    public StatusManagementDto editStatus(@PathVariable String id,
+    public StatusDto editStatus(@PathVariable String id,
                                           @PathVariable Integer statusId,
                                           @RequestBody(required = false) Status status) {
-        return modelMapper.map(statusService.editStatus(id, statusId, status), StatusManagementDto.class);
+        return modelMapper.map(statusService.editStatus(id, statusId, status), StatusDto.class);
     }
 
     @DeleteMapping("/{statusId}")
@@ -68,4 +67,3 @@ public class StatusController {
         statusService.transferStatus(id, statusId, statusNewId);
     }
 }
-

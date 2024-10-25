@@ -12,4 +12,5 @@ import lombok.Setter;
 public class StatusDto {
     private Integer id;
     private String name;
+    private String description;
 }
