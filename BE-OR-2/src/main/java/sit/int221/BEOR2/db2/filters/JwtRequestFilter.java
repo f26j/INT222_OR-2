@@ -45,7 +45,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             }
 
             if (token != null && !jwtUtil.isTokenExpired(token)) {
-                log.info("1.1");
+                log.info("1.");
                 String oid = jwtUtil.getOid(token);
                 Users user = usersRepository.findByOid(oid);
 
@@ -54,16 +54,16 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 log.info(String.valueOf(user));
 
                 if (user != null) {
-                    log.info("2.1");
+                    log.info("2.");
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(user.getUsername(), null, Collections.emptyList());
                     log.info(String.valueOf(authToken));
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             } else {
-                log.info("3.1");
+                log.info("3.");
                 if (!request.getMethod().matches("GET")) {
-                    log.info("4");
+                    log.info("4.");
                     handleAuthenticationException(request, response, "No Token");
                     return;
                 }

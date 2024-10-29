@@ -1,9 +1,5 @@
 package sit.int221.BEOR2.db2.services;
 
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.UnsupportedJwtException;
-import io.jsonwebtoken.security.SignatureException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -75,12 +71,12 @@ public class UsersService {
     public AccessTokenResponse refreshToken(String refreshToken) {
         try {
             String oid = jwtUtil.getOid(refreshToken.trim());
-            Optional<Users> findUser = Optional.ofNullable(usersRepository.findByOid(oid));
-            if (findUser.isEmpty()) {
+            Optional<Users> existingUser = Optional.ofNullable(usersRepository.findByOid(oid));
+            if (existingUser.isEmpty()) {
                 throw new ApiUnauthorizedException("User not found");
             }
 
-            Users user = findUser.get();
+            Users user = existingUser.get();
             String token = jwtUtil.generateToken(
                     user.getName(),
                     user.getOid(),
@@ -90,14 +86,8 @@ public class UsersService {
 
             return new AccessTokenResponse(token);
 
-        } catch (ExpiredJwtException e) {
-            throw new ApiUnauthorizedException("Refresh token is expired");
-        } catch (MalformedJwtException e) {
-            throw new ApiUnauthorizedException("Refresh token is not well-formed JWT");
-        } catch (SignatureException | UnsupportedJwtException e) {
-            throw new ApiUnauthorizedException("Refresh token has been tampered with");
-        } catch (IllegalArgumentException e) {
-            throw new ApiUnauthorizedException("Invalid refresh token");
+        } catch (RuntimeException e) {
+            throw new ApiUnauthorizedException("Token is invalid or expired/Missing refresh_token in request header");
         }
     }
 }

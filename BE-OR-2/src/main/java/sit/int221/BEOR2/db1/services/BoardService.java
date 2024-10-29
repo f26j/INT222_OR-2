@@ -4,9 +4,8 @@ import io.viascom.nanoid.NanoId;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import sit.int221.BEOR2.db1.components.BoardAuth;
 import sit.int221.BEOR2.db1.dtos.BoardDto;
 import sit.int221.BEOR2.db1.dtos.UserDto;
 import sit.int221.BEOR2.db1.entities.Board;
@@ -23,7 +22,7 @@ import java.util.List;
 
 @Service
 @Slf4j
-public class BoardService {
+public class BoardService extends BoardAuth {
     @Autowired
     private BoardRepository boardRepository;
     @Autowired
@@ -32,6 +31,15 @@ public class BoardService {
     private StatusRepository statusRepository;
     @Autowired
     private StatusService statusService;
+
+    private BoardDto convertToDto(Board board) {
+        return new BoardDto(
+                board.getId(),
+                board.getName(),
+                board.getVisibility(),
+                new UserDto(board.getUser().getOid(), board.getUser().getUsername())
+        );
+    }
 
     public List<BoardDto> getBoards() {
         String username = getAuthenticatedUsername();
@@ -120,40 +128,5 @@ public class BoardService {
         }
 
         boardRepository.deleteById(id);
-    }
-
-    private Board getBoardEntity(String id) {
-        return boardRepository.findById(id)
-                .orElseThrow(() -> new ApiNotFoundException("Board id '" + id + "' not found"));
-    }
-
-    private User getAuthenticatedUser() {
-        String username = getAuthenticatedUsername();
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new ApiForbiddenException("User not found"));
-    }
-
-    private String getAuthenticatedUsername() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication != null ? authentication.getName() : null;
-    }
-
-    private boolean isBoardOwner(User user, Board board) {
-        return board.getUser().getOid().equals(user.getOid());
-    }
-
-    private void validateBoardName(String name) {
-        if (name == null || name.trim().isEmpty() || name.length() > 120) {
-            throw new ApiBadRequestException("Invalid board name");
-        }
-    }
-
-    private BoardDto convertToDto(Board board) {
-        return new BoardDto(
-                board.getId(),
-                board.getName(),
-                board.getVisibility(),
-                new UserDto(board.getUser().getOid(), board.getUser().getUsername())
-        );
     }
 }
