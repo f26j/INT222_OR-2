@@ -8,6 +8,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -24,6 +25,7 @@ import java.io.IOException;
 import java.util.Collections;
 
 @Component
+@Slf4j
 public class JwtRequestFilter extends OncePerRequestFilter {
     @Autowired
     private JwtUtil jwtUtil;
@@ -43,26 +45,25 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             }
 
             if (token != null && !jwtUtil.isTokenExpired(token)) {
-                System.out.println("1.1");
+                log.info("1.");
                 String oid = jwtUtil.getOid(token);
                 Users user = usersRepository.findByOid(oid);
 
-                System.out.println(token);
-                System.out.println(oid);
-                System.out.println(user);
+                log.info(token);
+                log.info(oid);
+                log.info(String.valueOf(user));
 
                 if (user != null) {
-                    System.out.println("2.1");
+                    log.info("2.");
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(user.getUsername(), null, Collections.emptyList());
-                    System.out.println(authToken);
+                    log.info(String.valueOf(authToken));
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
-            }else {
-                System.out.println("3.1");
-                if (!request.getMethod().matches("GET")){
-                    System.out.println("4");
+            } else {
+                log.info("3.");
+                if (!request.getMethod().matches("GET")) {
+                    log.info("4.");
                     handleAuthenticationException(request, response, "No Token");
                     return;
                 }
@@ -74,8 +75,15 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             handleAuthenticationException(request, response, "Token is not well-formed JWT");
             return;
         } catch (SignatureException | UnsupportedJwtException e) {
-            handleAuthenticationException(request, response, "Token has been tampered");
+            handleAuthenticationException(request, response, "Token has been tampered with");
             return;
+        } catch (IllegalArgumentException e) {
+            handleAuthenticationException(request, response, "Invalid token");
+            return;
+        }
+
+        if (request.getServletPath().equals("/token")) {
+            request.setAttribute("refreshToken", token);
         }
 
         chain.doFilter(request, response);
