@@ -7,7 +7,7 @@ import { useStatusStore } from "@/stores/StatusStore.js"; // ใช้ StatusSto
 import { useToastStore } from "@/stores/ToastStore.js";
 import { useBoardStore } from "@/stores/BoardStore.js";
 import Copyright from "../components/css/Copyright.vue";
-import ModalDeleteStatus from "../components/ModalDeleteStatus.vue";
+import ModalDeleteStatus from "../components/modal/ModalDeleteStatus.vue";
 import Navbar from "../components/css/Navbar.vue";
 
 // Store, API zone
@@ -42,7 +42,6 @@ onMounted(async () => {
   }
 });
 
-
 // onUpdated(async () => {
 //   await store.fetchStatuses(boardId);
 // });
@@ -73,34 +72,39 @@ const openModalDelete = (id, name) => {
   selectDeleteStatusName.value = name;
 };
 
-// ฟังก์ชันสำหรับการลบ Status
 const deleteStatus = async (id) => {
   try {
-    await store.deleteStatus(boardId, id); // ลบ status ผ่าน store
-    toastStore.handleStatusDeleted();
+    await store.deleteStatus(boardId, id); // ใช้ store แทน statusStore
+    toastStore.addToast("The status has been deleted", "success");
     showDelete.value = false;
   } catch (error) {
     console.error("Failed to delete status:", error);
-    toastStore.handleStatusDeletedF();
+    toastStore.addToast(
+      "An error has occurred, the status could not be deleted.",
+      "error"
+    );
   }
 };
 
-// ฟังก์ชันสำหรับการย้าย Task ไปยัง Status ใหม่และลบ Status เดิม
 const deleteTransfer = async (id, newId) => {
   try {
-    await store.transferStatus(boardId, id, newId); // ย้ายและลบ status
-    toastStore.handleStatusDeleted();
+    await store.transferStatus(boardId, id, newId); // ใช้ store แทน statusStore
+    toastStore.addToast("The status has been deleted", "success");
     showDelete.value = false;
   } catch (error) {
     console.error("Failed to transfer status:", error);
-    toastStore.handleStatusDeletedF();
+    toastStore.addToast(
+      "An error has occurred, the status could not be deleted.",
+      "error"
+    );
   }
 };
+
 
 // ปิด Modal
 const closeModal = () => {
   showDelete.value = false;
-  router.push({ name: "statusView" });
+  router.push({ name: "board-status", params: { boardId } });
 };
 </script>
 
@@ -181,28 +185,39 @@ const closeModal = () => {
             </tr>
           </thead>
           <tbody>
-  <tr v-for="(status, index) in statuses" :key="status.id" class="itbkk-item">
-    <td class="bgd">
-      <div class="idkb flex">{{ index + 1 }}</div>
-    </td>
-    <td class="itbkk-status-name">
-      <p>{{ status.name }}</p>
-    </td>
-    <td :class="{ 'italic-gray': !status.description?.trim() }">
-      <p v-if="!status.description?.trim()">No description provided</p>
-      <p v-else>{{ status.description }}</p>
-    </td>
-    <td class="itbkk-button-action flex">
-      <button @click="openModalEdit(status.id)" v-if="status.name !== 'No Status'">
-        Edit
-      </button>
-      <button @click="openModalDelete(status.id, status.name)" v-if="status.name !== 'No Status'">
-        Delete
-      </button>
-    </td>
-  </tr>
-</tbody>
-
+            <tr
+              v-for="(status, index) in statuses"
+              :key="status.id"
+              class="itbkk-item"
+            >
+              <td class="bgd">
+                <div class="idkb flex">{{ index + 1 }}</div>
+              </td>
+              <td class="itbkk-status-name">
+                <p>{{ status.name }}</p>
+              </td>
+              <td :class="{ 'italic-gray': !status.description?.trim() }">
+                <p v-if="!status.description?.trim()">
+                  No description provided
+                </p>
+                <p v-else>{{ status.description }}</p>
+              </td>
+              <td class="itbkk-button-action flex">
+                <button
+                  @click="openModalEdit(status.id)"
+                  v-if="status.name !== 'No Status' && status.name !== 'Done'"
+                >
+                  Edit
+                </button>
+                <button
+                  @click="openModalDelete(status.id, status.name)"
+                  v-if="status.name !== 'No Status' && status.name !== 'Done'"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          </tbody>
         </table>
       </div>
     </main>
@@ -211,13 +226,13 @@ const closeModal = () => {
     </footer>
   </div>
   <ModalDeleteStatus
-        v-if="showDelete"
-        :statusId="selectDeleteStatusId"
-        :name="selectDeleteStatusName"
-        @closeModal="closeModal"
-        @confirmDeleteStatus="deleteStatus"
-        @deleteTransfer="deleteTransfer"
-      />
+    v-if="showDelete"
+    :statusId="selectDeleteStatusId"
+    :name="selectDeleteStatusName"
+    @closeModal="closeModal"
+    @confirmDeleteStatus="deleteStatus"
+    @deleteTransfer="deleteTransfer"
+  />
   <router-view />
 </template>
 
@@ -329,6 +344,7 @@ h3 {
   background-color: #905cb334;
   border-radius: 10px;
   height: 40px;
+  width: 70px;
   justify-content: center;
   align-items: center;
   transition: transform 0.3s ease;
@@ -516,4 +532,12 @@ footer {
     width: 100%;
   }
 }
+tbody tr {
+  min-height: 60px;
+}
+
+tbody td {
+  min-height: inherit;
+}
+
 </style>

@@ -40,7 +40,7 @@ export const useBoardStore = defineStore("apiBoard", () => {
     try {
       const headers = { "Content-Type": "application/json" };
   
-      // ตรวจสอบว่ามี Token ไหม ถ้ามีให้เพิ่มลงใน headers
+      // ตรวจสอบว่ามี Token หรือไม่
       const token = userStore.token;
       if (token) {
         headers.Authorization = `Bearer ${token}`;
@@ -53,16 +53,24 @@ export const useBoardStore = defineStore("apiBoard", () => {
         headers,
       });
   
-      if (!response.ok) throw new Error(`Failed to fetch board. Status: ${response.status}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          console.error("Board not found.");
+          return null; // ถ้าไม่พบ ให้ return null แทน
+        }
+        throw new Error(`Failed to fetch board. Status: ${response.status}`);
+      }
   
       const boardData = await response.json();
       currentBoard.value = boardData; // เก็บข้อมูลบอร์ดใน state
+  
       return boardData;
     } catch (error) {
       console.error("Error fetching board:", error.message);
       throw error;
     }
   };
+  
   
 
   const createBoard = async (newBoard) => {
@@ -82,7 +90,6 @@ export const useBoardStore = defineStore("apiBoard", () => {
 
       const createdBoard = await response.json();
       boards.value.push(createdBoard);
-      console.log("Board created successfully:", createdBoard);
       return createdBoard;
     } catch (error) {
       console.error("Error creating board:", error.message);
@@ -94,7 +101,6 @@ export const useBoardStore = defineStore("apiBoard", () => {
     const index = boards.value.findIndex((board) => board.id === boardId);
     if (index !== -1) {
       boards.value[index] = updatedBoard;
-      console.log("Board updated successfully:", updatedBoard);
     } else {
       console.error("Board not found in store");
     }
@@ -118,7 +124,6 @@ export const useBoardStore = defineStore("apiBoard", () => {
       const board = boards.value.find((board) => board.id === boardId);
       if (board) board.visibility = newVisibility;
 
-      console.log("Visibility updated successfully:", newVisibility);
     } catch (error) {
       console.error("Error updating visibility:", error.message);
     }
@@ -143,7 +148,6 @@ export const useBoardStore = defineStore("apiBoard", () => {
       if (!response.ok) throw new Error(`Failed to delete board. Status: ${response.status}`);
 
       boards.value = boards.value.filter((b) => b.id !== boardId);
-      console.log("Board deleted successfully:", boardId);
     } catch (error) {
       console.error("Error deleting board:", error.message);
     }
