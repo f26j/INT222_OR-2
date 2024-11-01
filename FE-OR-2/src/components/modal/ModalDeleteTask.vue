@@ -1,16 +1,25 @@
 <script setup>
 const props = defineProps({
   showModal: Boolean,
-  taskId: Number,
-  title: String,
-  indexs: Number,
+  taskId: {
+    type: Number,
+    required: true,
+  },
+  title: {
+    type: String,
+    required: true,
+  },
+  indexs: {
+    type: Number,
+    required: true,
+  },
 });
+
 
 defineEmits(["closeModal", "confirmDeleteModal"]);
 </script>
-
 <template>
-  <div class="details fixed inset-0 overflow-y-auto bg-black bg-opacity-50">
+  <div class="details fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
     <div
       class="modalDelete rounded-lg text-center shadow-xlp-6 w-min"
       role="dialog"
@@ -48,22 +57,26 @@ defineEmits(["closeModal", "confirmDeleteModal"]);
           <button class="itbkk-button-cancel" @click="$emit('closeModal')">
             Cancel
           </button>
-          <!-- ไปเรียกใช้ fn closeDeleteModal ของ HomeView -->
           <button
             class="itbkk-button-confirm"
             @click="$emit('confirmDeleteModal', taskId)"
           >
             Confirm
           </button>
-          <!-- ไปเรียกใช้ fn deleteTask ของ HomeView -->
         </div>
       </div>
     </div>
-    <!-- </div> -->
   </div>
 </template>
 
 <style scoped>
+.details {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
 .modalDelete {
   background-color: #ffffff;
   color: black;

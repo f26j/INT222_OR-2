@@ -6,7 +6,7 @@ import { storeToRefs } from "pinia";
 import { useToastStore } from "@/stores/ToastStore.js";
 import Navbar from "../components/css/Navbar.vue";
 import Copyright from "../components/css/Copyright.vue";
-import ModalAddBoard from "../components/ModalAddBoard.vue";
+import ModalAddBoard from "../components/modal/ModalAddBoard.vue";
 
 const boardStore = useBoardStore();
 const { boards } = storeToRefs(boardStore);
@@ -16,7 +16,7 @@ const error = ref(false);
 const isModalOpen = ref(false);
 
 const router = useRouter();
-const route = useRoute(); // ใช้เพื่อเช็คเส้นทางปัจจุบัน
+const route = useRoute();
 
 async function initializeBoards() {
   try {
@@ -33,7 +33,6 @@ async function initializeBoards() {
 const deleteBoard = async (boardId) => {
   try {
     await boardStore.deleteBoard(boardId);
-    console.log("Board deleted successfully:", boardId);
     toastStore.addToast("Board deleted successfully.", "success");
   } catch (error) {
     console.error("Error deleting board:", error);

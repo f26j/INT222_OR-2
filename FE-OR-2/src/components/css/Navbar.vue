@@ -15,13 +15,33 @@ const toggleDropdown = () => {
 };
 
 
-onMounted(() => {
-  if (userStore.token) {
-    userStore.checkAuth(); 
-  } else {
+onMounted(async () => {
+  // ตรวจสอบว่า route ปัจจุบันเป็น public หรือ private
+  const route = router.currentRoute.value;
+  const boardId = route.params.boardId;
+
+  if (!userStore.token && boardId) {
+    try {
+      const boardData = await fetch(`${baseUrl}/v3/boards/${boardId}`, {
+        headers: { "Content-Type": "application/json" },
+      }).then((res) => res.json());
+
+      // ถ้าบอร์ดเป็น private และไม่มี token ให้ redirect ไป /login
+      if (boardData.visibility === "PRIVATE") {
+        console.warn("This board is private. Redirecting to login.");
+        return router.push("/login");
+      }
+    } catch (error) {
+      console.error("Error fetching board data:", error);
+    }
+  } else if (!userStore.token) {
+    // ถ้าไม่มี token แต่ไม่เกี่ยวกับบอร์ดให้ไป login
     router.push("/login");
+  } else {
+    userStore.checkAuth(); // ถ้ามี token ให้ตรวจสอบ auth ปกติ
   }
 });
+
 
 const home = () => {
   router.push("/board");

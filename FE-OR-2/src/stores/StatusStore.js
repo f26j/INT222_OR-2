@@ -28,45 +28,58 @@ export const useStatusStore = defineStore("statusStore", () => {
 
   // ฟังก์ชัน fetch พร้อม Token
   async function fetchWithToken(url, options = {}) {
-    const token = getToken();
-    if (!token) return null;
-
+    const token = localStorage.getItem("jwtToken"); // ดึง Token ถ้ามี
+  
+    const headers = {
+      "Content-Type": "application/json",
+      ...options.headers,
+    };
+  
+    // ถ้ามี Token ให้เพิ่มใน Header
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    } else {
+      console.log("No token, fetching as public access");
+    }
+  
     const response = await fetch(url, {
       ...options,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-        ...options.headers,
-      },
+      mode: "cors",
+      headers,
     });
-
+  
     if (response.status === 401) {
       console.error("Unauthorized access - Redirecting to login");
-      // router.push("/login");
-      return null;
+      return null; // Return null เมื่อไม่อนุญาตให้เข้าถึง
     }
-
+  
     if (response.status === 403) {
       console.error("Access Denied");
-      return null;
+      return null; // Return null เมื่อถูกบล็อก
     }
-
-    return response;
+  
+    return response; // ส่งผลลัพธ์กลับเมื่อการดึงข้อมูลสำเร็จ
   }
 
   // Fetch all statuses for a board
   const fetchStatuses = async (boardId) => {
     try {
-      const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}/statuses`);
-      if (!response) throw new Error("Failed to fetch statuses");
+      const response = await fetchWithToken(
+        `${baseUrl}/v3/boards/${boardId}/statuses`
+      );
+  
+      if (!response) {
+        console.warn("Failed to fetch statuses");
+        return; // ไม่ต้องโยน Error เพื่อป้องกันแอปหยุดทำงาน
+      }
   
       const data = await response.json();
-      statuses.value = data;
+      statuses.value = data; // เก็บข้อมูลสถานะใน Store
     } catch (error) {
       console.error("Error fetching statuses:", error.message);
       throw error;
     }
-  };  
+  };
 
   // Add a new status
   const addStatus = async (boardId, newStatus) => {

@@ -1,17 +1,17 @@
 <script setup>
 // Import zone
-import { onMounted, ref, computed, watch } from "vue";
+import { onMounted, ref, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { storeToRefs } from "pinia";
 import { useTaskStore } from "@/stores/TaskStore.js";
 import { useToastStore } from "@/stores/ToastStore.js";
-import { useBoardStore } from "@/stores/BoardStore.js"; 
+import { useBoardStore } from "@/stores/BoardStore.js";
 import { useUserStore } from "@/stores/AuthUserStore.js";
-import Badges from "../components/css/Badge.vue"
-import Copyright from "../components/css/Copyright.vue"
-import ModalDelete from "../components/ModalDeleteTask.vue"
-import Navbar from "../components/css/Navbar.vue"
-import ModalVisibilityBoard from "../components/ModalVisibilityBoard.vue"
+import Badges from "../components/css/Badge.vue";
+import Copyright from "../components/css/Copyright.vue";
+import ModalDelete from "../components/modal/ModalDeleteTask.vue";
+import Navbar from "../components/css/Navbar.vue";
+import ModalVisibilityBoard from "../components/modal/ModalVisibilityBoard.vue";
 
 // Store and Router zone
 const router = useRouter();
@@ -21,13 +21,13 @@ const toastStore = useToastStore();
 const boardStore = useBoardStore();
 const userStore = useUserStore();
 
-const { tasks, showToastAdd, showToastEdit, showToastDelete } = storeToRefs(taskStore);
+const { tasks } = storeToRefs(taskStore);
 const boardId = route.params.boardId;
 
 // State variables
 const boardName = ref("");
 const boardOwnerOid = ref("");
-const visibility = ref("PRIVATE");
+const visibility = ref("");
 const isModalOpen = ref(false);
 const modalTitle = ref("Board Visibility Changed!");
 const modalMessage = ref("Do you want to change board visibility to public?");
@@ -38,11 +38,11 @@ const showDelete = ref(false);
 // Functions
 const fetchBoardData = async () => {
   try {
-    console.log("Fetching board data...");
-    const boardData = await boardStore.getBoard(boardId); 
+    const boardData = await boardStore.getBoard(boardId);
     if (boardData) {
       boardName.value = boardData.name;
       boardOwnerOid.value = boardData.owner.oid;
+      visibility.value = boardData.visibility || "PRIVATE";
     } else {
       console.error("Board data not found");
     }
@@ -52,9 +52,10 @@ const fetchBoardData = async () => {
 };
 
 const openModal = () => {
-  modalMessage.value = visibility.value === "PRIVATE"
-    ? "Do you want to change board visibility to public?"
-    : "Do you want to change board visibility to private?";
+  modalMessage.value =
+    visibility.value === "PRIVATE"
+      ? "Do you want to change board visibility to public?"
+      : "Do you want to change board visibility to private?";
   isModalOpen.value = true;
 };
 
@@ -65,7 +66,8 @@ const confirmChange = async () => {
   isModalOpen.value = false;
 };
 
-const openModalAdd = () => router.push({ name: "task-add", params: { boardId } });
+const openModalAdd = () =>
+  router.push({ name: "task-add", params: { boardId } });
 
 const openModalDetail = (taskId) => {
   router.push({ name: "task-detail", params: { taskId, boardId } });
@@ -77,36 +79,32 @@ const openModalEdit = (taskId) => {
 
 const openModalDelete = (taskId, title, index) => {
   taskStore.selectDeleteTask(taskId, title, index);
-  taskStore.showDeleteModal = true;
+  showDelete.value = true;
 };
 
 const closeModal = () => {
-  taskStore.showDeleteModal = false;
+  showDelete.value = false;
   isModalOpen.value = false;
-  router.push({ path: `/board/${boardId}` });
 };
 
 const deleteTask = async (taskId) => {
   try {
-    await taskStore.deleteTask(boardId, taskId);
+    await taskStore.deleteTask(boardId, taskId); // เรียกใช้งานจาก Store
     deleteSuccess.value = true;
-    taskStore.showToastDelete = true;
+
+    // แจ้งเตือนสำเร็จ
+    closeModal(); // ปิด Modal หลังจากลบ
   } catch (error) {
     deleteSuccess.value = false;
-    console.error("Error deleting task:", error);
+    toastStore.addToast("Failed to delete task", "error");
+    console.error("Error deleting task:", error.message);
   }
 };
 
-// Lifecycle hook
-onMounted(async () => {
-  await fetchBoardData(); // เรียกใช้ฟังก์ชันที่แยกออกมา
-  console.log("Board Name:", boardName.value); // ตรวจสอบค่าใน console
-  console.log("Owner Oid:", boardOwnerOid.value);
-});
-
 // Sorting function
 const toggleSortOrder = () => {
-  sortAscending.value = sortAscending.value === undefined ? true : !sortAscending.value;
+  sortAscending.value =
+    sortAscending.value === undefined ? true : !sortAscending.value;
 };
 
 const sortedTasks = computed(() => {
@@ -119,8 +117,13 @@ const sortedTasks = computed(() => {
     return 0;
   });
 });
-</script>
 
+// Lifecycle hook
+onMounted(async () => {
+  await fetchBoardData();
+  await taskStore.fetchTasks(boardId);
+});
+</script>
 
 <template>
   <Navbar class="itbkk-fullname" />
@@ -298,7 +301,7 @@ const sortedTasks = computed(() => {
                 {{ task.title }}
               </td>
               <td class="itbkk-assignees">
-                <span :class="{ 'italic': !task.assignees }">
+                <span :class="{ italic: !task.assignees }">
                   {{ task.assignees || "Unassigned" }}
                 </span>
               </td>
@@ -306,7 +309,9 @@ const sortedTasks = computed(() => {
                 <Badges style="justify-content: center" :status="task.status" />
               </td>
 
-              <td class="itbkk-button-action px-4 py-3 flex justify-center space-x-2">
+              <td
+                class="itbkk-button-action px-4 py-3 flex justify-center space-x-2"
+              >
                 <!-- จัดปุ่มให้ดูสมส่วน -->
                 <button
                   class="flex items-center bg-white text-color-purple px-3 py-1.5 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
@@ -365,9 +370,9 @@ const sortedTasks = computed(() => {
 
       <ModalDelete
         v-if="showDelete"
-        :taskId="selectDeleteTaskId"
-        :title="selectDeleteTaskTitle"
-        :indexs="selectDeleteTaskIndex"
+        :taskId="taskStore.selectedTask?.taskId"
+        :title="taskStore.selectedTask?.title"
+        :indexs="taskStore.selectedTask?.index"
         @closeModal="closeModal"
         @confirmDeleteModal="deleteTask"
       />

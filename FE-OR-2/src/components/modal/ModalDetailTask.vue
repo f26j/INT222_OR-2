@@ -1,47 +1,65 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useTaskStore } from "@/stores/TaskStore.js"; // ใช้ TaskStore จาก Pinia
+import { useTaskStore } from "@/stores/TaskStore.js";
+import { useStatusStore } from "@/stores/StatusStore.js";
 
-// Router
+// Router และ Store
 const route = useRoute();
 const router = useRouter();
-const taskStore = useTaskStore(); // Pinia Store
+const taskStore = useTaskStore();
+const statusStore = useStatusStore();
 
-// ตัวแปรสำหรับเก็บข้อมูลและการจัดการ
-const boardId = route.params.boardId; // ดึงค่า boardId จาก URL
-const taskId = route.params.taskId; // ดึง taskId จาก URL
-const modalDetail = ref({}); // เก็บข้อมูลรายละเอียด Task
+// ตัวแปรสำหรับเก็บข้อมูล Task
+const boardId = route.params.boardId;
+const taskId = route.params.taskId;
+const modalDetail = ref({});
 const localTimeZone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone);
 
-// ฟังก์ชันสำหรับดึงรายละเอียด Task
+// ฟังก์ชันดึงรายละเอียดของ Task
 async function fetchTaskDetail() {
-  try {
-    const task = await taskStore.fetchTaskDetail(boardId, taskId); // เรียกจาก TaskStore
-    if (!task) {
-      router.push({ name: "NotFound" });
+    try {
+      const task = await taskStore.fetchTaskDetail(boardId, taskId);
+      if (!task) {
+        router.push({ name: "NotFound" });
+        return;
+      }
+      modalDetail.value = task; // กำหนดค่า Task
+  
+      // ตรวจสอบว่ามี status หรือไม่ ถ้าไม่มีก็สร้าง placeholder status
+      if (!modalDetail.value.status) {
+        modalDetail.value.status = { id: null, name: "No Status" };
+      }
+    } catch (error) {
+      console.error("Error fetching task details:", error);
+      router.push("/"); 
     }
-    modalDetail.value = task;
-  } catch (error) {
-    console.error("Error fetching task details:", error);
-    router.push("/");
   }
-}
 
-// ฟังก์ชันฟอร์แมตวันที่
 function formatDate(date) {
   if (!date) return "N/A";
   const d = new Date(date);
-  return d.toLocaleString("en-GB", { timeZone: localTimeZone.value }).split(",").join(" ");
+  return d
+    .toLocaleString("en-GB", { timeZone: localTimeZone.value })
+    .split(",")
+    .join(" ");
 }
 
-// ฟังก์ชันปิด Modal
+// ปิด Modal และกลับไปหน้า Board Tasks
 const closeModal = () => {
   router.push({ name: "board-tasks", params: { boardId } });
 };
 
-// เรียกฟังก์ชันเมื่อ component mount
-onMounted(fetchTaskDetail);
+// เรียกใช้งานเมื่อ Component ถูก mount
+onMounted(async () => {
+  try {
+    await statusStore.fetchStatuses(boardId); // โหลดสถานะจาก Store
+    await fetchTaskDetail(); // โหลดรายละเอียด Task
+  } catch (error) {
+    console.error("Error loading data:", error);
+  }
+});
+
 </script>
 
 <template>
@@ -65,7 +83,7 @@ onMounted(fetchTaskDetail);
               <div class="flex flex-wrap -mx-3 mb-2">
                 <div class="desc w-full md:w-1/3 px-3 mb-6 md:mb-0">
                   <label
-                    class="block uppercase tracking-wide  text-xs font-bold mb-2"
+                    class="block uppercase tracking-wide text-xs font-bold mb-2"
                     for="grid-city"
                   >
                     Description
@@ -113,32 +131,40 @@ onMounted(fetchTaskDetail);
                 </div>
               </div>
 
-              <div class="itbkk-status text-left">
-                <div class="w-full md:w-1/3 mb-6 md:mb-0">
-                  <label
-                    class="block uppercase tracking-wide text-xs font-bold mb-2"
-                    for="grid-state"
-                  >
-                    Status
-                  </label>
-                  <div class="relative itbkk-status">
-                    <select
-                      class="statusbx block w-60 bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                      id="grid-state"
-                      v-model="status.name"
-                      disabled
-                    >
-                      <option
-                        v-for="(status, index) in store.status.value"
-                        :key="index"
-                       
-                      >
-                        {{ status.name }}
-                      </option>
-                    </select>
-                  </div>
-                </div>
-              </div>
+              <div
+  class="itbkk-status text-left"
+  v-if="statusStore.statuses && statusStore.statuses.length && modalDetail.status"
+>
+  <div class="w-full md:w-1/3 mb-6 md:mb-0">
+    <label
+      class="block uppercase tracking-wide text-xs font-bold mb-2"
+      for="grid-state"
+    >
+      Status
+    </label>
+    <div class="relative itbkk-status">
+      <select
+        class="statusbx block w-60 bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+        id="grid-state"
+        v-model="modalDetail.status.id"
+        disabled
+      >
+        <option
+          v-for="(status, index) in statusStore.statuses"
+          :key="index"
+          :value="status.id"
+        >
+          {{ status.name }}
+        </option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div v-else>
+  <p>Loading status...</p>
+</div>
+
 
               <div class="time">
                 <div class="itbkk-timezone text-left">
@@ -165,7 +191,6 @@ onMounted(fetchTaskDetail);
     </div>
   </div>
 </template>
-
 
 <style scoped>
 @import url("https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono");

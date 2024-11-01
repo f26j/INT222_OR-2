@@ -17,8 +17,6 @@ const className = computed(() => {
       return "status-New";
   }
 });
-
-console.log(props.status.name);
 </script>
 <template>
   <div :class="{ 'status-badge': true, [className]: status }">
