@@ -1,5 +1,6 @@
 package sit.int221.BEOR2.db1.controllers;
 
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/v3/boards/{id}/statuses")
 @BeOr2CrossOrigin
+@Slf4j
 public class StatusController {
     @Autowired
     private StatusService statusService;
@@ -35,7 +37,7 @@ public class StatusController {
     @GetMapping("/{statusId}")
     @ResponseStatus(HttpStatus.OK)
     public Status getStatusById(@PathVariable String id, @PathVariable Integer statusId) {
-        System.out.println("Controller");
+        log.info("Controller");
         return statusService.getStatusById(id, statusId);
     }
 

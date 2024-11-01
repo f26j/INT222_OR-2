@@ -1,40 +1,57 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
-import { useUserStore } from "@/stores/users";
+import { useUserStore } from "@/stores/AuthUserStore";
 import { useRouter } from "vue-router";
 
 const userStore = useUserStore();
 const router = useRouter();
 
-// ใช้ computed เพื่อดึง fullname จาก store
 const fullname = computed(() => userStore.fullname);
 
-// สร้างตัวแปรเพื่อควบคุมการเปิด/ปิดของ dropdown
 const dropdownOpen = ref(false);
 
-// สลับสถานะเปิด/ปิด dropdown
 const toggleDropdown = () => {
   dropdownOpen.value = !dropdownOpen.value;
 };
 
-// เรียก checkAuth เมื่อโหลดหน้าเพื่อให้มั่นใจว่า fullname ถูกดึงจาก token
-onMounted(() => {
-  if (userStore.token) {
-    userStore.checkAuth(); // ตรวจสอบ token และดึง fullname เมื่อมี token
+
+onMounted(async () => {
+  // ตรวจสอบว่า route ปัจจุบันเป็น public หรือ private
+  const route = router.currentRoute.value;
+  const boardId = route.params.boardId;
+
+  if (!userStore.token && boardId) {
+    try {
+      const boardData = await fetch(`${baseUrl}/v3/boards/${boardId}`, {
+        headers: { "Content-Type": "application/json" },
+      }).then((res) => res.json());
+
+      // ถ้าบอร์ดเป็น private และไม่มี token ให้ redirect ไป /login
+      if (boardData.visibility === "PRIVATE") {
+        console.warn("This board is private. Redirecting to login.");
+        return router.push("/login");
+      }
+    } catch (error) {
+      console.error("Error fetching board data:", error);
+    }
+  } else if (!userStore.token) {
+    // ถ้าไม่มี token แต่ไม่เกี่ยวกับบอร์ดให้ไป login
+    router.push("/login");
   } else {
-    router.push("/login"); // ถ้าไม่มี token ให้เปลี่ยนไปที่หน้า login
+    userStore.checkAuth(); // ถ้ามี token ให้ตรวจสอบ auth ปกติ
   }
 });
 
+
 const home = () => {
-  router.push("/board"); // เปลี่ยนเส้นทางไปที่หน้า home
+  router.push("/board");
 };
 
 const logout = () => {
   userStore.logout();
   console.log("Token after logout:", userStore.token); 
   router.push("/login");
-  dropdownOpen.value = false; // ปิด dropdown หลังจาก logout
+  dropdownOpen.value = false;
 };
 
 </script>
@@ -119,7 +136,7 @@ const logout = () => {
   top: 0; /* ให้ชิดด้านบน */
   left: 0;
   right: 0;
-  z-index: 50; /* กำหนด z-index เพื่อให้แน่ใจว่าอยู่เหนือเนื้อหาอื่นๆ */
+  z-index: 99999;
 }
   
 .hover-red-icon {

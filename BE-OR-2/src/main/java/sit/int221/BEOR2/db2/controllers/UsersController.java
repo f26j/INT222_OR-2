@@ -1,10 +1,13 @@
 package sit.int221.BEOR2.db2.controllers;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import sit.int221.BEOR2.BeOr2CrossOrigin;
+import sit.int221.BEOR2.db2.dtos.AccessTokenResponse;
 import sit.int221.BEOR2.db2.dtos.JwtResponse;
+import sit.int221.BEOR2.db2.dtos.RefreshTokenDto;
 import sit.int221.BEOR2.db2.dtos.UsersLoginDto;
 import sit.int221.BEOR2.db2.services.UsersService;
 
@@ -20,5 +23,17 @@ public class UsersController {
     @ResponseStatus(HttpStatus.OK)
     public JwtResponse loginUser(@RequestBody UsersLoginDto login) {
         return usersService.loginUser(login.getUserName(), login.getPassword());
+    }
+
+    @PostMapping("/token")
+    @ResponseStatus(HttpStatus.OK)
+    public AccessTokenResponse refreshToken(HttpServletRequest request, @RequestBody RefreshTokenDto token) {
+        String refreshToken = token.getRefresh_token();
+
+        if (refreshToken == null) {
+            refreshToken = (String) request.getAttribute("refreshToken");
+        }
+
+        return usersService.refreshToken(refreshToken);
     }
 }

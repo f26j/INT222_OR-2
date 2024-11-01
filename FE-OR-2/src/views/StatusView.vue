@@ -1,128 +1,50 @@
 <script setup>
 // import zone
-import { onMounted, ref } from "vue";
+import { onMounted, ref, onUpdated } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { storeToRefs } from "pinia";
-import { useStatusStore } from "@/stores/api.js";
-import { useToastStore } from "@/stores/toast.js";
-import Bg_effect from "../components/css/Background.vue";
+import { useStatusStore } from "@/stores/StatusStore.js"; // ใช้ StatusStore
+import { useToastStore } from "@/stores/ToastStore.js";
+import { useBoardStore } from "@/stores/BoardStore.js";
 import Copyright from "../components/css/Copyright.vue";
-import ToastAddStatus from "../components/toast/ToastAddStatus.vue";
-import ToastEditStatus from "../components/toast/ToastEditStatus.vue";
-import ToastDeleteStatus from "../components/toast/ToastDeleteStatus.vue";
-import ModalDeleteStatus from "../components/ModalDeleteStatus.vue";
+import ModalDeleteStatus from "../components/modal/ModalDeleteStatus.vue";
 import Navbar from "../components/css/Navbar.vue";
 
 // Store, API zone
-const baseUrl = import.meta.env.VITE_API_BOARDS;
 const router = useRouter();
 const route = useRoute();
 const store = useStatusStore();
 const toastStore = useToastStore();
-const {
-  showToastAddStatus,
-  showToastEditStatus,
-  showToastDeleteStatus,
-  closeToast,
-} = storeToRefs(toastStore);
+const boardStore = useBoardStore();
+const { statuses } = storeToRefs(store);
 
 // Variable zone
 const showDelete = ref(false);
 const selectDeleteStatusId = ref("");
 const selectDeleteStatusName = ref("");
 const boardId = route.params.boardId;
-const boardName = ref(""); // Get boardId from the UR
+const boardName = ref("");
 
-// ฟังก์ชันสำหรับดึง Token
-function getToken() {
-  const token = localStorage.getItem("jwtToken");
-  if (!token) {
-    console.error("No token available");
-    router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
-    return null;
-  }
-  return token;
-}
+// ดึงข้อมูล Board และ Status เมื่อ component ถูก mounted
+const isLoaded = ref(false); // เพิ่มตัวแปร
 
-// ฟังก์ชันสำหรับดึงข้อมูลพร้อม Token
-async function fetchWithToken(url, options = {}) {
-  const token = getToken();
-  if (!token) return null; // ถ้าไม่มี token ให้ return null
-
-  try {
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        Authorization: `Bearer ${token}`, // ส่ง JWT Token
-        "Content-Type": "application/json",
-        ...options.headers,
-      },
-    });
-
-    // ตรวจสอบสถานะ 401 Unauthorized
-    if (response.status === 401) {
-      console.error("Unauthorized access - Redirecting to login");
-      router.push("/login");
-      return null;
-    } else if (response.status === 403) {
-    router.push({ name: "AccessDenied" })
-    return null
-  }
-
-    return response;
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    return null;
-  }
-}
-
-async function fetchBoard() {
-  const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}`);
-  if (!response) return; // ถ้าไม่มี response ให้ return
-
-  if (response.status === 404) {
-    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
-    return;
-  }
-
-  if (!response.ok) {
-    throw new Error(`Error fetching board: ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  boardName.value = data.name; // เก็บชื่อบอร์ดใน boardName
-}
-
-// ดึงข้อมูล Status ของ Board
-async function fetchData() {
-  const response = await fetchWithToken(
-    `${baseUrl}/v3/boards/${boardId}/statuses`
-  ); // เรียกใช้ fetchWithToken
-  if (!response) return; // ถ้า response เป็น null ให้ return
-
-  if (response.status === 404) {
-    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
-    return;
-  }
-
-  if (!response.ok) {
-    throw new Error(`Error fetching status: ${response.statusText}`);
-  }
-
-  const data = await response.json();
-
-  if (!Array.isArray(data)) {
-    throw new TypeError("Fetched data is not an array");
-  }
-  return data;
-}
-
-// เมื่อ component ถูก mounted ให้ดึงข้อมูล Status
 onMounted(async () => {
-  await fetchBoard();
-  const data = await fetchData();
-  store.statuses.value = data;
+  if (!isLoaded.value) {
+    try {
+      await store.fetchStatuses(boardId); // ดึงข้อมูล Status ครั้งเดียว
+      const board = await boardStore.getBoard(boardId); // ดึงข้อมูลบอร์ด
+      boardName.value = board.name;
+      isLoaded.value = true; // กำหนดค่าให้โหลดเสร็จแล้ว
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      router.push({ name: "NotFound" });
+    }
+  }
 });
+
+// onUpdated(async () => {
+//   await store.fetchStatuses(boardId);
+// });
 
 // เปิดหน้า Home
 const openHome = () => {
@@ -130,7 +52,7 @@ const openHome = () => {
 };
 
 // เปิด Modal สำหรับการเพิ่ม Status
-const openModalAdd = async () => {
+const openModalAdd = () => {
   router.push({ name: "status-add" });
 };
 
@@ -150,88 +72,39 @@ const openModalDelete = (id, name) => {
   selectDeleteStatusName.value = name;
 };
 
-// ฟังก์ชันสำหรับการลบ Status
-async function deleteStatus(id) {
-  const response = await fetchWithToken(
-    `${baseUrl}/v3/boards/${boardId}/statuses/${id}`,
-    {
-      method: "DELETE",
-    }
-  );
-
-  if (!response) return; // ถ้า response เป็น null ให้ return
-
-  if (response.status === 404) {
-    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
-    return;
-  }
-
-  if (response.ok) {
-    store.statuses.value = store.statuses.value.filter(
-      (status) => status.id !== id
-    );
-    toastStore.handleStatusDeleted(); // แสดงผลว่า status ถูกลบสำเร็จ
-  } else {
-    toastStore.handleStatusDeletedF(); // แสดงผลว่าการลบล้มเหลว
-    console.error("Failed to delete status");
-  }
-
-  confirmDeleteStatus(); // เรียกใช้งานหลังจากการลบเสร็จสิ้น
-  showDelete.value = false; // ปิด modal
-}
-
-async function deleteTransfer(id, newId) {
-  const token = getToken();
-  if (!token) return; // ถ้าไม่มี token ให้หยุดการทำงาน
-
+const deleteStatus = async (id) => {
   try {
-    const response = await fetch(
-      `${baseUrl}/v3/boards/${boardId}/statuses/${id}/${newId}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`, // ส่ง JWT Token
-          "Content-Type": "application/json",
-        },
-      }
+    await store.deleteStatus(boardId, id); // ใช้ store แทน statusStore
+    toastStore.addToast("The status has been deleted", "success");
+    showDelete.value = false;
+  } catch (error) {
+    console.error("Failed to delete status:", error);
+    toastStore.addToast(
+      "An error has occurred, the status could not be deleted.",
+      "error"
     );
-
-    if (response.ok) {
-      store.statuses.value = store.statuses.value.filter(
-        (status) => status.id !== id
-      );
-      toastStore.handleStatusDeleted(); // แสดงผลว่า status ถูกลบสำเร็จ
-    } else {
-      toastStore.handleStatusDeletedF(); // แสดงผลว่าการลบล้มเหลว
-      console.error("Failed to delete status");
-    }
-  } catch (error) {
-    toastStore.handleStatusDeletedF(); // แสดงผลว่ามีข้อผิดพลาดในการลบ
-    console.error("Error deleting status:", error.message);
   }
-
-  confirmDeleteStatus(); // เรียกใช้งานหลังจากการลบเสร็จสิ้น
-  showDelete.value = false; // ปิด modal
-}
-
-// ฟังก์ชันสำหรับยืนยันการลบ Status
-const confirmDeleteStatus = async () => {
-  try {
-    return;
-  } catch (error) {
-    toastStore.handleStatusDeletedF();
-    console.error("Error deleting status:", error);
-  }
-  return {
-    closeModal,
-    confirmDeleteStatus,
-  };
 };
+
+const deleteTransfer = async (id, newId) => {
+  try {
+    await store.transferStatus(boardId, id, newId); // ใช้ store แทน statusStore
+    toastStore.addToast("The status has been deleted", "success");
+    showDelete.value = false;
+  } catch (error) {
+    console.error("Failed to transfer status:", error);
+    toastStore.addToast(
+      "An error has occurred, the status could not be deleted.",
+      "error"
+    );
+  }
+};
+
 
 // ปิด Modal
 const closeModal = () => {
   showDelete.value = false;
-  router.push({ name: "statusView" });
+  router.push({ name: "board-status", params: { boardId } });
 };
 </script>
 
@@ -313,103 +186,54 @@ const closeModal = () => {
           </thead>
           <tbody>
             <tr
-              v-for="(status, index) in store.statuses.value"
+              v-for="(status, index) in statuses"
+              :key="status.id"
               class="itbkk-item"
             >
               <td class="bgd">
-                <span class="bgi">id : </span>
-                <div class="idkb flex">
-                  {{ index + 1 }}
-                </div>
+                <div class="idkb flex">{{ index + 1 }}</div>
               </td>
               <td class="itbkk-status-name">
                 <p>{{ status.name }}</p>
               </td>
-              <td
-                class="itbkk-status-description"
-                :class="{ 'italic-gray': !status.description?.trim() }"
-              >
+              <td :class="{ 'italic-gray': !status.description?.trim() }">
                 <p v-if="!status.description?.trim()">
-                  No description is provided.
+                  No description provided
                 </p>
                 <p v-else>{{ status.description }}</p>
               </td>
               <td class="itbkk-button-action flex">
-                <div class="h-[30px]"></div>
                 <button
-                  class="itbkk-button-edit flex items-center space-x-2 w-20"
                   @click="openModalEdit(status.id)"
                   v-if="status.name !== 'No Status' && status.name !== 'Done'"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="30"
-                    height="30"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      fill="currentColor"
-                      fill-rule="evenodd"
-                      d="M17.907 4.93c.104-.105.294-.186.539-.18a.848.848 0 0 1 .572.216c.13.13.222.34.231.575c.01.234-.065.413-.167.515l-7.49 7.5l-1.273.116l.1-1.245zm2.173-1.024c-.437-.438-1.037-.643-1.6-.656c-.564-.013-1.182.167-1.635.62l-7.682 7.692a.75.75 0 0 0-.217.47l-.194 2.407a.75.75 0 0 0 .816.807l2.43-.22a.75.75 0 0 0 .463-.218l7.682-7.692c.456-.456.627-1.073.605-1.635a2.373 2.373 0 0 0-.668-1.575M5.812 4.75a2.568 2.568 0 0 0-2.563 2.562v10.875a2.568 2.568 0 0 0 2.563 2.563h10.875a2.568 2.568 0 0 0 2.563-2.562V12.75a.75.75 0 0 0-1.5 0v5.438c0 .582-.48 1.062-1.063 1.062H5.812c-.583 0-1.063-.48-1.063-1.062V7.312c0-.582.48-1.062 1.063-1.062h5.437a.75.75 0 0 0 0-1.5z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
-                  <span>Edit</span>
+                  Edit
                 </button>
-
                 <button
-                  class="itbkk-button-delete flex items-center space-x-2 w-24"
                   @click="openModalDelete(status.id, status.name)"
                   v-if="status.name !== 'No Status' && status.name !== 'Done'"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="30"
-                    height="30"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      fill="currentColor"
-                      d="M20 8.7H4a.75.75 0 1 1 0-1.5h16a.75.75 0 0 1 0 1.5"
-                    />
-                    <path
-                      fill="currentColor"
-                      d="M16.44 20.75H7.56A2.4 2.4 0 0 1 5 18.49V8a.75.75 0 0 1 1.5 0v10.49c0 .41.47.76 1 .76h8.88c.56 0 1-.35 1-.76V8A.75.75 0 1 1 19 8v10.49a2.4 2.4 0 0 1-2.56 2.26m.12-13a.74.74 0 0 1-.75-.75V5.51c0-.41-.48-.76-1-.76H9.22c-.55 0-1 .35-1 .76V7a.75.75 0 1 1-1.5 0V5.51a2.41 2.41 0 0 1 2.5-2.26h5.56a2.41 2.41 0 0 1 2.53 2.26V7a.75.75 0 0 1-.75.76Z"
-                    />
-                    <path
-                      fill="currentColor"
-                      d="M10.22 17a.76.76 0 0 1-.75-.75v-4.53a.75.75 0 0 1 1.5 0v4.52a.75.75 0 0 1-.75.76m3.56 0a.75.75 0 0 1-.75-.75v-4.53a.75.75 0 0 1 1.5 0v4.52a.76.76 0 0 1-.75.76"
-                    />
-                  </svg>
-                  <span>Delete</span>
+                  Delete
                 </button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
-      <ToastAddStatus v-if="showToastAddStatus" @close="closeToast">
-      </ToastAddStatus>
-      <ToastEditStatus v-if="showToastEditStatus" @close="closeToast">
-      </ToastEditStatus>
-      <ToastDeleteStatus v-if="showToastDeleteStatus" @close="closeToast">
-      </ToastDeleteStatus>
-      <ModalDeleteStatus
-        v-if="showDelete"
-        :statusId="selectDeleteStatusId"
-        :name="selectDeleteStatusName"
-        @closeModal="closeModal"
-        @confirmDeleteStatus="deleteStatus"
-        @deleteTransfer="deleteTransfer"
-      >
-      </ModalDeleteStatus>
     </main>
     <footer>
       <Copyright />
     </footer>
-    <Bg_effect />
   </div>
-  <router-view></router-view>
+  <ModalDeleteStatus
+    v-if="showDelete"
+    :statusId="selectDeleteStatusId"
+    :name="selectDeleteStatusName"
+    @closeModal="closeModal"
+    @confirmDeleteStatus="deleteStatus"
+    @deleteTransfer="deleteTransfer"
+  />
+  <router-view />
 </template>
 
 <style scoped>
@@ -467,14 +291,14 @@ h3 {
   color: #47467b;
 }
 
-
 .itbkk-button-home {
   font-style: italic;
   background-color: rgba(255, 255, 255, 0);
   color: #683c86;
   border: 2px solid #683c86;
   border-color: #683c86;
-  transition: background-color 0.5s ease, transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.5s ease,
+    transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 .itbkk-button-home:hover {
   background-color: rgba(255, 255, 255, 0.5);
@@ -520,6 +344,7 @@ h3 {
   background-color: #905cb334;
   border-radius: 10px;
   height: 40px;
+  width: 70px;
   justify-content: center;
   align-items: center;
   transition: transform 0.3s ease;
@@ -707,4 +532,12 @@ footer {
     width: 100%;
   }
 }
+tbody tr {
+  min-height: 60px;
+}
+
+tbody td {
+  min-height: inherit;
+}
+
 </style>

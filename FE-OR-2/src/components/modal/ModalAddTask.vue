@@ -1,14 +1,15 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useToastStore } from "@/stores/toast.js";
-import { useTaskStore } from "@/stores/api.js";
+import { useToastStore } from "@/stores/ToastStore.js";
+import { useTaskStore } from "@/stores/TaskStore.js";
+import { useStatusStore } from "@/stores/StatusStore.js";
 
 // Store, API zone
-const baseUrl = import.meta.env.VITE_API_BOARDS;
 const router = useRouter();
-const store = useTaskStore();
+const taskStore = useTaskStore(); // ใช้ TaskStore
 const toastStore = useToastStore();
+const statusStore = useStatusStore(); // ใช้ StatusStore สำหรับดึงสถานะของ Board
 const route = useRoute();
 const boardId = route.params.boardId; // ดึงค่า boardId จาก URL
 
@@ -16,65 +17,20 @@ const boardId = route.params.boardId; // ดึงค่า boardId จาก UR
 const newTitle = ref("");
 const newDescription = ref("");
 const newAssignees = ref("");
-const newStatus = ref({
-  id: 1,
-  name: "No Status",
-  description: "The default status",
-});
-
-// ฟังก์ชันสำหรับดึง Token และเรียก API พร้อม Token
-async function fetchWithToken(url, options = {}) {
-  const token = localStorage.getItem("jwtToken");
-  if (!token) {
-    console.error("No token available");
-    router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
-    return null;
-  }
-
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${token}`, // ส่ง JWT Token
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-  });
-
-  if (response.status === 401) {
-    router.push("/login"); // Redirect ไปหน้า login เมื่อสถานะเป็น 401
-    return null;
-  } else if (response.status === 403) {
-    router.push({ name: "AccessDenied" })
-    return null
-  }
-
-  return response;
-}
+const newStatus = ref(null); // จะใช้เก็บ Status ที่เลือก
 
 // ดึงข้อมูล Status ของ Board
-async function fetchDataStatus() {
-  const response = await fetchWithToken(
-    (`${baseUrl}/v3/boards/${boardId}/statuses`)
-  ); // ใช้ fetchWithToken
-  if (!response) return; // ถ้า response เป็น null ให้ return
-
-  if (response.status === 404) {
-    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
-    return;
+const fetchStatuses = async () => {
+  try {
+    await statusStore.fetchStatuses(boardId); // ดึงข้อมูลสถานะจาก StatusStore
+    newStatus.value = statusStore.statuses[0]?.id || null; // ตั้งค่า Default Status
+  } catch (error) {
+    console.error("Error fetching statuses:", error.message);
   }
-
-  const dataStatus = await response.json();
-  if (!Array.isArray(dataStatus)) {
-    throw new TypeError("Fetched status data is not an array");
-  }
-  return dataStatus;
-}
+};
 
 // OnMounted ดึงข้อมูล Status เมื่อ component ถูก mount
-onMounted(async () => {
-  const datastatus = await fetchDataStatus();
-  store.status.value = datastatus;
-});
+onMounted(fetchStatuses);
 
 // ฟังก์ชันสำหรับเพิ่ม Task ใหม่
 const addTask = async () => {
@@ -82,21 +38,17 @@ const addTask = async () => {
   const trimmedDescription = newDescription.value.trim();
   const trimmedAssignees = newAssignees.value.trim();
 
-  const selectedStatus = store.status?.value?.find(
-    (status) => status.name === newStatus.value.name
-  );
-
   // ตรวจสอบให้แน่ใจว่า status ถูกต้อง
-  if (!selectedStatus || !selectedStatus.id) {
+  if (!newStatus.value) {
     console.error("Task status cannot be null");
     return;
   }
 
   const newTask = {
     title: trimmedTitle,
-    description: trimmedDescription === "" ? null : trimmedDescription,
-    assignees: trimmedAssignees === "" ? null : trimmedAssignees,
-    status: { id: selectedStatus.id }, // ส่ง id ของ status
+    description: trimmedDescription || null,
+    assignees: trimmedAssignees || null,
+    status: { id: newStatus.value }, // ส่ง id ของ status ที่เลือก
   };
 
   if (!newTask.title) {
@@ -104,24 +56,7 @@ const addTask = async () => {
   }
 
   try {
-    const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}/tasks`, {
-      // ใช้ URL ที่รวม boardId
-      method: "POST",
-      body: JSON.stringify(newTask),
-    });
-
-    if (!response) return; // ถ้า response เป็น null ให้ return
-
-    const data = await response.json();
-    if (!response.ok) {
-      console.error("Server Error:", data); // ตรวจสอบข้อผิดพลาดจากเซิร์ฟเวอร์
-      throw new Error("Failed to add new task");
-    } else {
-      store.tasks.value.push(data);
-    }
-
-    toastStore.handleTaskAdded();
-    // เปลี่ยนจาก name: "task" เป็น name: "board-tasks"
+    await taskStore.addTask(boardId, newTask); // ใช้ฟังก์ชัน addTask จาก TaskStore
     router.push({ name: "board-tasks", params: { boardId } }).catch(() => {});
   } catch (error) {
     console.error("Error adding new task:", error.message);
@@ -131,17 +66,11 @@ const addTask = async () => {
   newTitle.value = "";
   newDescription.value = "";
   newAssignees.value = "";
-  newStatus.value = {
-    statusID: 1,
-    name: "NO_STATUS",
-    description: "The default status",
-  };
+  newStatus.value = statusStore.statuses[0]?.id || null; // Reset เป็นค่า default
 };
 
 const closeModal = () => {
-  router
-    .push({ name: "board-tasks", params: { boardId: boardId } })
-    .catch(() => {});
+  router.push({ name: "board-tasks", params: { boardId } }).catch(() => {});
 };
 </script>
 
@@ -173,7 +102,7 @@ const closeModal = () => {
                   </label>
                   <textarea
                     class="ttitle appearance-none block w-full bg-gray-200 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
-                    id="assign"
+                    id="title"
                     type="text"
                     placeholder="Enter title..."
                     v-model="newTitle"
@@ -233,11 +162,12 @@ const closeModal = () => {
                     <select
                       class="itbkk-status block w-60 bg-gray-200 border border-gray-200 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                       id="grid-state"
-                      v-model="newStatus.name"
+                      v-model="newStatus"
                     >
                       <option
-                        v-for="(status, index) in store.status.value"
+                        v-for="(status, index) in statusStore.statuses"
                         :key="index"
+                        :value="status.id"
                       >
                         {{ status.name }}
                       </option>
@@ -268,7 +198,7 @@ const closeModal = () => {
   </div>
 </template>
 
-<style>
+<style scoped>
 @import url("https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono");
 @import url("https://fonts.googleapis.com");
 @import url("https://fonts.gstatic.com");

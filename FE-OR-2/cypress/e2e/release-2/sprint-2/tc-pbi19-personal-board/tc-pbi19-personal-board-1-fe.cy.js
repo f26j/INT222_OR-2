@@ -41,6 +41,7 @@ describe(`TC-PBI19-PERSIONAL-BOARD-1-FE\n
     it('[Step 5] Should handle status 401 with invalid token (tempered or expired) and redirect to /login',()=>{
         // let apiUrl = Cypress.env('apiUrl')
         cy.intercept('POST','http://localhost:8080/v3/*',{
+        // cy.intercept('POST','https://intproj23.sit.kmutt.ac.th/or2/api',{
             statusCode: 401
         }).as('mockAPI')
 

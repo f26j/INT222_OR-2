@@ -1,307 +1,128 @@
 <script setup>
 // Import zone
-import { onMounted, ref, watch, computed } from "vue"
-import { useRouter, useRoute } from "vue-router"
-import { storeToRefs } from "pinia"
-import { useBoardStore, useTaskStore } from "@/stores/api.js"
-import { useToastStore } from "@/stores/toast.js"
-import { useUserStore } from "@/stores/users.js"
-import Bg_effect from "../components/css/Background.vue"
-import Badges from "../components/css/Badge.vue"
-import Copyright from "../components/css/Copyright.vue"
-import ToastAdd from "../components/toast/ToastAdd.vue"
-import ToastEdit from "../components/toast/ToastEdit.vue"
-import ModalDelete from "../components/ModalDeleteTask.vue"
-import ToastDelete from "../components/toast/ToastDelete.vue"
-import Navbar from "../components/css/Navbar.vue"
-import ModalVisibilityBoard from "../components/ModalVisibilityBoard.vue"
+import { onMounted, ref, computed } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import { storeToRefs } from "pinia";
+import { useTaskStore } from "@/stores/TaskStore.js";
+import { useToastStore } from "@/stores/ToastStore.js";
+import { useBoardStore } from "@/stores/BoardStore.js";
+import { useUserStore } from "@/stores/AuthUserStore.js";
+import Badges from "../components/css/Badge.vue";
+import Copyright from "../components/css/Copyright.vue";
+import ModalDelete from "../components/modal/ModalDeleteTask.vue";
+import Navbar from "../components/css/Navbar.vue";
+import ModalVisibilityBoard from "../components/modal/ModalVisibilityBoard.vue";
 
-// Store,Api zone
-const baseUrl = import.meta.env.VITE_API_BOARDS
-const router = useRouter()
-const route = useRoute()
-const store = useTaskStore()
-const toastStore = useToastStore()
-const { showToastAdd, showToastEdit, closeToast } = storeToRefs(toastStore)
+// Store and Router zone
+const router = useRouter();
+const route = useRoute();
+const taskStore = useTaskStore();
+const toastStore = useToastStore();
+const boardStore = useBoardStore();
+const userStore = useUserStore();
 
-// Variable zone
-const boardId = route.params.boardId // Get boardId from the URL
-const taskId = route.params.id
-const selectDeleteTaskId = ref("")
-const selectDeleteTaskTitle = ref("")
-const selectDeleteTaskIndex = ref("")
-const originalTasks = ref([])
-const userStore = useUserStore()
-const boardStore = useBoardStore()
-const boardName = ref("")
-const boardOwnerOid = ref("")
+const { tasks } = storeToRefs(taskStore);
+const boardId = route.params.boardId;
 
-const visibility = ref("PRIVATE")
-const isModalOpen = ref(false)
-const modalTitle = ref("Board Visibility Changed!")
-const modalMessage = ref(
-  "Do you want to change board visibility to public?"
-)
+// State variables
+const boardName = ref("");
+const boardOwnerOid = ref("");
+const visibility = ref("");
+const isModalOpen = ref(false);
+const modalTitle = ref("Board Visibility Changed!");
+const modalMessage = ref("Do you want to change board visibility to public?");
+const sortAscending = ref(undefined);
+const deleteSuccess = ref(false);
+const showDelete = ref(false);
+
+// Functions
+const fetchBoardData = async () => {
+  try {
+    const boardData = await boardStore.getBoard(boardId);
+    if (boardData) {
+      boardName.value = boardData.name;
+      boardOwnerOid.value = boardData.owner.oid;
+      visibility.value = boardData.visibility || "PRIVATE";
+    } else {
+      console.error("Board data not found");
+    }
+  } catch (error) {
+    console.error("Error fetching board data:", error);
+  }
+};
 
 const openModal = () => {
   modalMessage.value =
     visibility.value === "PRIVATE"
       ? "Do you want to change board visibility to public?"
-      : "Do you want to change board visibility to private?"
-  isModalOpen.value = true
-}
+      : "Do you want to change board visibility to private?";
+  isModalOpen.value = true;
+};
 
 const confirmChange = async () => {
-  const newVisibility = visibility.value === "PRIVATE" ? "PUBLIC" : "PRIVATE"
-  await boardStore.updateVisibility(boardId, newVisibility)
-  visibility.value = newVisibility
-  isModalOpen.value = false
-}
+  const newVisibility = visibility.value === "PRIVATE" ? "PUBLIC" : "PRIVATE";
+  await boardStore.updateVisibility(boardId, newVisibility);
+  visibility.value = newVisibility;
+  isModalOpen.value = false;
+};
 
-// Function zone
-onMounted(async () => {
-  try {
-    await fetchBoard()
-    const data = await fetchData()
-    const datastatus = await fetchDataStatus() // Fetch status data
-    originalTasks.value = [...data]
-    store.tasks.value = [...data]
-    store.status.value = datastatus
-  } catch (error) {
-    console.error("Error during data fetch:", error)
-  }
-})
+const openModalAdd = () =>
+  router.push({ name: "task-add", params: { boardId } });
 
-async function fetchWithToken(url, options = {}) {
-  const token = localStorage.getItem("jwtToken")
-  if (!token) {
-    console.error("No token available")
-    router.push("/login") // Redirect to login if no token
-    return null
-  }
+const openModalDetail = (taskId) => {
+  router.push({ name: "task-detail", params: { taskId, boardId } });
+};
 
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${token}`, // Add JWT token
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-  })
-
-  // Check for 401 Unauthorized
-  if (response.status === 401) {
-    userStore.logout() // Log out user
-    router.push("/login") // Redirect to login
-    return null
-
-  // Check for 403 Forbidden
-  } else if (response.status === 403) {
-    router.push({ name: "AccessDenied" })
-    return null
-  }
-
-  return response // Return the response
-}
-
-async function fetchData() {
-  // Fetch tasks for the specified board
-  const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}/tasks`)
-  if (!response) return // If response is null, return
-
-  if (response.status === 404) {
-    router.push({ name: "NotFound" }) // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
-    return
-  }
-
-  if (!response.ok) {
-    throw new Error(`Error fetching tasks: ${response.statusText}`)
-  }
-
-  const data = await response.json()
-  if (!Array.isArray(data)) {
-    throw new TypeError("Fetched data is not an array")
-  }
-
-  return data
-}
-
-async function fetchDataStatus() {
-  // Fetch statuses for the specified board
-  const response = await fetchWithToken(
-    `${baseUrl}/v3/boards/${boardId}/statuses`
-  )
-  if (!response) return // If response is null, return
-
-  if (response.status === 404) {
-    router.push({ name: "NotFound" }) // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
-    return
-  }
-
-  if (!response.ok) {
-    throw new Error(`Error fetching status: ${response.statusText}`)
-  }
-
-  const dataStatus = await response.json()
-  if (!Array.isArray(dataStatus)) {
-    throw new TypeError("Fetched status data is not an array")
-  }
-
-  return dataStatus
-}
-
-async function fetchBoard() {
-  const response = await fetchWithToken(`${baseUrl}/v3/boards/${boardId}`)
-  if (!response) return // ถ้าไม่มี response ให้ return
-
-  if (response.status === 404) {
-    router.push({ name: "NotFound" }) // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
-    return
-  }
-
-  if (!response.ok) {
-    throw new Error(`Error fetching board: ${response.statusText}`)
-  }
-
-  const data = await response.json()
-  boardName.value = data.name // เก็บชื่อบอร์ดใน boardName
-  boardOwnerOid.value = data.owner.oid
-  visibility.value = data.visibility
-}
-
-// Functions for managing tasks
-const openModalAdd = async () => {
-  router.push({ name: "task-add" })
-}
-const openModalDetail = async (id) => {
-  if (id) {
-    router.push({ name: "task-detail", params: { taskId: id, boardId } })
-  } else {
-    console.error("Task ID is missing")
-  }
-}
-
-const openModalEdit = async (id) => {
-  if (id) {
-    router.push({ name: "task-edit", params: { taskId: id, boardId } })
-  } else {
-    console.error("Task ID is missing")
-  }
-}
-if (window.location.pathname === `/task/${taskId}`) {
-  openModalDetail(taskId)
-} else if (window.location.pathname === `/task/${taskId}/edit`) {
-  openModalEdit(taskId)
-}
-
-const showToastDelete = ref(false)
-const deleteSuccess = ref(false)
-const showDelete = ref(false)
-const toastSuccess = ref(false)
+const openModalEdit = (taskId) => {
+  router.push({ name: "task-edit", params: { taskId, boardId } });
+};
 
 const openModalDelete = (taskId, title, index) => {
-  showDelete.value = true
-  selectDeleteTaskId.value = taskId
-  selectDeleteTaskTitle.value = title
-  selectDeleteTaskIndex.value = index
-}
+  taskStore.selectDeleteTask(taskId, title, index);
+  showDelete.value = true;
+};
 
-async function deleteTask(taskId) {
-  const response = await fetchWithToken(
-    `${baseUrl}/v3/boards/${boardId}/tasks/${taskId}`,
-    {
-      method: "DELETE",
-    }
-  )
-
-  if (!response) return // If response is null, return
-
-  if (response.status === 404) {
-    router.push({ name: "NotFound" }) // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
-    return
-  }
-
-  if (response.ok) {
-    originalTasks.value = originalTasks.value.filter(
-      (task) => task.id !== taskId
-    )
-    store.tasks.value = [...originalTasks.value]
-    deleteSuccess.value = true
-  } else {
-    deleteSuccess.value = false
-    console.error("Failed to delete task")
-  }
-
-  confirmDelete()
-  showDelete.value = false
-}
-
-const confirmDelete = async () => {
-  try {
-    showToastDelete.value = true
-    toastSuccess.value = true
-    setTimeout(() => {
-      showToastDelete.value = false
-    }, 5000)
-  } catch (error) {
-    toastSuccess.value = false
-    setTimeout(() => {
-      showToastDelete.value = false
-    }, 5000)
-    console.error("Error deleting task:", error)
-  }
-  return {
-    showToastDelete,
-    closeModal,
-    confirmDelete,
-  }
-}
-const closeToastDelete = () => {
-  showToastDelete.value = false
-}
 const closeModal = () => {
-  showDelete.value = false
-  isModalOpen.value = false
-  router.push({ path: `/board/${boardId}` })
-}
+  showDelete.value = false;
+  isModalOpen.value = false;
+};
+
+const deleteTask = async (taskId) => {
+  try {
+    await taskStore.deleteTask(boardId, taskId); // เรียกใช้งานจาก Store
+    deleteSuccess.value = true;
+
+    // แจ้งเตือนสำเร็จ
+    closeModal(); // ปิด Modal หลังจากลบ
+  } catch (error) {
+    deleteSuccess.value = false;
+    toastStore.addToast("Failed to delete task", "error");
+    console.error("Error deleting task:", error.message);
+  }
+};
 
 // Sorting function
-const sortAscending = ref(undefined)
-
 const toggleSortOrder = () => {
-  if (sortAscending.value === undefined) {
-    sortAscending.value = true
-  } else if (sortAscending.value === true) {
-    sortAscending.value = false
-  } else {
-    sortAscending.value = undefined
-  }
-}
+  sortAscending.value =
+    sortAscending.value === undefined ? true : !sortAscending.value;
+};
 
 const sortedTasks = computed(() => {
-  if (sortAscending.value === undefined) {
-    return originalTasks.value
-  }
-  return sortTasks([...originalTasks.value], sortAscending.value)
-})
+  if (sortAscending.value === undefined) return tasks.value;
+  return [...tasks.value].sort((a, b) => {
+    const statusA = a.status.name.toLowerCase();
+    const statusB = b.status.name.toLowerCase();
+    if (statusA < statusB) return sortAscending.value ? -1 : 1;
+    if (statusA > statusB) return sortAscending.value ? 1 : -1;
+    return 0;
+  });
+});
 
-function sortTasks(tasks, ascending) {
-  if (ascending === undefined) return tasks // No sorting if sort order is undefined
-  return tasks.sort((a, b) => {
-    const statusA = a.status.name.toLowerCase()
-    const statusB = b.status.name.toLowerCase()
-    if (statusA < statusB) return ascending ? -1 : 1
-    if (statusA > statusB) return ascending ? 1 : -1
-    return 0
-  })
-}
-
-watch(
-  () => sortedTasks.value,
-  (newVal) => {
-    store.tasks.value = newVal
-  }
-)
+// Lifecycle hook
+onMounted(async () => {
+  await fetchBoardData();
+  await taskStore.fetchTasks(boardId);
+});
 </script>
 
 <template>
@@ -480,7 +301,7 @@ watch(
                 {{ task.title }}
               </td>
               <td class="itbkk-assignees">
-                <span :class="{ 'italic': !task.assignees }">
+                <span :class="{ italic: !task.assignees }">
                   {{ task.assignees || "Unassigned" }}
                 </span>
               </td>
@@ -488,7 +309,9 @@ watch(
                 <Badges style="justify-content: center" :status="task.status" />
               </td>
 
-              <td class="itbkk-button-action px-4 py-3 flex justify-center space-x-2">
+              <td
+                class="itbkk-button-action px-4 py-3 flex justify-center space-x-2"
+              >
                 <!-- จัดปุ่มให้ดูสมส่วน -->
                 <button
                   class="flex items-center bg-white text-color-purple px-3 py-1.5 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
@@ -547,18 +370,11 @@ watch(
 
       <ModalDelete
         v-if="showDelete"
-        :taskId="selectDeleteTaskId"
-        :title="selectDeleteTaskTitle"
-        :indexs="selectDeleteTaskIndex"
+        :taskId="taskStore.selectedTask?.taskId"
+        :title="taskStore.selectedTask?.title"
+        :indexs="taskStore.selectedTask?.index"
         @closeModal="closeModal"
         @confirmDeleteModal="deleteTask"
-      />
-      <ToastAdd v-if="showToastAdd" @close="closeToast" />
-      <ToastEdit v-if="showToastEdit" @close="closeToast" />
-      <ToastDelete
-        v-if="showToastDelete"
-        :isDeleteSuccess="deleteSuccess"
-        @close="closeToastDelete"
       />
     </main>
     <ModalVisibilityBoard
@@ -571,7 +387,6 @@ watch(
     <footer>
       <Copyright />
     </footer>
-    <Bg_effect />
   </div>
   <router-view />
 </template>

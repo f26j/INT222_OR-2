@@ -1,6 +1,7 @@
 package sit.int221.BEOR2.db1.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -36,8 +37,8 @@ public class User {
     @Column(name = "updated_on", nullable = false)
     private ZonedDateTime updated_on;
 
-    @JsonIgnore
     @OneToMany(mappedBy = "user")
+    @JsonManagedReference
     private List<Board> boards;
 
     // ใช้ String.trim() แทน StringUtils.trimWhitespace() เพื่อให้สั้นลงและไม่ใช้ method ที่ deprecated

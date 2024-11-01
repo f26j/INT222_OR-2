@@ -1,124 +1,65 @@
 <script setup>
-import { onMounted, ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useTaskStore } from "@/stores/api.js";
+import { useTaskStore } from "@/stores/TaskStore.js";
+import { useStatusStore } from "@/stores/StatusStore.js";
 
-// API Endpoint URLs
-const baseUrl = import.meta.env.VITE_API_BOARDS;
-
-// Pinia store for tasks and statuses
-const store = useTaskStore();
+// Router และ Store
 const route = useRoute();
 const router = useRouter();
-const boardId = route.params.boardId; // ดึงค่า boardId จาก URL
-const taskId = route.params.taskId; // ดึงค่า id ของ task
-const localTimeZone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone);
+const taskStore = useTaskStore();
+const statusStore = useStatusStore();
+
+// ตัวแปรสำหรับเก็บข้อมูล Task
+const boardId = route.params.boardId;
+const taskId = route.params.taskId;
 const modalDetail = ref({});
-const status = ref({});
+const localTimeZone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone);
 
-// ฟังก์ชันสำหรับเรียก API พร้อม JWT Token
-async function fetchWithToken(url, options = {}) {
-  const token = localStorage.getItem("jwtToken");
-  if (!token) return null; // ถ้าไม่มี token ให้ return null
-
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${token}`, // ส่ง JWT Token
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-  });
-
-  // ตรวจสอบสถานะ 401 Unauthorized
-  if (response.status === 401) {
-    router.push("/login"); // Redirect ไปหน้า login
-    return null;
-  } else if (response.status === 403) {
-    router.push({ name: "AccessDenied" })
-    return null
+// ฟังก์ชันดึงรายละเอียดของ Task
+async function fetchTaskDetail() {
+    try {
+      const task = await taskStore.fetchTaskDetail(boardId, taskId);
+      if (!task) {
+        router.push({ name: "NotFound" });
+        return;
+      }
+      modalDetail.value = task; // กำหนดค่า Task
+  
+      // ตรวจสอบว่ามี status หรือไม่ ถ้าไม่มีก็สร้าง placeholder status
+      if (!modalDetail.value.status) {
+        modalDetail.value.status = { id: null, name: "No Status" };
+      }
+    } catch (error) {
+      console.error("Error fetching task details:", error);
+      router.push("/"); 
+    }
   }
 
-  return response;
-}
-
-// ฟังก์ชันดึงข้อมูล Status ของบอร์ดปัจจุบัน
-async function fetchDataStatus() {
-  const response = await fetchWithToken(
-    `${baseUrl}/v3/boards/${boardId}/statuses` // ใช้ fetchWithToken พร้อม boardId
-  );
-  if (!response) return; // ถ้า response เป็น null ให้ return
-
-  if (response.status === 404) {
-    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
-    return;
-  }
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch status: ${response.statusText}`);
-  }
-
-  const dataStatus = await response.json();
-  if (!Array.isArray(dataStatus)) {
-    throw new TypeError("Fetched status data is not an array");
-  }
-
-  return dataStatus;
-}
-
-// ฟังก์ชันฟอร์แมตวันที่
 function formatDate(date) {
-  if (!date) {
-    return "N/A"; // กรณีที่ไม่มีวันที่ส่งเข้ามา
-  }
-
+  if (!date) return "N/A";
   const d = new Date(date);
-  if (isNaN(d)) {
-    return "Invalid Date"; // กรณีที่วันที่ไม่ถูกต้อง
-  }
-
   return d
     .toLocaleString("en-GB", { timeZone: localTimeZone.value })
     .split(",")
     .join(" ");
 }
 
-// ฟังก์ชันเปิด Modal สำหรับแสดงรายละเอียดของ Task
-async function openModalDetail() {
-  const response = await fetchWithToken(
-    `${baseUrl}/v3/boards/${boardId}/tasks/${taskId}` // ใช้ fetchWithToken สำหรับ task ที่เลือก
-  );
-  if (!response) return; // ถ้า response เป็น null ให้ return
+// ปิด Modal และกลับไปหน้า Board Tasks
+const closeModal = () => {
+  router.push({ name: "board-tasks", params: { boardId } });
+};
 
-  if (response.status === 404) {
-    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
-    return;
-  }
-
-  const res = await response.json();
-  modalDetail.value = res;
-  status.value = { ...modalDetail.value.status };
-  if (!response.ok) {
-    router.push("/");
-    setTimeout(() => {
-      alert("The requested task does not exist");
-    }, 500);
-  }
-}
-
-// ฟังก์ชันที่เรียกเมื่อ component ถูก mounted
+// เรียกใช้งานเมื่อ Component ถูก mount
 onMounted(async () => {
-  const datastatus = await fetchDataStatus(); // ดึงข้อมูล status
-  if (datastatus) {
-    store.status.value = datastatus;
+  try {
+    await statusStore.fetchStatuses(boardId); // โหลดสถานะจาก Store
+    await fetchTaskDetail(); // โหลดรายละเอียด Task
+  } catch (error) {
+    console.error("Error loading data:", error);
   }
-  await openModalDetail(); // ดึงรายละเอียด task
 });
 
-// ฟังก์ชันปิด Modal
-const closeModal = () => {
-  router.push({ name: "board-tasks", params: { boardId: boardId } }).catch(() => {});
-};
 </script>
 
 <template>
@@ -142,7 +83,7 @@ const closeModal = () => {
               <div class="flex flex-wrap -mx-3 mb-2">
                 <div class="desc w-full md:w-1/3 px-3 mb-6 md:mb-0">
                   <label
-                    class="block uppercase tracking-wide  text-xs font-bold mb-2"
+                    class="block uppercase tracking-wide text-xs font-bold mb-2"
                     for="grid-city"
                   >
                     Description
@@ -190,32 +131,40 @@ const closeModal = () => {
                 </div>
               </div>
 
-              <div class="itbkk-status text-left">
-                <div class="w-full md:w-1/3 mb-6 md:mb-0">
-                  <label
-                    class="block uppercase tracking-wide text-xs font-bold mb-2"
-                    for="grid-state"
-                  >
-                    Status
-                  </label>
-                  <div class="relative itbkk-status">
-                    <select
-                      class="statusbx block w-60 bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                      id="grid-state"
-                      v-model="status.name"
-                      disabled
-                    >
-                      <option
-                        v-for="(status, index) in store.status.value"
-                        :key="index"
-                       
-                      >
-                        {{ status.name }}
-                      </option>
-                    </select>
-                  </div>
-                </div>
-              </div>
+              <div
+  class="itbkk-status text-left"
+  v-if="statusStore.statuses && statusStore.statuses.length && modalDetail.status"
+>
+  <div class="w-full md:w-1/3 mb-6 md:mb-0">
+    <label
+      class="block uppercase tracking-wide text-xs font-bold mb-2"
+      for="grid-state"
+    >
+      Status
+    </label>
+    <div class="relative itbkk-status">
+      <select
+        class="statusbx block w-60 bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+        id="grid-state"
+        v-model="modalDetail.status.id"
+        disabled
+      >
+        <option
+          v-for="(status, index) in statusStore.statuses"
+          :key="index"
+          :value="status.id"
+        >
+          {{ status.name }}
+        </option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div v-else>
+  <p>Loading status...</p>
+</div>
+
 
               <div class="time">
                 <div class="itbkk-timezone text-left">
@@ -242,7 +191,6 @@ const closeModal = () => {
     </div>
   </div>
 </template>
-
 
 <style scoped>
 @import url("https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono");

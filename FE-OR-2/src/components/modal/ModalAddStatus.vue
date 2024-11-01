@@ -1,142 +1,51 @@
 <script setup>
-import { ref, onMounted } from "vue";
+// Import zone
+import { ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { useStatusStore } from "@/stores/api.js";
-import { useToastStore } from "@/stores/toast.js";
-const store = useStatusStore();
+import { useStatusStore } from "@/stores/StatusStore.js"; // ใช้ StatusStore
+import { useToastStore } from "@/stores/ToastStore.js";
 
-const baseUrl = import.meta.env.VITE_API_BOARDS;
-const route = useRoute();
-const router = useRouter();
+// Variable zone
+const store = useStatusStore();
 const toastStore = useToastStore();
+const router = useRouter();
+const route = useRoute();
 const newName = ref("");
 const newDescription = ref("");
-const statuses = ref([]);
-const id = route.params.id;
 const boardId = route.params.boardId;
-const statusId = route.params.statusId;
 
-const originalName = ref("");
-const originalDescription = ref("");
-
+// ปิด Modal และกลับไปหน้า Status Management
 const closeModal = () => {
   router.push({ name: "status-manage" });
 };
 
-// ฟังก์ชันสำหรับดึง Token
-function getToken() {
-  const token = localStorage.getItem("jwtToken");
-  if (!token) {
-    console.error("No token available");
-    router.push("/login"); // Redirect ไปหน้า Login เมื่อไม่มี Token
-    return null;
-  }
-  return token;
-}
-
-async function fetchWithToken(url, options = {}) {
-  const token = getToken(); // ดึง JWT Token
-  if (!token) return null; // ถ้าไม่มี Token ให้ return null
-
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${token}`, // ส่ง JWT Token
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-  });
-
-  if (response.status === 401) {
-    router.push("/login"); // Redirect ไปที่ login เมื่อสถานะเป็น 401
-    return null;
-  } else if (response.status === 403) {
-    router.push({ name: "AccessDenied" })
-    return null
-  }
-
-  return response; // ส่ง response กลับไปใช้งาน
-}
-
-async function getStatus() {
-  const response = await fetchWithToken(
-    `${baseUrl}/v3/boards/${boardId}/statuses/${statusId}`
-  ); // ใช้ fetchWithToken
-  if (!response) return; // ถ้า response เป็น null ให้หยุดการทำงาน
-
-  if (response.status === 404) {
-    router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
-    return;
-  }
-
-  const res = await response.json();
-  // const selectId = res.find((status) => status.id == id);
-  if (!res) {
-    router.push({ name: "status-manage" });
-    setTimeout(() => {
-      alert("An error has occurred, the status does not exist");
-    }, 500);
-    return;
-  }
-
-  newName.value = res.name;
-  newDescription.value = res.description;
-  originalName.value = res.name;
-  originalDescription.value = res.description;
-}
-
-onMounted(() => {
-  getStatus();
-});
-
-const editSuccess = ref(false);
-const editStatus = async () => {
+// ฟังก์ชันเพิ่ม Status ใหม่
+const addStatus = async () => {
   const trimmedName = newName.value.trim();
   const trimmedDescription = newDescription.value.trim();
+
+  if (!trimmedName) return; // ถ้าไม่มีชื่อ Status ไม่ให้ดำเนินการต่อ
+
   const newStatus = {
-    id: id,
-    name: trimmedName === "" ? null : trimmedName,
-    description: trimmedDescription === "" ? null : trimmedDescription,
+    name: trimmedName,
+    description: trimmedDescription || null, // หากไม่มีคำอธิบายจะกำหนดเป็น null
   };
 
-  if (!newStatus.name) {
-    return;
-  }
-
   try {
-    const response = await fetchWithToken(
-      `${baseUrl}/v3/boards/${boardId}/statuses/${statusId}`,
-      {
-        method: "PUT",
-        body: JSON.stringify(newStatus),
-      }
-    );
-
-    if (!response) return; // ถ้า response เป็น null ให้หยุดการทำงาน
-
-    if (response.status === 404) {
-      router.push({ name: "NotFound" }); // เปลี่ยนเส้นทางไปที่หน้า NotFound ถ้าพบ 404
-      return;
-    }
-
-    const data = await response.json();
-    if (!response.ok) {
-      toastStore.handleStatusEditedF();
-      throw new Error("Failed to edit new status");
-    } else {
-      const statusIndex = store.statuses.value.findIndex(
-        (status) => status.id == id
-      );
-      toastStore.handleStatusEdited();
-      store.statuses.value.splice(statusIndex, 1, data);
-    }
-
-    router.push({ name: "status-manage" }).catch(() => {});
+    await store.addStatus(boardId, newStatus);
+    toastStore.addToast("The status has been added", "success");
+    closeModal();
   } catch (error) {
-    editSuccess.value = false;
-    toastStore.handleStatusEditedF();
-    console.error("Error editing status:", error.message);
+    console.error("Error adding new status:", error.message);
+    toastStore.addToast(
+      "An error has occurred, the status could not be added.",
+      "error"
+    );
+    closeModal();
   }
+
+  newName.value = "";
+  newDescription.value = "";
 };
 </script>
 <template>
@@ -152,7 +61,7 @@ const editStatus = async () => {
         <form @submit.prevent="addStatus">
           <div class="modal-header">
             <div class="itbkktitle text-left">
-              <h4>Edit Status</h4>
+              <h4>Add New Status</h4>
             </div>
           </div>
           <hr />
@@ -168,7 +77,7 @@ const editStatus = async () => {
                     Name
                   </label>
                   <textarea
-                    class="itbkk-status-name ttitle-stt appearance-none block w-full bg-gray-200 border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
+                    class="itbkk-status-name ttitle-stt appearance-none block w-full bg-gray-200 border border-gray-200 rounded py-3 px-4 leading-tight focus:bg-white focus:outline-none"
                     id="name"
                     type="text"
                     placeholder="Enter name... (Required)"
@@ -210,14 +119,10 @@ const editStatus = async () => {
                 Cancel
               </button>
               <button
-                @click="editStatus"
+                @click="$emit('toastAddStatus')"
                 class="itbkk-button-confirm ok border"
                 type="submit"
-                :disabled="
-                  newName?.length === 0 ||
-                  (newName === originalName &&
-                    newDescription === originalDescription)
-                "
+                :disabled="newName.length === 0"
               >
                 Save
               </button>
@@ -252,10 +157,6 @@ const editStatus = async () => {
   z-index: 3;
 }
 
-.itbkk-message {
-  color: black;
-}
-
 .titlee {
   padding: 10px;
 }
@@ -268,21 +169,6 @@ const editStatus = async () => {
 .itbkkdesc-stt {
   width: 750px;
   height: 200px;
-}
-
-.time {
-  padding-left: 15px;
-  padding-bottom: 10px;
-}
-
-.itbkk-timezone {
-  justify-content: center;
-  align-items: center;
-}
-
-.itbkk-created-on {
-  justify-content: center;
-  align-items: center;
 }
 
 .ok {
@@ -325,7 +211,7 @@ const editStatus = async () => {
 }
 
 .modal-header {
-  color: #47467b;
+  color: black;
   font-family: "Ubuntu", sans-serif;
   font-weight: 500;
   font-style: normal;

@@ -1,20 +1,21 @@
 <script setup>
 import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
-import { useUserStore } from "@/stores/users.js";
-import { useBoardStore } from "@/stores/api.js";
+import { useUserStore } from "@/stores/AuthUserStore.js";
+import { useBoardStore } from "@/stores/BoardStore.js";
+import { useToastStore } from "@/stores/ToastStore.js";
 
 const userStore = useUserStore();
-const token = computed(() => userStore.token);
+const boardStore = useBoardStore();
+const toastStore = useToastStore();
 const fullname = computed(() => userStore.fullname);
+const router = useRouter();
 const visibility = ref("private");
 const errorMessage = ref("");
-const router = useRouter();
-
-const boardStore = useBoardStore();
 const boardName = ref("");
-const baseUrl = import.meta.env.VITE_API_BOARDS;
 
+
+// กำหนดชื่อบอร์ดให้ตรงกับชื่อผู้ใช้โดยอัตโนมัติ
 watch(
   fullname,
   (newFullname) => {
@@ -24,36 +25,26 @@ watch(
 );
 
 async function createBoard() {
-  const newBoard = {
-    name: boardName.value.trim(),
-    owner: fullname.value,
-    visibility: visibility.value,
-  };
-
   try {
-    const response = await fetch(`${baseUrl}/v3/boards`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token.value}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(newBoard),
-    });
+    const newBoard = {
+      name: boardName.value.trim(),
+      owner: fullname.value,
+      visibility: visibility.value,
+    };
 
-    if (response.ok) {
-      const createdBoard = await response.json();
-      console.log("Board created successfully:", createdBoard);
-      boardStore.addBoard(createdBoard); // เพิ่มบอร์ดลงใน store
-      router.push(`/board/${createdBoard.id}`);
-    } else {
-      console.error("Failed to create board:", await response.json());
-    }
+    const createdBoard = await boardStore.createBoard(newBoard);
+    toastStore.addToast("The board has been successfully created.", "success");
+    console.log("Board created successfully:", createdBoard);
+    router.push(`/board/${createdBoard.id}`);
   } catch (error) {
+    toastStore.addToast("Error creating board", "error");
     console.error("Error creating board:", error);
+    errorMessage.value = error.message || "An unexpected error occurred.";
   }
 }
 
 
+// ปิด Modal
 function closeModal() {
   errorMessage.value = "";
   router.push("/board");
@@ -64,9 +55,6 @@ function closeModal() {
   <div class="itbkk-modal-new fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
     <div class="bg-white p-6 rounded-3xl text-center shadow-xlp-6 w-1/3">
       <h2 class="text-lg font-semibold mb-4">Create New Board</h2>
-      <div v-if="errorMessage" class="text-red-500 mb-4">
-        {{ errorMessage }}
-      </div>
       <input
         v-model="boardName"
         type="text"
@@ -74,15 +62,18 @@ function closeModal() {
         placeholder="Enter board name (max 120 characters)"
         maxlength="120"
       />
-      <!-- <select v-model="visibility" class="border p-2 w-full mb-4">
+      <select v-model="visibility" class="border p-2 w-full mb-4">
         <option value="private">Private</option>
         <option value="public">Public</option>
-      </select> -->
+      </select>
       <div class="button-addboard flex justify-center">
         <button
           @click="createBoard"
           :disabled="!boardName"
-          :class="{'bg-gray-300 text-gray-500 cursor-not-allowed': !boardName, 'bg-emerald-500 hover:bg-emerald-600': boardName}"
+          :class="{
+            'bg-gray-300 text-gray-500 cursor-not-allowed': !boardName,
+            'bg-emerald-500 hover:bg-emerald-600': boardName
+          }"
           class="itbkk-button-ok text-white px-4 py-2"
         >
           Create
@@ -108,9 +99,6 @@ function closeModal() {
   bottom: 0;
   left: 0;
 }
-/* .bg-opacity-50 {
-  background-opacity: 0.5;
-} */
 
 button {
   border-radius: 20px;
