@@ -8,6 +8,7 @@ import sit.int221.BEOR2.db1.dtos.BoardDto;
 import sit.int221.BEOR2.db1.entities.Board;
 import sit.int221.BEOR2.db1.services.BoardService;
 import org.springframework.validation.annotation.Validated;
+import sit.int221.BEOR2.exceptions.ApiBadRequestException;
 
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,9 @@ public class BoardController {
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     public BoardDto addBoard(@RequestBody(required = false) Board board) {
+        if (board == null) {
+            throw new ApiBadRequestException("Board data is required");
+        }
         return boardService.addBoard(board);
     }
 

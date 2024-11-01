@@ -19,13 +19,19 @@ public class TaskService extends ValidateAuth {
 
     // ดึง Task ทั้งหมดใน Board
     public List<Task> getTasks(String boardId) {
-        validateBoardAccess(boardId);
+        Board board = validateBoardAccess(boardId);
+        if (board.getVisibility().equals("PRIVATE")) {
+            validateOwnership(board);
+        }
         return taskRepository.findByBoardId(boardId);
     }
 
     // ดึง Task ตาม ID
     public Task getTaskById(String boardId, Integer taskId) {
-        validateBoardAccess(boardId);
+        Board board = validateBoardAccess(boardId);
+        if (board.getVisibility().equals("PRIVATE")) {
+            validateOwnership(board);
+        }
         return taskRepository.findByBoardIdAndId(boardId, taskId)
                 .orElseThrow(() -> new ApiNotFoundException("Task not found in the board"));
     }
