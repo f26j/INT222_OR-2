@@ -14,34 +14,37 @@ const toggleDropdown = () => {
   dropdownOpen.value = !dropdownOpen.value;
 };
 
-
 onMounted(async () => {
-  // ตรวจสอบว่า route ปัจจุบันเป็น public หรือ private
+  // เรียกใช้ initializeStore เพื่อตรวจสอบ token และ decode ใหม่
+  await userStore.initializeStore();
+
   const route = router.currentRoute.value;
   const boardId = route.params.boardId;
 
-  if (!userStore.token && boardId) {
+  // ตรวจสอบว่ามี token ไหม ถ้าไม่มีให้พาไปหน้า login
+  if (!userStore.token) {
+    return router.push("/login");
+  }
+
+  // ถ้าเป็น Board ส่วนตัวและไม่มี token ก็พาไปหน้า login
+  if (boardId) {
     try {
       const boardData = await fetch(`${baseUrl}/v3/boards/${boardId}`, {
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userStore.token}`,
+        },
       }).then((res) => res.json());
 
-      // ถ้าบอร์ดเป็น private และไม่มี token ให้ redirect ไป /login
-      if (boardData.visibility === "PRIVATE") {
+      if (boardData.visibility === "PRIVATE" && !userStore.token) {
         console.warn("This board is private. Redirecting to login.");
         return router.push("/login");
       }
     } catch (error) {
       console.error("Error fetching board data:", error);
     }
-  } else if (!userStore.token) {
-    // ถ้าไม่มี token แต่ไม่เกี่ยวกับบอร์ดให้ไป login
-    router.push("/login");
-  } else {
-    userStore.checkAuth(); // ถ้ามี token ให้ตรวจสอบ auth ปกติ
   }
 });
-
 
 const home = () => {
   router.push("/board");
@@ -49,11 +52,10 @@ const home = () => {
 
 const logout = () => {
   userStore.logout();
-  console.log("Token after logout:", userStore.token); 
+  console.log("Token after logout:", userStore.token);
   router.push("/login");
   dropdownOpen.value = false;
 };
-
 </script>
 
 <template>
@@ -109,7 +111,11 @@ const logout = () => {
         class="dropdown-content menu bg-white text-[#343365] rounded-box z-[1] w-36 p-2 mt-2 shadow"
       >
         <li>
-          <a @mousedown="logout" class="itbkk-sign-out flex items-center space-x-2 group"> <!-- ใช้ @mousedown -->
+          <a
+            @mousedown="logout"
+            class="itbkk-sign-out flex items-center space-x-2 group"
+          >
+            <!-- ใช้ @mousedown -->
             <svg
               fill="#000000"
               width="20px"
@@ -138,7 +144,7 @@ const logout = () => {
   right: 0;
   z-index: 99999;
 }
-  
+
 .hover-red-icon {
   transition: fill 0.3s ease;
 }
@@ -156,7 +162,9 @@ a {
   transition: color 0.3s ease;
 }
 
-.itbkk-fullname, .itbkk-home, .itbkk-sign-out {
+.itbkk-fullname,
+.itbkk-home,
+.itbkk-sign-out {
   user-select: none;
 }
 </style>
