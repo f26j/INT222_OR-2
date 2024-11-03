@@ -1,61 +1,62 @@
 <script setup>
-import { ref, onMounted, computed } from "vue";
-import { useUserStore } from "@/stores/AuthUserStore";
-import { useRouter } from "vue-router";
+import { ref, onMounted, computed } from "vue"
+import { useUserStore } from "@/stores/AuthUserStore"
+import { useRouter } from "vue-router"
 
-const userStore = useUserStore();
-const router = useRouter();
+const userStore = useUserStore()
+const router = useRouter()
 
-const fullname = computed(() => userStore.fullname);
+const fullname = computed(() => userStore.fullname)
 
-const dropdownOpen = ref(false);
+const dropdownOpen = ref(false)
 
 const toggleDropdown = () => {
-  dropdownOpen.value = !dropdownOpen.value;
-};
+  dropdownOpen.value = !dropdownOpen.value
+}
 
 onMounted(async () => {
-  // เรียกใช้ initializeStore เพื่อตรวจสอบ token และ decode ใหม่
-  await userStore.initializeStore();
+  // ตรวจสอบว่า route ปัจจุบันเป็น public หรือ private
+  const route = router.currentRoute.value
+  const boardId = route.params.boardId
 
-  const route = router.currentRoute.value;
-  const boardId = route.params.boardId;
-
-  // ตรวจสอบว่ามี token ไหม ถ้าไม่มีให้พาไปหน้า login
-  if (!userStore.token) {
-    return router.push("/login");
-  }
-
-  // ถ้าเป็น Board ส่วนตัวและไม่มี token ก็พาไปหน้า login
-  if (boardId) {
+  if (!userStore.token && boardId) {
     try {
       const boardData = await fetch(`${baseUrl}/v3/boards/${boardId}`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${userStore.token}`,
-        },
-      }).then((res) => res.json());
+        headers: { "Content-Type": "application/json" },
+      }).then((res) => res.json())
 
-      if (boardData.visibility === "PRIVATE" && !userStore.token) {
-        console.warn("This board is private. Redirecting to login.");
-        return router.push("/login");
+      // ถ้าบอร์ดเป็น private และไม่มี token ให้ redirect ไป /login
+      if (boardData.visibility === "PRIVATE") {
+        console.warn("This board is private. Redirecting to login.")
+        return router.push("/login")
       }
     } catch (error) {
-      console.error("Error fetching board data:", error);
+      console.error("Error fetching board data:", error)
     }
+  } else if (!userStore.token) {
+    // ถ้าไม่มี token แต่ไม่เกี่ยวกับบอร์ดให้ไป login
+    router.push("/login")
+  } else {
+    userStore.checkAuth() // ถ้ามี token ให้ตรวจสอบ auth ปกติ
   }
-});
+})
 
 const home = () => {
-  router.push("/board");
-};
+  router.push("/board")
+}
 
 const logout = () => {
-  userStore.logout();
-  console.log("Token after logout:", userStore.token);
-  router.push("/login");
-  dropdownOpen.value = false;
-};
+  userStore.logout()
+  console.log("Token after logout:", userStore.token)
+  router.push("/login")
+  dropdownOpen.value = false
+}
+
+const signIn = () => {
+  userStore.fullname = "Guest"
+  console.log("Sign In as Guest")
+  router.push("/login")
+}
 </script>
 
 <template>
@@ -110,25 +111,53 @@ const logout = () => {
         v-if="dropdownOpen"
         class="dropdown-content menu bg-white text-[#343365] rounded-box z-[1] w-36 p-2 mt-2 shadow"
       >
-        <li>
+        <li v-if="userStore.token">
           <a
             @mousedown="logout"
             class="itbkk-sign-out flex items-center space-x-2 group"
           >
             <!-- ใช้ @mousedown -->
             <svg
-              fill="#000000"
-              width="20px"
-              height="20px"
-              viewBox="0 0 512 512"
               xmlns="http://www.w3.org/2000/svg"
-              class="hover-red-icon transition-colors duration-300"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              class="hover-red-icon transition-colors duration-300 group-hover:scale-110"
             >
               <path
-                d="M497 273L329 441c-15 15-41 4.5-41-17v-96H152c-13.3 0-24-10.7-24-24v-96c0-13.3 10.7-24 24-24h136V88c0-21.4 25.9-32 41-17l168 168c9.3 9.4 9.3 24.6 0 34zM192 436v-40c0-6.6-5.4-12-12-12H96c-17.7 0-32-14.3-32-32V160c0-17.7 14.3-32 32-32h84c6.6 0 12-5.4 12-12V76c0-6.6-5.4-12-12-12H96c-53 0-96 43-96 96v192c0 53 43 96 96 96h84c6.6 0 12-5.4 12-12z"
-              ></path>
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.5"
+                d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14l5-5l-5-5m5 5H9"
+              />
             </svg>
             <span class="transition-colors duration-300">Sign Out</span>
+          </a>
+        </li>
+        <li v-else>
+          <a
+            @mousedown="signIn"
+            class="itbkk-sign-in flex items-center space-x-2 group"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              class="hover-green-icon transition-colors duration-300 group-hover:scale-110"
+            >
+              <path
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.5"
+                d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4m-5-4l5-5l-5-5m5 5H3"
+              />
+            </svg>
+            <span class="transition-colors duration-300">Sign In</span>
           </a>
         </li>
       </ul>
@@ -145,16 +174,25 @@ const logout = () => {
   z-index: 99999;
 }
 
-.hover-red-icon {
-  transition: fill 0.3s ease;
+.hover-red-icon .hover-green-icon {
+  stroke: currentColor;
+  transition: stroke 0.3s ease;
 }
 
 .group:hover .hover-red-icon {
-  fill: #ef4444; /* red-500 */
+  color: #ef4444; /* red-500 */
 }
 
-.group:hover span {
+.group:hover .hover-green-icon {
+  color: #22c55e; /* green-500 */
+}
+
+.group:hover .hover-red-icon ~ span {
   color: #ef4444; /* red-500 */
+}
+
+.group:hover .hover-green-icon ~ span {
+  color: #22c55e; /* green-500 */
 }
 
 a {
@@ -164,7 +202,8 @@ a {
 
 .itbkk-fullname,
 .itbkk-home,
-.itbkk-sign-out {
+.itbkk-sign-out,
+.itbkk-sign-in {
   user-select: none;
 }
 </style>
