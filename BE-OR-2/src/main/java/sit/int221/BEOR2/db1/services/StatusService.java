@@ -22,12 +22,18 @@ public class StatusService extends ValidateAuth {
     private TaskRepository taskRepository;
 
     public List<Status> getStatuses(String boardId) {
-        validateBoardAccess(boardId);
+        Board board = validateBoardAccess(boardId);
+        if (board.getVisibility().equals("PRIVATE")) {
+            validateOwnership(board);
+        }
         return statusRepository.findByBoardId(boardId);
     }
 
     public Status getStatusById(String boardId, Integer statusId) {
-        validateBoardAccess(boardId);
+        Board board = validateBoardAccess(boardId);
+        if (board.getVisibility().equals("PRIVATE")) {
+            validateOwnership(board);
+        }
         return statusRepository.findByBoardIdAndId(boardId, statusId)
                 .orElseThrow(() -> new ApiNotFoundException("Status not found"));
     }
@@ -36,6 +42,10 @@ public class StatusService extends ValidateAuth {
     public Status addStatus(String boardId, Status status) {
         Board board = validateBoardAccess(boardId);
         validateOwnership(board);
+
+        if (status == null) {
+            throw new ApiBadRequestException("Status data is required");
+        }
 
         if (statusRepository.existsByNameAndBoardId(status.getName().trim(), boardId)) {
             throw new ApiBadRequestException("Status name already exists on this board");
