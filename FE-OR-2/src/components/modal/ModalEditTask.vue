@@ -99,11 +99,11 @@ onMounted(async () => {
       <div class="modal-content">
         <form @submit.prevent="saveTaskChanges">
           <div class="modal-header">
-            <div class="itbkk-title text-left">
+            <div class="itbkk-title text-left pl-4">
               <h1>
                 <input
                   v-model="modalDetail.title"
-                  class="border-0 text-left"
+                  class="border-0 text-left p-2 rounded-sm"
                   placeholder="Enter task title"
                 />
               </h1>
