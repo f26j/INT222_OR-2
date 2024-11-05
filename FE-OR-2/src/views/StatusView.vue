@@ -204,12 +204,14 @@ const closeModal = () => {
               </td>
               <td class="itbkk-button-action flex">
                 <button
+                  class="itbkk-button-edit"
                   @click="openModalEdit(status.id)"
                   v-if="status.name !== 'No Status' && status.name !== 'Done'"
                 >
                   Edit
                 </button>
                 <button
+                  class="itbkk-button-delete"
                   @click="openModalDelete(status.id, status.name)"
                   v-if="status.name !== 'No Status' && status.name !== 'Done'"
                 >

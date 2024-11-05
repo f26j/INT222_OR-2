@@ -90,7 +90,7 @@ watch(
       aria-modal="true"
     >
       <h2 class="text-2xl font-bold mb-4">Delete a Status</h2>
-      <p>Do you want to delete the <strong>{{ name }}</strong> status?</p>
+      <p class="itbkk-message">Do you want to delete the <strong>{{ name }}</strong> status?</p>
       <div class="Button flex justify-center gap-4 mt-5">
         <button class="itbkk-button-cancel" @click="$emit('closeModal')">
           Cancel

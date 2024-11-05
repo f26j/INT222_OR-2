@@ -37,7 +37,7 @@ onMounted(async () => {
     // ถ้าไม่มี token แต่ไม่เกี่ยวกับบอร์ดให้ไป login
     router.push("/login")
   } else {
-    userStore.checkAuth() // ถ้ามี token ให้ตรวจสอบ auth ปกติ
+    userStore.initializeStore()
   }
 })
 
@@ -53,7 +53,7 @@ const logout = () => {
 }
 
 const signIn = () => {
-  userStore.fullname = "Guest"
+  token = null
   console.log("Sign In as Guest")
   router.push("/login")
 }

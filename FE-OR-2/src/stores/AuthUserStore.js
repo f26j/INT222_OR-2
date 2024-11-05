@@ -76,7 +76,7 @@ export const useUserStore = defineStore("user", {
         const refreshToken = localStorage.getItem("refreshToken");
         if (!refreshToken) throw new Error("No refresh token available.");
 
-        const response = await fetch("http://localhost:8080/token", {
+        const response = await fetch(fetchRefreshToken, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
