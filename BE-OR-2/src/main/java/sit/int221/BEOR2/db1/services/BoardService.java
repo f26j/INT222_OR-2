@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import sit.int221.BEOR2.db1.components.BoardAuth;
+import sit.int221.BEOR2.db1.dtos.BoardCollabDto;
 import sit.int221.BEOR2.db1.dtos.BoardDto;
 import sit.int221.BEOR2.db1.dtos.UserDto;
 import sit.int221.BEOR2.db1.entities.Board;
@@ -41,13 +42,24 @@ public class BoardService extends BoardAuth {
         );
     }
 
-    public List<BoardDto> getBoards() {
+    public BoardCollabDto getBoards() {
         String username = getAuthenticatedUsername();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ApiNotFoundException("User not found"));
 
         List<Board> boards = boardRepository.findByOwnerOidOrVisibilityPublic(user.getOid());
-        return boards.stream().map(this::convertToDto).toList();
+
+        List<BoardDto> personalBoards = boards.stream()
+                .filter(board -> board.getUser().getOid().equals(user.getOid()))
+                .map(this::convertToDto)
+                .toList();
+
+        List<BoardDto> collaborativeBoards = boards.stream()
+                .filter(board -> board.getUser().getOid().equals(user.getOid()))
+                .map(this::convertToDto)
+                .toList();
+
+        return new BoardCollabDto(personalBoards, collaborativeBoards);
     }
 
     public BoardDto getBoardById(String id) {

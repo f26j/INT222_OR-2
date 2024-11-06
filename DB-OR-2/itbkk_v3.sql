@@ -10,6 +10,7 @@ USE itbkk_v3;
 -- Drop
 DROP TABLE IF EXISTS tasks;
 DROP TABLE IF EXISTS statuses;
+DROP TABLE IF EXISTS collabs;
 DROP TABLE IF EXISTS boards;
 DROP TABLE IF EXISTS users;
 
@@ -33,6 +34,17 @@ CREATE TABLE IF NOT EXISTS boards
     created_on        DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_on        DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_owner_id FOREIGN KEY (owner_id) REFERENCES users (oid) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS collabs
+(
+    oid               CHAR(36) PRIMARY KEY                                          NOT NULL UNIQUE,
+    board_id          CHAR(10)                                                      NOT NULL,
+    name              VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+    email             VARCHAR(50)                                                   NOT NULL,
+    access_right      ENUM('READ', 'WRITE')                                         NOT NULL,
+    added_on          DATETIME                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_board_id_3 FOREIGN KEY (board_id) REFERENCES boards (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS statuses

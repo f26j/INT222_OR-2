@@ -19,27 +19,27 @@ public class BoardAuth {
     @Autowired
     private UserRepository userRepository;
 
-    public Board getBoardEntity(String id) {
+    protected Board getBoardEntity(String id) {
         return boardRepository.findById(id)
                 .orElseThrow(() -> new ApiNotFoundException("Board id '" + id + "' not found"));
     }
 
-    public User getAuthenticatedUser() {
+    protected User getAuthenticatedUser() {
         String username = getAuthenticatedUsername();
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new ApiForbiddenException("User not found"));
     }
 
-    public String getAuthenticatedUsername() {
+    protected String getAuthenticatedUsername() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return authentication != null ? authentication.getName() : null;
     }
 
-    public boolean isBoardOwner(User user, Board board) {
+    protected boolean isBoardOwner(User user, Board board) {
         return board.getUser().getOid().equals(user.getOid());
     }
 
-    public void validateBoardName(String name) {
+    protected void validateBoardName(String name) {
         if (name == null || name.trim().isEmpty() || name.length() > 120) {
             throw new ApiBadRequestException("Invalid board name");
         }

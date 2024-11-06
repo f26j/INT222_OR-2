@@ -17,7 +17,7 @@ public class ValidateAuth {
     @Autowired
     private UserRepository userRepository;
 
-    public Board validateBoardAccess(String boardId) {
+    protected Board validateBoardAccess(String boardId) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new ApiNotFoundException("Board not found"));
 
@@ -30,7 +30,7 @@ public class ValidateAuth {
         return board;
     }
 
-    public void validateOwnership(Board board) {
+    protected void validateOwnership(Board board) {
         String userName = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUsername(userName)
                 .orElseThrow(() -> new ApiForbiddenException("User not found"));
