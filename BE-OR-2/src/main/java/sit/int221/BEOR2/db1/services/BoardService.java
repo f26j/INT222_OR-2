@@ -13,6 +13,7 @@ import sit.int221.BEOR2.db1.entities.Board;
 import sit.int221.BEOR2.db1.entities.Status;
 import sit.int221.BEOR2.db1.entities.User;
 import sit.int221.BEOR2.db1.repositories.BoardRepository;
+import sit.int221.BEOR2.db1.repositories.CollabRepository;
 import sit.int221.BEOR2.db1.repositories.StatusRepository;
 import sit.int221.BEOR2.db1.repositories.UserRepository;
 import sit.int221.BEOR2.exceptions.ApiBadRequestException;
@@ -31,6 +32,8 @@ public class BoardService extends BoardAuth {
     @Autowired
     private StatusRepository statusRepository;
     @Autowired
+    private CollabRepository collabRepository;
+    @Autowired
     private StatusService statusService;
 
     private BoardDto convertToDto(Board board) {
@@ -47,14 +50,15 @@ public class BoardService extends BoardAuth {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ApiNotFoundException("User not found"));
 
-        List<Board> boards = boardRepository.findByOwnerOidOrVisibilityPublic(user.getOid());
+        List<Board> ownedOrPublicBoards = boardRepository.findByOwnerOidOrVisibilityPublic(user.getOid());
+        List<Board> collaborativeBoardsList = boardRepository.findByCollaboratorsEmail(user.getEmail());
 
-        List<BoardDto> personalBoards = boards.stream()
+        List<BoardDto> personalBoards = ownedOrPublicBoards .stream()
                 .filter(board -> board.getUser().getOid().equals(user.getOid()))
                 .map(this::convertToDto)
                 .toList();
 
-        List<BoardDto> collaborativeBoards = boards.stream()
+        List<BoardDto> collaborativeBoards = collaborativeBoardsList.stream()
                 .filter(board -> board.getUser().getOid().equals(user.getOid()))
                 .map(this::convertToDto)
                 .toList();
@@ -69,9 +73,14 @@ public class BoardService extends BoardAuth {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new ApiNotFoundException("Board id '" + id + "' not found"));
 
-        if (board.getVisibility().equals("PRIVATE") && (user == null || !isBoardOwner(user, board))) {
+        boolean isCollaborator = user != null && collabRepository.existsByBoardIdAndEmail(id, user.getEmail());
+        boolean isOwner = user != null && board.getUser().getOid().equals(user.getOid());
+
+        // Allow access if the board is public, the user is the owner, or the user is a collaborator
+        if (!board.getVisibility().equals("PUBLIC") && !isOwner && !isCollaborator) {
             throw new ApiForbiddenException("Access Denied");
         }
+
         return convertToDto(board);
     }
 
