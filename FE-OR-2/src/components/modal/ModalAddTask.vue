@@ -106,6 +106,7 @@ const closeModal = () => {
                     type="text"
                     placeholder="Enter title..."
                     v-model="newTitle"
+                    maxlength="100"
                   ></textarea>
                 </div>
               </div>
@@ -124,6 +125,7 @@ const closeModal = () => {
                       type="text"
                       placeholder="Enter description..."
                       v-model="newDescription"
+                      maxlength="500"
                     ></textarea>
                   </div>
                 </div>
@@ -145,6 +147,7 @@ const closeModal = () => {
                       type="text"
                       placeholder="Enter assignees..."
                       v-model="newAssignees"
+                      maxlength="30"
                     ></textarea>
                   </div>
                 </div>
