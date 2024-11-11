@@ -36,7 +36,7 @@ const router = createRouter({
       name: "board",
       component: BoardView,
       meta: { requiresAuth: true, title: "ITBKK - Board" },
-      children: [{ path: "add", name: "board-add", component: ModalAddBoard }],
+      children: [{ path: "add", name: "board-add", component: ModalAddBoard, }],
     },
     { path: "/:pathMatch(.*)*", name: "NotFound", component: NotFoundPage },
     {
@@ -45,7 +45,7 @@ const router = createRouter({
       component: TaskView,
       meta: { requiresAuth: false, title: "ITBKK - Task" },
       children: [
-        { path: "task/add", name: "task-add", component: ModalAddTask },
+        { path: "task/add", name: "task-add", component: ModalAddTask, meta: { requiresAuth: true} },
         {
           path: "task/:taskId",
           name: "task-detail",
@@ -55,6 +55,7 @@ const router = createRouter({
           path: "task/:taskId/edit",
           name: "task-edit",
           component: ModalEditTask,
+          meta: { requiresAuth: true}
         },
       ],
     },
@@ -88,18 +89,13 @@ router.beforeEach(async (to, from, next) => {
     }
 
     const hasToken = !!userStore.token;
-    const requiresAuth = to.meta.requiresAuth;
+    const requiresAuth = to.matched.some(record => record.meta.requiresAuth); // ตรวจสอบทุกเส้นทางย่อย
     const boardId = to.params.boardId;
 
     // ตั้งค่า title ของหน้า (ถ้ามี)
     if (to.meta.title) {
       document.title = to.meta.title;
     }
-
-    console.log(`Navigating to: ${to.path}`);
-    console.log(`Token status: ${hasToken ? "Has Token" : "No Token"}`);
-    console.log(`Requires Auth: ${requiresAuth}`);
-    console.log(`Board ID: ${boardId}`);
 
     // ตรวจสอบการเข้าถึง Board (กรณีมี Board ID)
     if (boardId) {
@@ -140,7 +136,6 @@ router.beforeEach(async (to, from, next) => {
       return next({ name: "board" });
     }
 
-    console.log("Navigation allowed.");
     next(); // อนุญาตให้เข้าถึงได้ตามปกติ
   } catch (error) {
     console.error("Error during navigation:", error);
@@ -155,6 +150,7 @@ router.beforeEach(async (to, from, next) => {
     next({ name: "NotFound" }); // Redirect ไปหน้า NotFound ถ้ามีข้อผิดพลาดอื่น ๆ
   }
 });
+
 
 
 export default router;

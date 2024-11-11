@@ -4,6 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useTaskStore } from "@/stores/TaskStore.js";
 import { useStatusStore } from "@/stores/StatusStore.js";
 import { useToastStore } from "@/stores/ToastStore.js";
+import { useUserStore } from "@/stores/AuthUserStore.js";
 
 // Router & Store
 const route = useRoute();
@@ -11,6 +12,7 @@ const router = useRouter();
 const taskStore = useTaskStore();
 const statusStore = useStatusStore();
 const toastStore = useToastStore();
+const userStore = useUserStore();
 
 // Variables
 const boardId = route.params.boardId;
@@ -88,6 +90,9 @@ const closeModal = () => {
 
 // On mounted
 onMounted(async () => {
+  if (!userStore.token) {
+    return router.push({ name: "AccessDenied" });
+  }
   await statusStore.fetchStatuses(boardId);
   await fetchTaskDetail();
 });

@@ -1,4 +1,9 @@
 <script setup>
+import { onMounted } from "vue";
+import { useUserStore } from "@/stores/AuthUserStore.js";
+
+const userStore = useUserStore();
+
 const props = defineProps({
   showModal: Boolean,
   taskId: {
@@ -15,6 +20,11 @@ const props = defineProps({
   },
 });
 
+onMounted(async () => {
+  if (!userStore.token) {
+    return router.push({ name: "AccessDenied" });
+  }
+});
 
 defineEmits(["closeModal", "confirmDeleteModal"]);
 </script>

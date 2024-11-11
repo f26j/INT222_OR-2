@@ -3,12 +3,13 @@ import { ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useStatusStore } from "@/stores/StatusStore.js";
 import { useToastStore } from "@/stores/ToastStore.js";
+import { useUserStore } from "@/stores/AuthUserStore.js";
 
 const store = useStatusStore();
 const toastStore = useToastStore();
 const router = useRouter();
 const route = useRoute();
-
+const userStore = useUserStore();
 const newName = ref("");
 const newDescription = ref("");
 const originalName = ref("");
@@ -47,8 +48,11 @@ const getStatus = async () => {
   }
 };
 
-onMounted(() => {
-  getStatus();
+onMounted(async () => {
+  if (!userStore.token) {
+    return router.push({ name: "AccessDenied" });
+  }
+  await getStatus();
 });
 
 const editStatus = async () => {

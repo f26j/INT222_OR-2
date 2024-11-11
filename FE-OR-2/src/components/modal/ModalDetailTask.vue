@@ -52,6 +52,7 @@ const closeModal = () => {
 
 // เรียกใช้งานเมื่อ Component ถูก mount
 onMounted(async () => {
+  
   try {
     await statusStore.fetchStatuses(boardId); // โหลดสถานะจาก Store
     await fetchTaskDetail(); // โหลดรายละเอียด Task

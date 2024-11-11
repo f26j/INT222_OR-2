@@ -110,7 +110,7 @@ export const useUserStore = defineStore("user", {
       console.log("Logging out...");
       this.token = null;
       this.refreshToken = null;
-      this.fullname = "";
+      this.fullname = "Guest";
       this.oid = "";
       localStorage.removeItem("jwtToken");
       localStorage.removeItem("refreshToken");

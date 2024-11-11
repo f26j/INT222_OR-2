@@ -5,6 +5,7 @@ import { useRouter } from "vue-router"
 
 const userStore = useUserStore()
 const router = useRouter()
+const baseUrl = import.meta.env.VITE_API_BOARDS;
 
 const fullname = computed(() => userStore.fullname)
 
@@ -53,7 +54,6 @@ const logout = () => {
 }
 
 const signIn = () => {
-  token = null
   console.log("Sign In as Guest")
   router.push("/login")
 }
@@ -102,7 +102,6 @@ const signIn = () => {
           />
         </svg>
         <div tabindex="0" role="button">
-          <!-- แสดงชื่อผู้ใช้ถ้ามีข้อมูล fullname -->
           <p v-if="fullname" class="text-sm font-semibold">{{ fullname }}</p>
         </div>
       </a>
