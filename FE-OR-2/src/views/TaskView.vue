@@ -34,6 +34,7 @@ const modalMessage = ref("Do you want to change board visibility to public?");
 const sortAscending = ref(undefined);
 const deleteSuccess = ref(false);
 const showDelete = ref(false);
+const tooltipText = "You need to be board owner to perform this action.";
 
 // Functions
 const fetchBoardData = async () => {
@@ -153,8 +154,6 @@ onMounted(async () => {
               height="32"
               viewBox="0 0 512 512"
             >
-              >
-
               <path
                 fill="currentColor"
                 d="M256 176a80 80 0 1 0 80 80a80.24 80.24 0 0 0-80-80m172.72 80a165.53 165.53 0 0 1-1.64 22.34l48.69 38.12a11.59 11.59 0 0 1 2.63 14.78l-46.06 79.52a11.64 11.64 0 0 1-14.14 4.93l-57.25-23a176.56 176.56 0 0 1-38.82 22.67l-8.56 60.78a11.93 11.93 0 0 1-11.51 9.86h-92.12a12 12 0 0 1-11.51-9.53l-8.56-60.78A169.3 169.3 0 0 1 151.05 393L93.8 416a11.64 11.64 0 0 1-14.14-4.92L33.6 331.57a11.59 11.59 0 0 1 2.63-14.78l48.69-38.12A174.58 174.58 0 0 1 83.28 256a165.53 165.53 0 0 1 1.64-22.34l-48.69-38.12a11.59 11.59 0 0 1-2.63-14.78l46.06-79.52a11.64 11.64 0 0 1 14.14-4.93l57.25 23a176.56 176.56 0 0 1 38.82-22.67l8.56-60.78A11.93 11.93 0 0 1 209.94 26h92.12a12 12 0 0 1 11.51 9.53l8.56 60.78A169.3 169.3 0 0 1 361 119l57.2-23a11.64 11.64 0 0 1 14.14 4.92l46.06 79.52a11.59 11.59 0 0 1-2.63 14.78l-48.69 38.12a174.58 174.58 0 0 1 1.64 22.66"
@@ -215,27 +214,39 @@ onMounted(async () => {
           </button>
 
           <!-- ปุ่ม Add Task -->
-          <button
-            @click="openModalAdd"
-            class="itbkk-button-add flex items-center px-4 py-2 rounded-full shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="32"
-              height="32"
-              fill="currentColor"
-              class="mr-2"
-              viewBox="0 0 16 16"
+          <div class="tooltip-container">
+            <button
+              @click="openModalAdd"
+              :disabled="boardOwnerOid !== userStore.oid"
+              :class="{
+                'itbkk-button-add flex items-center px-4 py-2 rounded-full shadow transition-transform duration-300': true,
+                'hover:shadow-md hover:scale-105':
+                  boardOwnerOid === userStore.oid,
+                'opacity-50 cursor-not-allowed':
+                  boardOwnerOid !== userStore.oid,
+              }"
             >
-              <path
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="32"
+                height="32"
                 fill="currentColor"
-                fillRule="evenodd"
-                d="M8 1a1 1 0 0 0-2 0v5H1a1 1 0 0 0 0 2h5v5a1 1 0 1 0 2 0V8h5a1 1 0 1 0 0-2H8z"
-                clipRule="evenodd"
-              />
-            </svg>
-            Add Task
-          </button>
+                class="mr-2"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  fill="currentColor"
+                  fillRule="evenodd"
+                  d="M8 1a1 1 0 0 0-2 0v5H1a1 1 0 0 0 0 2h5v5a1 1 0 1 0 2 0V8h5a1 1 0 1 0 0-2H8z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Add Task
+            </button>
+            <span v-if="boardOwnerOid !== userStore.oid" class="tooltip-text">
+              {{ tooltipText }}
+            </span>
+          </div>
         </div>
       </div>
     </header>
@@ -296,12 +307,12 @@ onMounted(async () => {
               v-for="(task, index) in sortedTasks"
               :key="task.id"
             >
-              <td>{{ index + 1 }}</td>
+              <td class="bgd">{{ index + 1 }}</td>
               <td class="itbkk-title" @click="openModalDetail(task.id)">
                 {{ task.title }}
               </td>
               <td class="itbkk-assignees">
-                <span :class="{ italic: !task.assignees }">
+                <span :class="{ italic: !task.assignees, 'textGray': !task.assignees }">
                   {{ task.assignees || "Unassigned" }}
                 </span>
               </td>
@@ -309,59 +320,88 @@ onMounted(async () => {
                 <Badges style="justify-content: center" :status="task.status" />
               </td>
 
-              <td
-                class="itbkk-button-action px-4 py-3 flex justify-center space-x-2"
-              >
+              <td class="itbkk-button-action">
                 <!-- จัดปุ่มให้ดูสมส่วน -->
-                <button
-                  class="flex items-center bg-white text-color-purple px-3 py-1.5 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
-                  @click="openModalEdit(task.id)"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    fill="currentColor"
-                    class="mr-2"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      fill="currentColor"
-                      fill-rule="evenodd"
-                      d="M17.907 4.93c.104-.105.294-.186.539-.18a.848.848 0 0 1 .572.216c.13.13.222.34.231.575c.01.234-.065.413-.167.515l-7.49 7.5l-1.273.116l.1-1.245zm2.173-1.024c-.437-.438-1.037-.643-1.6-.656c-.564-.013-1.182.167-1.635.62l-7.682 7.692a.75.75 0 0 0-.217.47l-.194 2.407a.75.75 0 0 0 .816.807l2.43-.22a.75.75 0 0 0 .463-.218l7.682-7.692c.456-.456.627-1.073.605-1.635a2.373 2.373 0 0 0-.668-1.575M5.812 4.75a2.568 2.568 0 0 0-2.563 2.562v10.875a2.568 2.568 0 0 0 2.563 2.563h10.875a2.568 2.568 0 0 0 2.563-2.562V12.75a.75.75 0 0 0-1.5 0v5.438c0 .41-.48 1.062-1.063 1.062H5.812c-.583 0-1.063-.48-1.063-1.062V7.312c0-.582.48-1.062 1.063-1.062h5.437a.75.75 0 0 0 0-1.5z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
-                  <span>Edit</span>
-                </button>
-
-                <button
-                  class="flex items-center bg-white text-color-purple px-3 py-1.5 rounded-lg shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
-                  @click="openModalDelete(task.id, task.title, index)"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    fill="currentColor"
-                    class="mr-2"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      fill="currentColor"
-                      d="M20 8.7H4a.75.75 0 1 1 0-1.5h16a.75.75 0 0 1 0 1.5"
-                    />
-                    <path
-                      fill="currentColor"
-                      d="M16.44 20.75H7.56A2.4 2.4 0 0 1 5 18.49V8a.75.75 0 0 1 1.5 0v10.49c0 .41.47.76 1 .76h8.88c.56 0 1-.35 1-.76V8A.75.75 0 1 1 19 8v10.49a2.4 2.4 0 0 1-2.56 2.26m.12-13a.74.74 0 0 1-.75-.75V5.51c0-.41-.48-.76-1-.76H9.22c-.55 0-1 .35-1 .76V7a.75.75 0 1 1-1.5 0V5.51a2.41 2.41 0 0 1 2.5-2.26h5.56a2.41 2.41 0 0 1 2.53 2.26V7a.75.75 0 0 1-.75.76Z"
-                    />
-                    <path
-                      fill="currentColor"
-                      d="M10.22 17a.76.76 0 0 1-.75-.75v-4.53a.75.75 0 0 1 1.5 0v4.52a.75.75 0 0 1-.75.76m3.56 0a.75.75 0 0 1-.75-.75v-4.53a.75.75 0 0 1 1.5 0v4.52a.76.76 0 0 1-.75.76"
-                    />
-                  </svg>
-                  <span>Delete</span>
-                </button>
+                <div class="flex items-center gap-4">
+                  <div class="tooltip-container">
+                    <button
+                      @click="openModalEdit(task.id)"
+                      :disabled="boardOwnerOid !== userStore.oid"
+                      :class="{
+                        'flex items-center bg-white text-color-purple px-3 py-1.5 rounded-lg shadow transition-transform duration-300': true,
+                        'hover:shadow-md hover:scale-105':
+                          boardOwnerOid === userStore.oid,
+                        'opacity-50 cursor-not-allowed':
+                          boardOwnerOid !== userStore.oid,
+                      }"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        fill="currentColor"
+                        class="mr-2"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          fill="currentColor"
+                          fill-rule="evenodd"
+                          d="M17.907 4.93c.104-.105.294-.186.539-.18a.848.848 0 0 1 .572.216c.13.13.222.34.231.575c.01.234-.065.413-.167.515l-7.49 7.5l-1.273.116l.1-1.245zm2.173-1.024c-.437-.438-1.037-.643-1.6-.656c-.564-.013-1.182.167-1.635.62l-7.682 7.692a.75.75 0 0 0-.217.47l-.194 2.407a.75.75 0 0 0 .816.807l2.43-.22a.75.75 0 0 0 .463-.218l7.682-7.692c.456-.456.627-1.073.605-1.635a2.373 2.373 0 0 0-.668-1.575M5.812 4.75a2.568 2.568 0 0 0-2.563 2.562v10.875a2.568 2.568 0 0 0 2.563 2.563h10.875a2.568 2.568 0 0 0 2.563-2.562V12.75a.75.75 0 0 0-1.5 0v5.438c0 .41-.48 1.062-1.063 1.062H5.812c-.583 0-1.063-.48-1.063-1.062V7.312c0-.582.48-1.062 1.063-1.062h5.437a.75.75 0 0 0 0-1.5z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                      <span>Edit</span>
+                    </button>
+                    <span
+                      v-if="boardOwnerOid !== userStore.oid"
+                      class="tooltip-text"
+                    >
+                      {{ tooltipText }}
+                    </span>
+                  </div>
+                  <div class="tooltip-container">
+                    <button
+                      @click="openModalDelete(task.id, task.title, index)"
+                      :disabled="boardOwnerOid !== userStore.oid"
+                      :class="{
+                        'flex items-center bg-white text-color-purple px-3 py-1.5 rounded-lg shadow transition-transform duration-300': true,
+                        'hover:shadow-md hover:scale-105':
+                          boardOwnerOid === userStore.oid,
+                        'opacity-50 cursor-not-allowed':
+                          boardOwnerOid !== userStore.oid,
+                      }"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        fill="currentColor"
+                        class="mr-2"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          fill="currentColor"
+                          d="M20 8.7H4a.75.75 0 1 1 0-1.5h16a.75.75 0 0 1 0 1.5"
+                        />
+                        <path
+                          fill="currentColor"
+                          d="M16.44 20.75H7.56A2.4 2.4 0 0 1 5 18.49V8a.75.75 0 0 1 1.5 0v10.49c0 .41.47.76 1 .76h8.88c.56 0 1-.35 1-.76V8A.75.75 0 1 1 19 8v10.49a2.4 2.4 0 0 1-2.56 2.26m.12-13a.74.74 0 0 1-.75-.75V5.51c0-.41-.48-.76-1-.76H9.22c-.55 0-1 .35-1 .76V7a.75.75 0 1 1-1.5 0V5.51a2.41 2.41 0 0 1 2.5-2.26h5.56a2.41 2.41 0 0 1 2.53 2.26V7a.75.75 0 0 1-.75.76Z"
+                        />
+                        <path
+                          fill="currentColor"
+                          d="M10.22 17a.76.76 0 0 1-.75-.75v-4.53a.75.75 0 0 1 1.5 0v4.52a.75.75 0 0 1-.75.76m3.56 0a.75.75 0 0 1-.75-.75v-4.53a.75.75 0 0 1 1.5 0v4.52a.76.76 0 0 1-.75.76"
+                        />
+                      </svg>
+                      <span>Delete</span>
+                    </button>
+                    <span
+                      v-if="boardOwnerOid !== userStore.oid"
+                      class="tooltip-text"
+                    >
+                      {{ tooltipText }}
+                    </span>
+                  </div>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -416,9 +456,34 @@ h3 {
   justify-content: center;
 }
 
-/* .itbkk-fullname {
-  box-shadow: none;
-} */
+.tooltip-container {
+  position: relative;
+}
+
+.tooltip-text {
+  width: 190px;
+  background-color: #9ca3af;
+  color: #fff;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-style: italic;
+  font-weight: 400;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 5px;
+  position: absolute;
+  z-index: 1;
+  bottom: 115%;
+  left: 50%;
+  margin-left: -95px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.tooltip-container:hover .tooltip-text {
+  opacity: 1;
+}
 
 .itbkk-manage-status {
   font-style: italic;
@@ -525,19 +590,7 @@ h3 {
 }
 
 .itbkk-button-action {
-  padding: 15px 5px 10px;
-  display: flex;
-}
-
-.itbkk-button-action svg {
-  transition: transform 0.3s ease;
-  cursor: pointer;
-}
-
-.itbkk-button-action svg:hover {
-  transform: scale(1.08);
-  transition: transform 0.3s ease;
-  color: #ad386f;
+  padding: 15px 60px 10px;
 }
 
 .iconbutton {
@@ -557,30 +610,21 @@ h3 {
 
 .itbkk-assignees {
   font-style: normal;
-  width: auto;
+  width: 24rem;
+  word-break: break-all;
 }
 
-.itbkk-title p {
+.itbkk-title {
   transition: transform 0.3s ease;
   color: #ad386f;
+  width: 30rem;
+  word-break: break-all;
 }
 
-.itbkk-title p:hover {
+.itbkk-title:hover {
   cursor: pointer;
   transform: scale(1.01);
   color: rgb(250, 133, 188);
-}
-
-.itbkk-item p {
-  width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.unassigned {
-  color: gray;
-  font-style: italic;
 }
 
 .kebab {
@@ -600,7 +644,7 @@ h3 {
 table {
   border-collapse: collapse;
   width: 100%;
-  max-width: 900px;
+  max-width: 1000px;
   overflow: hidden;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.432);
   margin: 0 auto;

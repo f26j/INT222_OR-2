@@ -52,6 +52,7 @@ const closeModal = () => {
 
 // เรียกใช้งานเมื่อ Component ถูก mount
 onMounted(async () => {
+  
   try {
     await statusStore.fetchStatuses(boardId); // โหลดสถานะจาก Store
     await fetchTaskDetail(); // โหลดรายละเอียด Task
@@ -63,7 +64,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="details fixed inset-0 overflow-y-auto bg-black bg-opacity-50">
+  <div class="itbkk-modal-task details fixed inset-0 overflow-y-auto bg-black bg-opacity-50">
     <div
       class="modals rounded-lg text-center shadow-xlp-6 w-min"
       role="dialog"

@@ -63,7 +63,6 @@ export const useTaskStore = defineStore("taskStore", () => {
       }
   
       const data = await response.json();
-      console.log("Fetched tasks:", data);
       tasks.value = data;
     } catch (error) {
       console.error("Error fetching tasks:", error.message);

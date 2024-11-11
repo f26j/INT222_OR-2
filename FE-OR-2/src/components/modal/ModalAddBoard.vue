@@ -62,10 +62,10 @@ function closeModal() {
         placeholder="Enter board name (max 120 characters)"
         maxlength="120"
       />
-      <select v-model="visibility" class="border p-2 w-full mb-4">
+      <!-- <select v-model="visibility" class="border p-2 w-full mb-4">
         <option value="private">Private</option>
         <option value="public">Public</option>
-      </select>
+      </select> -->
       <div class="button-addboard flex justify-center">
         <button
           @click="createBoard"

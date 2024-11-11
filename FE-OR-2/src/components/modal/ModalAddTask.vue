@@ -4,11 +4,13 @@ import { useRoute, useRouter } from "vue-router";
 import { useToastStore } from "@/stores/ToastStore.js";
 import { useTaskStore } from "@/stores/TaskStore.js";
 import { useStatusStore } from "@/stores/StatusStore.js";
+import { useUserStore } from "@/stores/AuthUserStore.js";
 
 // Store, API zone
 const router = useRouter();
-const taskStore = useTaskStore(); // ใช้ TaskStore
+const taskStore = useTaskStore();
 const toastStore = useToastStore();
+const userStore = useUserStore();
 const statusStore = useStatusStore(); // ใช้ StatusStore สำหรับดึงสถานะของ Board
 const route = useRoute();
 const boardId = route.params.boardId; // ดึงค่า boardId จาก URL
@@ -22,15 +24,22 @@ const newStatus = ref(null); // จะใช้เก็บ Status ที่เ�
 // ดึงข้อมูล Status ของ Board
 const fetchStatuses = async () => {
   try {
-    await statusStore.fetchStatuses(boardId); // ดึงข้อมูลสถานะจาก StatusStore
-    newStatus.value = statusStore.statuses[0]?.id || null; // ตั้งค่า Default Status
+    await statusStore.fetchStatuses(boardId);
+    newStatus.value = statusStore.statuses[0]?.id || null;
   } catch (error) {
     console.error("Error fetching statuses:", error.message);
   }
 };
 
 // OnMounted ดึงข้อมูล Status เมื่อ component ถูก mount
-onMounted(fetchStatuses);
+onMounted(async () => {
+  // ตรวจสอบว่ามี Token หรือไม่
+  if (!userStore.token) {
+    console.warn("No token available. Redirecting to 403.");
+    return router.push({ name: "AccessDenied" }); // redirect ไปหน้า 403 (AccessDenied)
+  }
+  await fetchStatuses();
+});
 
 // ฟังก์ชันสำหรับเพิ่ม Task ใหม่
 const addTask = async () => {
@@ -56,7 +65,8 @@ const addTask = async () => {
   }
 
   try {
-    await taskStore.addTask(boardId, newTask); // ใช้ฟังก์ชัน addTask จาก TaskStore
+    await taskStore.addTask(boardId, newTask);
+    toastStore.addToast("Task added successfully.", "success");
     router.push({ name: "board-tasks", params: { boardId } }).catch(() => {});
   } catch (error) {
     console.error("Error adding new task:", error.message);
@@ -106,6 +116,7 @@ const closeModal = () => {
                     type="text"
                     placeholder="Enter title..."
                     v-model="newTitle"
+                    maxlength="100"
                   ></textarea>
                 </div>
               </div>
@@ -124,6 +135,7 @@ const closeModal = () => {
                       type="text"
                       placeholder="Enter description..."
                       v-model="newDescription"
+                      maxlength="500"
                     ></textarea>
                   </div>
                 </div>
@@ -145,6 +157,7 @@ const closeModal = () => {
                       type="text"
                       placeholder="Enter assignees..."
                       v-model="newAssignees"
+                      maxlength="30"
                     ></textarea>
                   </div>
                 </div>
