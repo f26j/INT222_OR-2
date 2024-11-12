@@ -90,6 +90,11 @@ router.beforeEach(async (to, from, next) => {
     const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
     const boardId = to.params.boardId;
 
+    // ตั้งค่า title ของหน้า (ถ้ามี)
+    if (to.meta.title) {
+      document.title = to.meta.title;
+    }
+
     if (boardId) {
       const response = await fetch(`${baseUrl}/v3/boards/${boardId}`, {
         headers: {
