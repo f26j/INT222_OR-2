@@ -24,7 +24,13 @@ async function initializeBoards() {
     await boardStore.fetchBoards();
   } catch (err) {
     console.error("Error fetching boards:", err);
-    error.value = true;
+    
+    if (err.response && err.response.status === 401) {
+      // ถ้าเป็น 401 ให้ไปหน้า login
+      router.push({ name: "login" });
+    } else {
+      error.value = true;
+    }
   } finally {
     loading.value = false;
   }
@@ -36,10 +42,17 @@ const deleteBoard = async (boardId) => {
     toastStore.addToast("Board deleted successfully.", "success");
   } catch (error) {
     console.error("Error deleting board:", error);
-    toastStore.addToast("You do not have permission to delete this board.", "error");
-    alert("You do not have permission to delete this board.");
+
+    if (error.response && error.response.status === 401) {
+      // ถ้าเป็น 401 ให้ไปหน้า login
+      router.push({ name: "login" });
+    } else {
+      toastStore.addToast("You do not have permission to delete this board.", "error");
+      alert("You do not have permission to delete this board.");
+    }
   }
 };
+
 
 const closeModal = () => {
   isModalOpen.value = false;
