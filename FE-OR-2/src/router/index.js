@@ -82,14 +82,12 @@ router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore();
 
   try {
-    // ถ้ามี token แต่หมดอายุ พยายามรีเฟรช
     if (userStore.token && userStore.isTokenExpired()) {
-      console.warn("Access token expired. Attempting to refresh...");
       await userStore.refreshAccessToken();
     }
 
     const hasToken = !!userStore.token;
-    const requiresAuth = to.matched.some(record => record.meta.requiresAuth); // ตรวจสอบทุกเส้นทางย่อย
+    const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
     const boardId = to.params.boardId;
 
     // ตั้งค่า title ของหน้า (ถ้ามี)
@@ -97,7 +95,6 @@ router.beforeEach(async (to, from, next) => {
       document.title = to.meta.title;
     }
 
-    // ตรวจสอบการเข้าถึง Board (กรณีมี Board ID)
     if (boardId) {
       const response = await fetch(`${baseUrl}/v3/boards/${boardId}`, {
         headers: {
@@ -108,49 +105,38 @@ router.beforeEach(async (to, from, next) => {
 
       if (response.ok) {
         const board = await response.json();
-        console.log("Board data:", board);
-
         if (board.visibility === "PRIVATE" && !hasToken) {
-          console.warn("Access denied. Redirecting to login.");
           return next({ name: "login" });
         }
-        return next(); // อนุญาตให้เข้าถึง Public Board
+        return next();
+      } else if (response.status === 401) {
+        console.warn("Unauthorized (401). Redirecting to login.");
+        userStore.logout();
+        return next({ name: "login" });
       } else if (response.status === 403) {
-        console.warn("Access Denied (403). Redirecting to AccessDenied.");
         return next({ name: "AccessDenied" });
       } else if (response.status === 404) {
-        console.warn("Board not found. Redirecting to NotFound.");
         return next({ name: "NotFound" });
       }
     }
 
-    // ตรวจสอบว่าต้องการ Auth แต่ไม่มี Token
     if (requiresAuth && !hasToken) {
-      console.warn("Authentication required. Redirecting to login.");
       return next({ name: "login" });
     }
 
-    // ถ้าล็อกอินแล้ว ไม่ให้เข้าหน้า login อีก
     if (hasToken && to.name === "login") {
-      console.log("Already logged in. Redirecting to /board.");
       return next({ name: "board" });
     }
 
-    next(); // อนุญาตให้เข้าถึงได้ตามปกติ
+    next();
   } catch (error) {
-    console.error("Error during navigation:", error);
-
-    // ตรวจสอบข้อผิดพลาดเกี่ยวกับการรีเฟรช token
     if (error.message.includes("Failed to refresh token")) {
-      console.warn("Redirecting to login due to refresh failure.");
-      userStore.logout(); // ล้างข้อมูลและไปหน้า login
+      userStore.logout();
       return next({ name: "login" });
     }
-
-    next({ name: "NotFound" }); // Redirect ไปหน้า NotFound ถ้ามีข้อผิดพลาดอื่น ๆ
+    next({ name: "NotFound" });
   }
 });
-
 
 
 export default router;

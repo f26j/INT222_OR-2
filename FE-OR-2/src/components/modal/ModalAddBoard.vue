@@ -37,11 +37,17 @@ async function createBoard() {
     console.log("Board created successfully:", createdBoard);
     router.push(`/board/${createdBoard.id}`);
   } catch (error) {
-    toastStore.addToast("Error creating board", "error");
-    console.error("Error creating board:", error);
-    errorMessage.value = error.message || "An unexpected error occurred.";
+    if (error.response && error.response.status === 401) {
+      // ถ้าเป็น 401 ให้ไปหน้า login
+      router.push(`/login`);
+    } else {
+      toastStore.addToast("Error creating board", "error");
+      console.error("Error creating board:", error);
+      errorMessage.value = error.message || "An unexpected error occurred.";
+    }
   }
 }
+
 
 
 // ปิด Modal

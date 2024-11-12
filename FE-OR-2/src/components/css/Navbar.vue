@@ -48,7 +48,6 @@ const home = () => {
 
 const logout = () => {
   userStore.logout()
-  console.log("Token after logout:", userStore.token)
   router.push("/login")
   dropdownOpen.value = false
 }

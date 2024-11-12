@@ -32,8 +32,6 @@ export const useUserStore = defineStore("user", {
         }
 
         const data = await response.json();
-        console.log("Login successful. Tokens received:", data);
-
         // ตั้งค่า access_token และ refresh_token
         this.setTokens(data.access_token, data.refresh_token);
       } catch (error) {
@@ -43,8 +41,6 @@ export const useUserStore = defineStore("user", {
     },
 
     setTokens(accessToken, refreshToken) {
-      console.log("Setting tokens...");
-
       // ตั้งค่า token และเก็บใน localStorage
       this.token = accessToken;
       this.refreshToken = refreshToken;
@@ -61,7 +57,6 @@ export const useUserStore = defineStore("user", {
           const decoded = jwtDecode.decode(this.token);
           this.fullname = decoded.name || "Guest";
           this.oid = decoded.oid || null;
-          console.log("Decoded token:", decoded);
         }
       } catch (error) {
         console.error("Error decoding token:", error.message);
@@ -72,42 +67,41 @@ export const useUserStore = defineStore("user", {
     async refreshAccessToken() {
       try {
         console.log("Refreshing access token...");
-
-        const refreshToken = localStorage.getItem("refreshToken");
-        if (!refreshToken) throw new Error("No refresh token available.");
-
+    
+        if (!this.refreshToken) throw new Error("No refresh token available.");
+    
         const response = await fetch(fetchRefreshToken, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${refreshToken}`,
+            Authorization: `Bearer ${this.refreshToken}`,
           },
-          body: JSON.stringify({ refresh_token: refreshToken }),
+          body: JSON.stringify({ refresh_token: this.refreshToken }),
         });
-
+    
         if (!response.ok) {
           console.warn("Refresh token failed with status:", response.status);
           this.logout();
           throw new Error("Failed to refresh token");
         }
-
+    
         const data = await response.json();
-        this.setTokens(data.access_token, refreshToken);
-        console.log("Token refreshed successfully.");
+        this.setTokens(data.access_token, this.refreshToken);
       } catch (error) {
         console.error("Error refreshing token:", error.message);
         this.logout();
       }
-    },
+    }
+    ,
     isTokenExpired() {
       if (!this.token) return true;
       const decoded = jwtDecode.decode(this.token);
       const currentTime = Date.now() / 1000;
-      return decoded.exp < currentTime;
-    },
+      return decoded && decoded.exp < currentTime;
+    }
+    ,
 
     logout() {
-      console.log("Logging out...");
       this.token = null;
       this.refreshToken = null;
       this.fullname = "Guest";
@@ -119,7 +113,6 @@ export const useUserStore = defineStore("user", {
     async initializeStore() {
       try {
         if (this.token && this.isTokenExpired()) {
-          console.log("Token expired. Attempting to refresh...");
           await this.refreshAccessToken();
         }
 
@@ -127,7 +120,6 @@ export const useUserStore = defineStore("user", {
         if (this.token) {
           this.decodeToken();
         } else {
-          console.warn("No valid token found.");
           this.logout(); // ล้างข้อมูลถ้าไม่มี token
         }
       } catch (error) {
@@ -138,7 +130,6 @@ export const useUserStore = defineStore("user", {
       // ตรวจสอบการเปลี่ยนแปลง token ผ่าน localStorage
       window.addEventListener("storage", (event) => {
         if (event.key === "jwtToken") {
-          console.log("Token changed. Refreshing...");
           this.refreshAccessToken();
         }
       });
