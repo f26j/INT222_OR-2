@@ -6,6 +6,7 @@ import { storeToRefs } from "pinia";
 import { useStatusStore } from "@/stores/StatusStore.js"; // ใช้ StatusStore
 import { useToastStore } from "@/stores/ToastStore.js";
 import { useBoardStore } from "@/stores/BoardStore.js";
+import { useUserStore } from "@/stores/AuthUserStore.js";
 import Copyright from "../components/css/Copyright.vue";
 import ModalDeleteStatus from "../components/modal/ModalDeleteStatus.vue";
 import Navbar from "../components/css/Navbar.vue";
@@ -16,14 +17,34 @@ const route = useRoute();
 const store = useStatusStore();
 const toastStore = useToastStore();
 const boardStore = useBoardStore();
+const userStore = useUserStore();
 const { statuses } = storeToRefs(store);
 
 // Variable zone
+const boardOwnerOid = ref("");
+const visibility = ref("");
 const showDelete = ref(false);
 const selectDeleteStatusId = ref("");
 const selectDeleteStatusName = ref("");
 const boardId = route.params.boardId;
 const boardName = ref("");
+const tooltipText = "You need to be board owner to perform this action.";
+
+// Functions
+const fetchBoardData = async () => {
+  try {
+    const boardData = await boardStore.getBoard(boardId);
+    if (boardData) {
+      boardName.value = boardData.name;
+      boardOwnerOid.value = boardData.owner.oid;
+      visibility.value = boardData.visibility || "PRIVATE";
+    } else {
+      console.error("Board data not found");
+    }
+  } catch (error) {
+    console.error("Error fetching board data:", error);
+  }
+};
 
 // ดึงข้อมูล Board และ Status เมื่อ component ถูก mounted
 const isLoaded = ref(false); // เพิ่มตัวแปร
@@ -100,12 +121,17 @@ const deleteTransfer = async (id, newId) => {
   }
 };
 
-
 // ปิด Modal
 const closeModal = () => {
   showDelete.value = false;
   router.push({ name: "board-status", params: { boardId } });
 };
+
+// Lifecycle hook
+onMounted(async () => {
+  await fetchBoardData();
+  await store.fetchStatuses(boardId);
+});
 </script>
 
 <template>
@@ -147,27 +173,42 @@ const closeModal = () => {
             Back
           </button>
 
-          <button
-            @click="openModalAdd"
-            class="itbkk-button-add flex items-center bg-white text-gray-800 px-4 py-2 rounded-full shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="32"
-              height="32"
-              fill="currentColor"
-              class="mr-2"
-              viewBox="0 0 16 16"
+          <div class="tooltip-container">
+            <button
+              @click="openModalAdd"
+              :disabled="boardOwnerOid !== userStore.oid"
+              :class="{
+                'itbkk-button-add flex items-center bg-white text-gray-800 px-4 py-2 rounded-full shadow transition-transform duration-300': true,
+                'hover:shadow-md hover:scale-105':
+                  boardOwnerOid === userStore.oid,
+                'opacity-50 cursor-not-allowed':
+                  boardOwnerOid !== userStore.oid,
+              }"
             >
-              <path
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="32"
+                height="32"
                 fill="currentColor"
-                fillRule="evenodd"
-                d="M8 1a1 1 0 0 0-2 0v5H1a1 1 0 0 0 0 2h5v5a1 1 0 1 0 2 0V8h5a1 1 0 1 0 0-2H8z"
-                clipRule="evenodd"
-              />
-            </svg>
-            Add Status
-          </button>
+                class="mr-2"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  fill="currentColor"
+                  fillRule="evenodd"
+                  d="M8 1a1 1 0 0 0-2 0v5H1a1 1 0 0 0 0 2h5v5a1 1 0 1 0 2 0V8h5a1 1 0 1 0 0-2H8z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Add Status
+            </button>
+            <span
+              v-if="boardOwnerOid !== userStore.oid"
+              class="tooltip-text"
+            >
+              {{ tooltipText }}
+            </span>
+          </div>
         </div>
       </div>
     </header>
@@ -193,28 +234,62 @@ const closeModal = () => {
               <td class="bgd">
                 <div class="idkb flex">{{ index + 1 }}</div>
               </td>
-              <td class="itbkk-status-name">
+              <td class="itbkk-status-name w-[12rem]">
                 <p>{{ status.name }}</p>
               </td>
-              <td :class="{ 'italic-gray': !status.description?.trim() }">
+              <td :class="['itbkk-status-description w-[15rem]', { 'italic-gray': !status.description?.trim() }]">
                 <p v-if="!status.description?.trim()">
                   No description provided
                 </p>
                 <p v-else>{{ status.description }}</p>
               </td>
               <td class="itbkk-button-action flex">
-                <button
-                  @click="openModalEdit(status.id)"
-                  v-if="status.name !== 'No Status' && status.name !== 'Done'"
-                >
-                  Edit
-                </button>
-                <button
-                  @click="openModalDelete(status.id, status.name)"
-                  v-if="status.name !== 'No Status' && status.name !== 'Done'"
-                >
-                  Delete
-                </button>
+                <div class="tooltip-container">
+                  <button
+                    @click="openModalEdit(status.id)"
+                    v-if="status.name !== 'No Status' && status.name !== 'Done'"
+                    :disabled="boardOwnerOid !== userStore.oid"
+                    :style="boardOwnerOid !== userStore.oid ? { cursor: 'not-allowed', transform: 'none', color: 'black' } : {}"
+                    :class="[
+                      'itbkk-button-edit',
+                      {
+                        'hover:shadow-md hover:scale-105': boardOwnerOid === userStore.oid,
+                        'opacity-50 cursor-not-allowed': boardOwnerOid !== userStore.oid,
+                      }
+                    ]"
+                  >
+                    Edit
+                  </button>
+                  <span
+                    v-if="status.name !== 'No Status' && status.name !== 'Done' && boardOwnerOid !== userStore.oid"
+                    class="tooltip-text"
+                  >
+                    {{ tooltipText }}
+                  </span>
+                </div>
+                <div class="tooltip-container">
+                  <button
+                    @click="openModalDelete(status.id, status.name)"
+                    v-if="status.name !== 'No Status' && status.name !== 'Done'"
+                    :disabled="boardOwnerOid !== userStore.oid"
+                    :style="boardOwnerOid !== userStore.oid ? { cursor: 'not-allowed', transform: 'none', color: 'black' } : {}"
+                    :class="[
+                      'itbkk-button-delete',
+                      {
+                        'hover:shadow-md hover:scale-105': boardOwnerOid === userStore.oid,
+                        'opacity-50 cursor-not-allowed': boardOwnerOid !== userStore.oid,
+                      }
+                    ]"
+                  >
+                    Delete
+                  </button>
+                  <span
+                    v-if="status.name !== 'No Status' && status.name !== 'Done' && boardOwnerOid !== userStore.oid"
+                    class="tooltip-text"
+                  >
+                    {{ tooltipText }}
+                  </span>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -254,6 +329,35 @@ h2 {
 h3 {
   font-family: "Ubuntu", sans-serif;
   color: #737292;
+}
+
+.tooltip-container {
+  position: relative;
+}
+
+.tooltip-text {
+  width: 190px;
+  background-color: #9ca3af;
+  color: #fff;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-style: italic;
+  font-weight: 400;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 5px;
+  position: absolute;
+  z-index: 1;
+  bottom: 115%;
+  left: 50%;
+  margin-left: -95px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.tooltip-container:hover .tooltip-text {
+  opacity: 1;
 }
 
 .a {
@@ -329,22 +433,19 @@ h3 {
   padding-left: 5px;
   cursor: pointer;
 }
-.itbkk-button-add:hover {
-  background-color: #9b65be;
-}
 
 .itbkk-button-action {
-  padding: 15px 5px 10px;
+  padding: 15px 40px 10px;
   display: flex;
   justify-content: center;
-  gap: 10px;
+  gap: 20px;
 }
 
 .itbkk-button-action button {
   background-color: #905cb334;
   border-radius: 10px;
   height: 40px;
-  width: 70px;
+  width: 100px;
   justify-content: center;
   align-items: center;
   transition: transform 0.3s ease;
@@ -359,15 +460,19 @@ h3 {
 
 .itbkk-status-name p,
 .itbkk-status-description p {
-  width: 250px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  /* word-break: break-all; */
+  word-break: break-all;
 }
 
 .itbkk-status-name p {
   color: black;
+  width: 10rem;
+}
+
+.itbkk-status-description p {
+  width: 18rem;
 }
 
 .italic-gray {
@@ -539,5 +644,4 @@ tbody tr {
 tbody td {
   min-height: inherit;
 }
-
 </style>

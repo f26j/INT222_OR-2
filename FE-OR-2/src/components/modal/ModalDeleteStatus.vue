@@ -3,11 +3,13 @@ import { ref, onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useStatusStore } from "@/stores/StatusStore.js";
 import { useTaskStore } from "@/stores/TaskStore.js";
+import { useUserStore } from "@/stores/AuthUserStore.js";
 
 // Stores and route setup
 const statusStore = useStatusStore();
 const taskStore = useTaskStore();
 const route = useRoute();
+const userStore = useUserStore();
 
 // Props from parent component
 const props = defineProps({
@@ -33,24 +35,19 @@ const unwrap = (reactiveObject) => {
 // Function to fetch and check tasks with status
 const getStatusWithTasks = async () => {
   try {
-    console.log("Fetching status for ID:", props.statusId);
-
     const status = statusStore.getStatus(props.statusId);
     if (!status) throw new Error("Status not found");
     currentStatus.value = status;
 
-    console.log("Fetching tasks for boardId:", boardId);
     await taskStore.fetchTasks(boardId); // Fetch tasks for the board
 
     const allTasks = unwrap(taskStore.tasks); // Safely unwrap tasks
-    console.log("All fetched tasks:", allTasks);
 
     // Filter tasks matching the status ID
     tasksInStatus.value = allTasks.filter(
       (task) => task?.status?.id === props.statusId
     );
 
-    console.log("Tasks in current status:", tasksInStatus.value);
 
     isDeletable.value = tasksInStatus.value.length === 0;
 
@@ -68,13 +65,16 @@ const getStatusWithTasks = async () => {
   }
 };
 
-onMounted(getStatusWithTasks); // Call function on component mount
-
+onMounted(async () => {
+  if (!userStore.token) {
+    return router.push({ name: "AccessDenied" });
+  }
+  await getStatusWithTasks();
+});
 // Watcher for tasks to log updates
 watch(
   () => taskStore.tasks,
   (newTasks) => {
-    console.log("Tasks updated:", unwrap(newTasks));
   },
   { deep: true }
 );
@@ -90,7 +90,7 @@ watch(
       aria-modal="true"
     >
       <h2 class="text-2xl font-bold mb-4">Delete a Status</h2>
-      <p>Do you want to delete the <strong>{{ name }}</strong> status?</p>
+      <p class="itbkk-message">Do you want to delete the <strong>{{ name }}</strong> status?</p>
       <div class="Button flex justify-center gap-4 mt-5">
         <button class="itbkk-button-cancel" @click="$emit('closeModal')">
           Cancel

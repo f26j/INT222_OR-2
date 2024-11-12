@@ -1,18 +1,26 @@
 <script setup>
 // Import zone
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useStatusStore } from "@/stores/StatusStore.js"; // ใช้ StatusStore
 import { useToastStore } from "@/stores/ToastStore.js";
+import { useUserStore } from "@/stores/AuthUserStore.js";
 
 // Variable zone
 const store = useStatusStore();
 const toastStore = useToastStore();
+const userStore = useUserStore();
 const router = useRouter();
 const route = useRoute();
 const newName = ref("");
 const newDescription = ref("");
 const boardId = route.params.boardId;
+
+onMounted(async () => {
+  if (!userStore.token) {
+    return router.push({ name: "AccessDenied" }); // redirect ไปหน้า 403 (AccessDenied)
+  }
+});
 
 // ปิด Modal และกลับไปหน้า Status Management
 const closeModal = () => {
