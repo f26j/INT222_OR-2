@@ -9,8 +9,7 @@ export default defineConfig({
       'cypress/e2e/example.cy.js',
       'cypress/e2e/release-1/**/*.cy.js',
       'cypress/e2e/release-2/sprint-1/**/*.cy.js',
-      'cypress/e2e/release-2/sprint-2/tc-pbi18-simple-auth/v2/**/*.cy.js',
-      // 'cypress/e2e/release-2/sprint-2/tc-pbi19-personal-board/**/*.cy.js',
+      'cypress/e2e/release-2/sprint-2/tc-pbi18-simple-auth/**/*.cy.js',
     ],
   },
   component: {
