@@ -7,6 +7,8 @@ import lombok.ToString;
 import org.hibernate.annotations.UuidGenerator;
 import org.springframework.util.StringUtils;
 
+import java.time.ZonedDateTime;
+
 @Getter
 @Setter
 @Entity
@@ -33,6 +35,9 @@ public class Users {
 
     @Column(name = "role", nullable = false, length = 20)
     private String role; // กำหนดความยาว role เป็น 20 เพื่อให้ปลอดภัยและสอดคล้องกับการใช้งานทั่วไป
+
+    @Column(name = "created_on", nullable = false, updatable = false)
+    private ZonedDateTime created_on;
 
     @SuppressWarnings("deprecation")
     public void setName(String name) {
