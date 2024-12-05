@@ -141,6 +141,25 @@ onMounted(async () => {
           <span class="itbkk-board-name textPink">{{ boardName }}</span>
         </h2>
         <div class="flex space-x-4">
+          <button
+            @click="router.push({ name: 'collaborator-manage' })"
+            class="itbkk-manage-collaborator flex items-center px-4 py-2 rounded-full shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
+          >
+          <svg 
+            xmlns="http://www.w3.org/2000/svg"
+            class="mr-2"
+            width="32" 
+            height="32" 
+            viewBox="0 0 16 16"
+          >
+            <path 
+              fill="currentColor" 
+              d="M8.5 4.5a2.5 2.5 0 1 1-5 0a2.5 2.5 0 0 1 5 0m2.4 7.506c.11.542-.348.994-.9.994H2c-.553 0-1.01-.452-.902-.994a5.002 5.002 0 0 1 9.803 0M14.002 12h-1.59a3 3 0 0 0-.04-.29a6.5 6.5 0 0 0-1.167-2.603a3 3 0 0 1 3.633 1.911c.18.522-.283.982-.836.982M12 8a2 2 0 1 0 0-4a2 2 0 0 0 0 4"
+              />
+          </svg>
+            Manage Collaborator
+          </button>
+
           <!-- ปุ่ม Manage Status -->
           <button
             @click="router.push({ name: 'status-manage' })"
@@ -485,6 +504,7 @@ h3 {
   opacity: 1;
 }
 
+.itbkk-manage-collaborator,
 .itbkk-manage-status {
   font-style: italic;
   background-color: rgba(255, 255, 255, 0);
@@ -494,6 +514,7 @@ h3 {
     transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.itbkk-manage-collaborator:hover,
 .itbkk-manage-status:hover {
   background-color: rgba(255, 255, 255, 0.5);
 }

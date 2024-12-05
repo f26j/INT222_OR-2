@@ -16,6 +16,8 @@ import ModalAddStatus from "../components/modal/ModalAddStatus.vue";
 import ModalEditStatus from "../components/modal/ModalEditStatus.vue";
 import ManageStatus from "../components/modal/ManageStatus.vue";
 
+import CollabBoard from "../views/CollabBoard.vue";
+
 import NotFoundPage from "../components/css/NotFoundPage.vue";
 import AccessDeniedPage from "../components/css/AccessDeniedPage.vue";
 
@@ -73,6 +75,21 @@ const router = createRouter({
           component: ModalEditStatus,
         },
       ],
+    },
+    {
+      path: "/board/:boardId/collab",
+      name: "collaborator-manage",
+      component: CollabBoard,
+      meta: { requiresAuth: false, title: "ITBKK - Collaborator Management" },
+      // children: [
+      //   { path: "manage", name: "status-manage", component: ManageStatus },
+      //   { path: "add", name: "status-add", component: ModalAddStatus },
+      //   {
+      //     path: ":statusId/edit",
+      //     name: "status-edit",
+      //     component: ModalEditStatus,
+      //   },
+      // ],
     },
     { path: "/forbidden", name: "AccessDenied", component: AccessDeniedPage },
   ],

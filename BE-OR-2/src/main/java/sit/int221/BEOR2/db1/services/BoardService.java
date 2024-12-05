@@ -52,14 +52,14 @@ public class BoardService extends BoardAuth {
 
         List<Board> ownedOrPublicBoards = boardRepository.findByOwnerOidOrVisibilityPublic(user.getOid());
         List<Board> collaborativeBoardsList = boardRepository.findByCollaboratorsEmail(user.getEmail());
-
+        System.out.println(collaborativeBoardsList.size());
         List<BoardDto> personalBoards = ownedOrPublicBoards .stream()
                 .filter(board -> board.getUser().getOid().equals(user.getOid()))
                 .map(this::convertToDto)
                 .toList();
 
         List<BoardDto> collaborativeBoards = collaborativeBoardsList.stream()
-                .filter(board -> board.getUser().getOid().equals(user.getOid()))
+//                .filter(board -> board.getUser().getOid().equals(user.getOid()))
                 .map(this::convertToDto)
                 .toList();
 
