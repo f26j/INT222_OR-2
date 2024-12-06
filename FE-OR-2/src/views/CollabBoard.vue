@@ -7,7 +7,6 @@ import { useToastStore } from "@/stores/ToastStore.js"
 import { useUserStore } from "@/stores/AuthUserStore.js"
 import Navbar from "../components/css/Navbar.vue"
 import Copyright from "../components/css/Copyright.vue"
-import ModalAddBoard from "../components/modal/ModalAddBoard.vue"
 
 const boardStore = useBoardStore()
 const { boards } = storeToRefs(boardStore)
@@ -22,12 +21,12 @@ const accessRight = ref("Read")
 const router = useRouter()
 const route = useRoute()
 const boardId = route.params.boardId;
-const boardName = ref("");
-const boardOwnerOid = ref("");
-const visibility = ref("");
-const deleteSuccess = ref(false);
-const showDelete = ref(false);
-const tooltipText = "You need to be board owner to perform this action.";
+const boardName = ref("")
+const boardOwnerOid = ref("")
+const visibility = ref("")
+const collaboratorEmail = ref("")
+const deleteSuccess = ref(false)
+const tooltipText = "You need to be board owner to perform this action."
 
 const fetchBoardData = async () => {
   try {
@@ -44,43 +43,22 @@ const fetchBoardData = async () => {
   }
 };
 
-async function addCollaborator() {
-
-  // try {
-  //   const newBoard = {
-  //     name: boardName.value.trim(),
-  //     owner: fullname.value,
-  //     visibility: visibility.value,
-  //   };
-
-  //   const createdBoard = await boardStore.createBoard(newBoard);
-  //   toastStore.addToast("The board has been successfully created.", "success");
-  //   console.log("Board created successfully:", createdBoard);
-  //   router.push(`/board/${createdBoard.id}`);
-  // } catch (error) {
-  //   if (error.response && error.response.status === 401) {
-  //     // ถ้าเป็น 401 ให้ไปหน้า login
-  //     router.push(`/login`);
-  //   } else {
-  //     toastStore.addToast("Error creating board", "error");
-  //     console.error("Error creating board:", error);
-  //     errorMessage.value = error.message || "An unexpected error occurred.";
-  //   }
-  // }
-}
+// const isValidEmail = computed(() => {
+//   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+//   return emailRegex.test(collaboratorEmail.value)
+// })
 
 const openHome = () => {
-  router.push({ name: "board-tasks" });
-};
+  router.push({ name: "board-tasks" })
+}
 
-// เปิด Modal สำหรับการเพิ่ม Status
-const openModalAdd = () => {
-  // router.push({ name: "status-add" });
-};
+const openModal = () => {
+  isModalOpen.value = true
+}
 
 const closeModal = () => {
   isModalOpen.value = false
-  router.push("/board")
+  router.push({ name: "collaborator-manage"})
 }
 
 watch(
@@ -98,7 +76,7 @@ watch(
 onMounted(async () => {
   await fetchBoardData();
   // await taskStore.fetchTasks(boardId);
-});
+})
 </script>
 
 <template>
@@ -130,7 +108,7 @@ onMounted(async () => {
           </button>
 
           <div class="tooltip-container">
-            <button @click="addCollaborator" :disabled="boardOwnerOid !== userStore.oid" :class="{
+            <button @click="openModal" :disabled="boardOwnerOid !== userStore.oid" :class="{
               'itbkk-collaborator-add flex items-center bg-white text-gray-800 px-4 py-2 rounded-full shadow transition-transform duration-300': true,
               'hover:shadow-md hover:scale-105':
                 boardOwnerOid === userStore.oid,
@@ -155,27 +133,12 @@ onMounted(async () => {
 
   <main>
     <div class="p-4 bg-gradient-to-r to-pink-100 rounded-lg">
-      <div class="relative flex justify-center items-center pb-6 mx-auto max-w-[900px]">
-        <!-- <h2 class="text-purple text-center text-3xl font-bold">
-          Collaborator Management
-        </h2> -->
-        <!-- <div class="absolute right-0">
-          <button @click="router.push('/board/add')"
-            class="itbkk-button-create flex items-center cursor-pointer bg-color-purple text-white px-4 py-2 shadow hover:shadow-md hover:scale-105 transition-transform duration-300 rounded-full">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="mr-2"
-              viewBox="0 0 16 16">
-              <path d="M8 1a1 1 0 0 0-2 0v5H1a1 1 0 0 0 0 2h5v5a1 1 0 1 0 2 0V8h5a1 1 0 1 0 0-2H8z" />
-            </svg>
-            Create new board
-          </button>
-        </div> -->
-      </div>
       <table class="w-full text-left table-fixed">
         <thead class="bg-violet-500">
           <tr>
             <th class="px-4 py-3 w-1/12 text-center font-semibold">No</th>
-            <th class="px-4 py-3 w-4/12 text-left font-semibold">Name</th>
-            <th class="px-4 py-3 w-3/12 text-left font-semibold">E-mail</th>
+            <th class="px-4 py-3 w-2/12 text-left font-semibold">Name</th>
+            <th class="px-4 py-3 w-5/12 text-left font-semibold">E-mail</th>
             <th class="px-4 py-3 w-2/12 text-left font-semibold">Access Right</th>
             <th class="px-4 py-3 w-2/12 text-center font-semibold">Action</th>
           </tr>
@@ -194,25 +157,31 @@ onMounted(async () => {
           <tr v-if="boards.length === 0 && !loading && !error">
             <td colspan="5" class="px-4 py-4 text-center">No Board Added</td>
           </tr>
-          <tr v-for="(board, index) in boards.personal_boards" :key="board.id"
-            class="itbkk-item border-b last:border-0">
+          <!-- <tr v-for="(board, index) in boards.personal_boards" :key="board.id" -->
+          <tr v-for="(board, index) in boards" :key="board.id" class="itbkk-item border-b last:border-0">
             <td class="px-4 py-3 text-center text-black font-bold">
               {{ index + 1 }}
             </td>
             <td class="itbkk-name px-4 py-3 cursor-pointer text-black font-bold hover:text-[#47467b] break-words"
               @click="router.push(`/board/${board.id}`)">
-              {{ board.name }}
+              ITBKK DUMMY
             </td>
-            <td class="itbkk-email px-4 py-3 text-[#717171] font-bold text-center">
-              {{ board.email }}
+            <td class="itbkk-email px-4 py-3 text-[#717171] font-bold text-center truncate">
+              <!-- {{ board.email }} -->
+              itbkk.dummy@ad.sit.kmutt.ac.th
             </td>
             <td class="itbkk-access-right px-4 py-3 text-[#717171] font-bold text-center">
-              {{ board.email }}
+              <select
+                class="itbkk-status select select-bordered w-full max-w-xs block bg-white border border-gray-200 py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white">
+                <option disabled selected>READ</option>
+                <option>READ</option>
+                <option>WRITE</option>
+              </select>
             </td>
             <td class="px-4 py-3 space-x-4">
               <div class="flex justify-center">
                 <button class="itbkk-button-delete bg-[#8e5bb1] hover:bg-[#6a4581]" @click="deleteBoard(board.id)">
-                  Delete
+                  Remove
                 </button>
               </div>
             </td>
@@ -221,23 +190,39 @@ onMounted(async () => {
       </table>
     </div>
 
-    <!-- Modal Add Collaborator -->
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-      <div class="itbkk-modal-alert bg-white p-6 rounded-3xl text-center shadow-xlp-6 w-1/3">
-        <h2 class="text-lg font-semibold mb-4">Add Collaborator</h2>
-        <div class="text-left">
-          <p>Collaborator e-mail</p>
-          <input v-model="boardName" type="text" class="itbkk-board-name border p-2 w-full mb-4"
-            placeholder="Enter board name (max 120 characters)" maxlength="120" />
-          <p>Access Right</p>
-          <select name="" id=""></select>
+    <!-- Add Collaborator Modal -->
+    <div v-if="isModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+      <div class="itbkk-modal-alert bg-white px-10 py-6 rounded-3xl text-center shadow-xlp-6 w-1/3">
+        <h2 class="text-xl font-bold mb-4">Add Collaborator</h2>
+        <div class="flex mb-6 w-full">
+          <div class="text-left flex-grow">
+            <p class="pb-1 font-medium">Collaborator e-mail</p>
+            <!-- This input is always enabled -->
+            <!-- <input v-model="collaboratorEmail" type="text" maxlength="50" -->
+            <input type="text" maxlength="50"
+              class="itbkk-collaborator-email border p-2 w-full h-12 rounded-md"
+              placeholder="Enter collaborator e-mail" />
+
+            <!-- This input is disabled based on email validity -->
+            <!-- <input type="text" :disabled="!isValidEmail" class="border p-2 w-full h-12 rounded-md mt-4"
+              placeholder="Disabled until a valid email is entered" /> -->
+          </div>
+          <div class="text-left pl-8">
+            <p class="pb-1 font-medium">Access Right</p>
+            <select
+              class="itbkk-access-right select select-bordered w-32 bg-white border border-gray-200 rounded-md focus:outline-none focus:bg-white">
+              <option disabled selected>READ</option>
+              <option>READ</option>
+              <option>WRITE</option>
+            </select>
+          </div>
         </div>
 
-        <div class="button-addboard flex justify-center">
-          <button @click="createBoard" :disabled="!boardName" :class="{
+        <div class="button-addboard flex justify-center gap-4">
+          <button @click="addCollab" :disabled="!boardName" :class="{
             'bg-gray-300 text-gray-500 cursor-not-allowed': !boardName,
             'bg-emerald-500 hover:bg-emerald-600': boardName
-          }" class="itbkk-button-ok text-white px-4 py-2">
+          }" class="itbkk-button-confirm text-white px-4 py-2">
             Add
           </button>
           <button @click="closeModal"
@@ -251,7 +236,6 @@ onMounted(async () => {
   <footer>
     <Copyright />
   </footer>
-  <ModalAddBoard v-if="isModalOpen" @close="closeModal" />
 </template>
 
 <style scoped>
@@ -332,12 +316,12 @@ h2 {
   cursor: pointer;
 }
 
-button > .itbkk-modal-alert {
+.itbkk-modal-alert button {
   border-radius: 20px;
   transition: transform 0.3s ease-in-out;
 }
 
-button:hover:not(:disabled) {
+.itbkk-modal-alert button:hover:not(:disabled) {
   transform: scale(1.08);
   transition: transform 0.3s ease;
   box-shadow: 5px 5px 5px #c6c6c646;

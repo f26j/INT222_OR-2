@@ -44,10 +44,6 @@ public class Board {
     @OneToMany(mappedBy = "board")
     private List<Status> statuses;
 
-    @JsonIgnore
-    @OneToMany(mappedBy = "board")
-    private List<Collab> collabs;
-
     // ใช้ @PrePersist และ @PreUpdate สำหรับการตั้งค่าเวลาอัตโนมัติ
     @PrePersist
     protected void onCreate() {

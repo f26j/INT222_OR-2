@@ -5,14 +5,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@Deprecated
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CollabDto {
-    private String oid;
-    private BoardDto board_id;
+public class StatusManagementDto {
+    private Integer id;
     private String name;
-    private String email;
-    private String access_right;
+    private String description;
 }

@@ -8,7 +8,6 @@ import sit.int221.BEOR2.db1.entities.Board;
 import sit.int221.BEOR2.db1.entities.Status;
 import sit.int221.BEOR2.db1.entities.Task;
 import sit.int221.BEOR2.exceptions.ApiBadRequestException;
-import sit.int221.BEOR2.exceptions.ApiForbiddenException;
 import sit.int221.BEOR2.exceptions.ApiNotFoundException;
 import sit.int221.BEOR2.db1.repositories.StatusRepository;
 import sit.int221.BEOR2.db1.repositories.TaskRepository;
@@ -23,7 +22,7 @@ public class StatusService extends ValidateAuth {
     private TaskRepository taskRepository;
 
     public List<Status> getStatuses(String boardId) {
-        Board board = validateBoardAccessForCollaborators(boardId);
+        Board board = validateBoardAccess(boardId);
         if (board.getVisibility().equals("PRIVATE")) {
             validateOwnership(board);
         }
@@ -31,7 +30,7 @@ public class StatusService extends ValidateAuth {
     }
 
     public Status getStatusById(String boardId, Integer statusId) {
-        Board board = validateBoardAccessForCollaborators(boardId);
+        Board board = validateBoardAccess(boardId);
         if (board.getVisibility().equals("PRIVATE")) {
             validateOwnership(board);
         }
@@ -41,11 +40,8 @@ public class StatusService extends ValidateAuth {
 
     @Transactional
     public Status addStatus(String boardId, Status status) {
-        Board board = validateBoardAccessForCollaborators(boardId);
-
-        if (!isOwnerOrWriteCollaborator(board)) {
-            throw new ApiForbiddenException("Access Denied");
-        }
+        Board board = validateBoardAccess(boardId);
+        validateOwnership(board);
 
         if (status == null) {
             throw new ApiBadRequestException("Status data is required");
@@ -61,11 +57,8 @@ public class StatusService extends ValidateAuth {
 
     @Transactional
     public Status editStatus(String boardId, Integer statusId, Status status) {
-        Board board = validateBoardAccessForCollaborators(boardId);
-
-        if (!isOwnerOrWriteCollaborator(board)) {
-            throw new ApiForbiddenException("Access Denied");
-        }
+        Board board = validateBoardAccess(boardId);
+        validateOwnership(board);
 
         Status existingStatus = statusRepository.findByBoardIdAndId(boardId, statusId)
                 .orElseThrow(() -> new ApiNotFoundException("Status not found"));
@@ -77,11 +70,8 @@ public class StatusService extends ValidateAuth {
 
     @Transactional
     public void deleteStatus(String boardId, Integer statusId) {
-        Board board = validateBoardAccessForCollaborators(boardId);
-
-        if (!isOwnerOrWriteCollaborator(board)) {
-            throw new ApiForbiddenException("Access Denied");
-        }
+        Board board = validateBoardAccess(boardId);
+        validateOwnership(board);
 
         Status status = statusRepository.findByBoardIdAndId(boardId, statusId)
                 .orElseThrow(() -> new ApiNotFoundException("Status not found"));
@@ -95,11 +85,8 @@ public class StatusService extends ValidateAuth {
 
     @Transactional
     public void transferStatus(String boardId, Integer statusId, Integer newStatusId) {
-        Board board = validateBoardAccessForCollaborators(boardId);
-
-        if (!isOwnerOrWriteCollaborator(board)) {
-            throw new ApiForbiddenException("Access Denied");
-        }
+        Board board = validateBoardAccess(boardId);
+        validateOwnership(board);
 
         if (statusId.equals(newStatusId)) {
             throw new ApiBadRequestException("Cannot transfer tasks to the same status");

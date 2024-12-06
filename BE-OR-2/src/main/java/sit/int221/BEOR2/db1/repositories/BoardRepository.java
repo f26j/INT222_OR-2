@@ -16,7 +16,4 @@ public interface BoardRepository extends JpaRepository<Board, String> {
     // Query เพื่อดึงเฉพาะบอร์ดที่เป็นของผู้ใช้หรือบอร์ดที่มี visibility เป็น public
     @Query("SELECT b FROM Board b WHERE b.user.oid = :ownerOid OR b.visibility = 'PUBLIC'")
     List<Board> findByOwnerOidOrVisibilityPublic(String ownerOid);
-
-    @Query("SELECT b FROM Board b JOIN b.collabs c WHERE c.email = :email")
-    List<Board> findByCollaboratorsEmail(String email);
 }

@@ -49,14 +49,4 @@ public class GlobalExceptionHandler {
         errorResponse.setInstance(request.getRequestURI());
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
-
-    @ExceptionHandler(ApiConflictException.class)
-    protected ResponseEntity<ErrorResponse> handleApiConflictException(ApiConflictException exception, HttpServletRequest request) {
-        ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setTimestamp(new Date());
-        errorResponse.setStatus(HttpStatus.CONFLICT.value());
-        errorResponse.setMessage(exception.getMessage());
-        errorResponse.setInstance(request.getRequestURI());
-        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
-    }
 }

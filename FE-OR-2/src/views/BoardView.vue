@@ -4,7 +4,7 @@ import { useRouter, useRoute } from "vue-router"
 import { useBoardStore } from "@/stores/BoardStore.js"
 import { storeToRefs } from "pinia"
 import { useToastStore } from "@/stores/ToastStore.js"
-import { useUserStore } from "@/stores/AuthUserStore.js"
+// import { useUserStore } from "@/stores/AuthUserStore.js"
 import Navbar from "../components/css/Navbar.vue"
 import Copyright from "../components/css/Copyright.vue"
 import ModalAddBoard from "../components/modal/ModalAddBoard.vue"
@@ -12,12 +12,12 @@ import ModalAddBoard from "../components/modal/ModalAddBoard.vue"
 const boardStore = useBoardStore()
 const { boards } = storeToRefs(boardStore)
 const toastStore = useToastStore()
-const userStore = useUserStore()
+// const userStore = useUserStore()
 const loading = ref(true)
 const error = ref(false)
 const isModalOpen = ref(false)
-const fullname = computed(() => userStore.fullname)
-const accessRight = ref("Read")
+// const fullname = computed(() => userStore.fullname)
+// const accessRight = ref("Read")
 
 const router = useRouter()
 const route = useRoute()
@@ -127,7 +127,8 @@ onMounted(() => {
           <tr v-if="boards.length === 0 && !loading && !error">
             <td colspan="4" class="px-4 py-4 text-center">No Board Added</td>
           </tr>
-          <tr v-for="(board, index) in boards.personal_boards" :key="board.id"
+          <!-- <tr v-for="(board, index) in boards.personal_boards" :key="board.id" -->
+          <tr v-for="(board, index) in boards" :key="board.id"
             class="itbkk-personal-item border-b last:border-0">
             <td class="px-4 py-3 text-center text-black font-bold">
               {{ index + 1 }}

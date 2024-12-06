@@ -81,15 +81,6 @@ const router = createRouter({
       name: "collaborator-manage",
       component: CollabBoard,
       meta: { requiresAuth: false, title: "ITBKK - Collaborator Management" },
-      // children: [
-      //   { path: "manage", name: "status-manage", component: ManageStatus },
-      //   { path: "add", name: "status-add", component: ModalAddStatus },
-      //   {
-      //     path: ":statusId/edit",
-      //     name: "status-edit",
-      //     component: ModalEditStatus,
-      //   },
-      // ],
     },
     { path: "/forbidden", name: "AccessDenied", component: AccessDeniedPage },
   ],

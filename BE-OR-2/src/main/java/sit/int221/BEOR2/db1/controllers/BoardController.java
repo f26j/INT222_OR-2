@@ -4,13 +4,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import sit.int221.BEOR2.BeOr2CrossOrigin;
-import sit.int221.BEOR2.db1.dtos.BoardCollabDto;
 import sit.int221.BEOR2.db1.dtos.BoardDto;
 import sit.int221.BEOR2.db1.entities.Board;
 import sit.int221.BEOR2.db1.services.BoardService;
 import org.springframework.validation.annotation.Validated;
 import sit.int221.BEOR2.exceptions.ApiBadRequestException;
 
+import java.util.List;
 import java.util.Map;
 
 @Validated
@@ -23,7 +23,7 @@ public class BoardController {
 
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
-    public BoardCollabDto getBoards() {
+    public List<BoardDto> getBoards() {
         return boardService.getBoards();
     }
 

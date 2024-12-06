@@ -8,7 +8,6 @@ import sit.int221.BEOR2.db1.entities.Board;
 import sit.int221.BEOR2.db1.entities.Task;
 import sit.int221.BEOR2.db1.repositories.TaskRepository;
 import sit.int221.BEOR2.exceptions.ApiBadRequestException;
-import sit.int221.BEOR2.exceptions.ApiForbiddenException;
 import sit.int221.BEOR2.exceptions.ApiNotFoundException;
 
 import java.util.List;
@@ -20,7 +19,7 @@ public class TaskService extends ValidateAuth {
 
     // ดึง Task ทั้งหมดใน Board
     public List<Task> getTasks(String boardId) {
-        Board board = validateBoardAccessForCollaborators(boardId);
+        Board board = validateBoardAccess(boardId);
         if (board.getVisibility().equals("PRIVATE")) {
             validateOwnership(board);
         }
@@ -29,7 +28,7 @@ public class TaskService extends ValidateAuth {
 
     // ดึง Task ตาม ID
     public Task getTaskById(String boardId, Integer taskId) {
-        Board board = validateBoardAccessForCollaborators(boardId);
+        Board board = validateBoardAccess(boardId);
         if (board.getVisibility().equals("PRIVATE")) {
             validateOwnership(board);
         }
@@ -39,11 +38,8 @@ public class TaskService extends ValidateAuth {
 
     @Transactional
     public Task addTask(String boardId, Task task) {
-        Board board = validateBoardAccessForCollaborators(boardId);
-
-        if (!isOwnerOrWriteCollaborator(board)) {
-            throw new ApiForbiddenException("Access Denied");
-        }
+        Board board = validateBoardAccess(boardId);
+        validateOwnership(board);
 
         if (task == null) {
             throw new ApiBadRequestException("Task data is required");
@@ -55,11 +51,8 @@ public class TaskService extends ValidateAuth {
 
     @Transactional
     public Task editTask(String boardId, Integer taskId, Task task) {
-        Board board = validateBoardAccessForCollaborators(boardId);
-
-        if (!isOwnerOrWriteCollaborator(board)) {
-            throw new ApiForbiddenException("Access Denied");
-        }
+        Board board = validateBoardAccess(boardId);
+        validateOwnership(board);
 
         Task existingTask = taskRepository.findByBoardIdAndId(boardId, taskId)
                 .orElseThrow(() -> new ApiNotFoundException("Task not found"));
@@ -71,11 +64,8 @@ public class TaskService extends ValidateAuth {
 
     @Transactional
     public void deleteTask(String boardId, Integer taskId) {
-        Board board = validateBoardAccessForCollaborators(boardId);
-
-        if (!isOwnerOrWriteCollaborator(board)) {
-            throw new ApiForbiddenException("Access Denied");
-        }
+        Board board = validateBoardAccess(boardId);
+        validateOwnership(board);
 
         Task task = taskRepository.findByBoardIdAndId(boardId, taskId)
                 .orElseThrow(() -> new ApiNotFoundException("Task not found"));

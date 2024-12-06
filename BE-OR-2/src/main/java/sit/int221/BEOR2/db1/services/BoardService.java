@@ -6,14 +6,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import sit.int221.BEOR2.db1.components.BoardAuth;
-import sit.int221.BEOR2.db1.dtos.BoardCollabDto;
 import sit.int221.BEOR2.db1.dtos.BoardDto;
 import sit.int221.BEOR2.db1.dtos.UserDto;
 import sit.int221.BEOR2.db1.entities.Board;
 import sit.int221.BEOR2.db1.entities.Status;
 import sit.int221.BEOR2.db1.entities.User;
 import sit.int221.BEOR2.db1.repositories.BoardRepository;
-import sit.int221.BEOR2.db1.repositories.CollabRepository;
 import sit.int221.BEOR2.db1.repositories.StatusRepository;
 import sit.int221.BEOR2.db1.repositories.UserRepository;
 import sit.int221.BEOR2.exceptions.ApiBadRequestException;
@@ -32,8 +30,6 @@ public class BoardService extends BoardAuth {
     @Autowired
     private StatusRepository statusRepository;
     @Autowired
-    private CollabRepository collabRepository;
-    @Autowired
     private StatusService statusService;
 
     private BoardDto convertToDto(Board board) {
@@ -45,25 +41,13 @@ public class BoardService extends BoardAuth {
         );
     }
 
-    public BoardCollabDto getBoards() {
+    public List<BoardDto> getBoards() {
         String username = getAuthenticatedUsername();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ApiNotFoundException("User not found"));
 
-        List<Board> ownedOrPublicBoards = boardRepository.findByOwnerOidOrVisibilityPublic(user.getOid());
-        List<Board> collaborativeBoardsList = boardRepository.findByCollaboratorsEmail(user.getEmail());
-        System.out.println(collaborativeBoardsList.size());
-        List<BoardDto> personalBoards = ownedOrPublicBoards .stream()
-                .filter(board -> board.getUser().getOid().equals(user.getOid()))
-                .map(this::convertToDto)
-                .toList();
-
-        List<BoardDto> collaborativeBoards = collaborativeBoardsList.stream()
-//                .filter(board -> board.getUser().getOid().equals(user.getOid()))
-                .map(this::convertToDto)
-                .toList();
-
-        return new BoardCollabDto(personalBoards, collaborativeBoards);
+        List<Board> boards = boardRepository.findByOwnerOidOrVisibilityPublic(user.getOid());
+        return boards.stream().map(this::convertToDto).toList();
     }
 
     public BoardDto getBoardById(String id) {
@@ -73,14 +57,9 @@ public class BoardService extends BoardAuth {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new ApiNotFoundException("Board id '" + id + "' not found"));
 
-        boolean isCollaborator = user != null && collabRepository.existsByBoardIdAndEmail(id, user.getEmail());
-        boolean isOwner = user != null && board.getUser().getOid().equals(user.getOid());
-
-        // Allow access if the board is public, the user is the owner, or the user is a collaborator
-        if (!board.getVisibility().equals("PUBLIC") && !isOwner && !isCollaborator) {
+        if (board.getVisibility().equals("PRIVATE") && (user == null || !isBoardOwner(user, board))) {
             throw new ApiForbiddenException("Access Denied");
         }
-
         return convertToDto(board);
     }
 
