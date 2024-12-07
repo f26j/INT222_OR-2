@@ -32,7 +32,6 @@ export const useUserStore = defineStore("user", {
         }
 
         const data = await response.json();
-        // ตั้งค่า access_token และ refresh_token
         this.setTokens(data.access_token, data.refresh_token);
       } catch (error) {
         console.error("Error fetching user data:", error.message);
@@ -41,13 +40,11 @@ export const useUserStore = defineStore("user", {
     },
 
     setTokens(accessToken, refreshToken) {
-      // ตั้งค่า token และเก็บใน localStorage
       this.token = accessToken;
       this.refreshToken = refreshToken;
       localStorage.setItem("jwtToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
 
-      // Decode ข้อมูลจาก token ใหม่เพื่ออัพเดต fullname และ oid
       this.decodeToken();
     },
 
@@ -116,18 +113,16 @@ export const useUserStore = defineStore("user", {
           await this.refreshAccessToken();
         }
 
-        // ถ้า token ใช้งานได้ ให้ decode token เพื่ออัปเดต fullname และ oid
         if (this.token) {
           this.decodeToken();
         } else {
-          this.logout(); // ล้างข้อมูลถ้าไม่มี token
+          this.logout();
         }
       } catch (error) {
         console.error("Initialization failed:", error.message);
         this.logout();
       }
 
-      // ตรวจสอบการเปลี่ยนแปลง token ผ่าน localStorage
       window.addEventListener("storage", (event) => {
         if (event.key === "jwtToken") {
           this.refreshAccessToken();
