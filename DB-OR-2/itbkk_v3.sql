@@ -38,7 +38,8 @@ CREATE TABLE IF NOT EXISTS boards
 
 CREATE TABLE IF NOT EXISTS collabs
 (
-    oid               CHAR(36) PRIMARY KEY                                          NOT NULL UNIQUE,
+    id                INT PRIMARY KEY AUTO_INCREMENT                                NOT NULL,
+    oid               CHAR(36)                                                      NOT NULL UNIQUE,
     board_id          CHAR(10)                                                      NOT NULL,
     name              VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
     email             VARCHAR(50)                                                   NOT NULL,

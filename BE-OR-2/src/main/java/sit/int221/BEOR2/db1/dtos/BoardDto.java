@@ -14,4 +14,5 @@ public class BoardDto {
     private String name;
     private String visibility;
     private UserDto owner;
+    private String accessRight;
 }
