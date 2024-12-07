@@ -15,5 +15,5 @@ public class CollabDto {
     private BoardDto board_id;
     private String name;
     private String email;
-    private String access_right;
+    private String accessRight;
 }
