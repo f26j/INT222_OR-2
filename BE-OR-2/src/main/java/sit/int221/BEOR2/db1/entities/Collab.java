@@ -15,6 +15,9 @@ import java.time.ZonedDateTime;
 @Table(name = "collabs")
 public class Collab {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
     @Column(name = "oid", nullable = false, length = 36, unique = true)
     private String oid;
 

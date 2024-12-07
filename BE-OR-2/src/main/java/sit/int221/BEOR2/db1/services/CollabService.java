@@ -58,47 +58,54 @@ public class CollabService extends ValidateAuth {
     }
 
     @Transactional
-    public CollabDto addCollab(String boardId, Collab collab) {
-        // Validate board access and ownership
+    public CollabDto addCollab(String boardId, CollabDto collabDto) {
         Board board = validateBoardAccessForCollaborators(boardId);
         validateOwnership(board);
 
-        // Validate that collab data is provided
-        if (collab == null) {
+        if (collabDto == null) {
             throw new ApiBadRequestException("Collaborator data is required");
         }
-
-        // Check if the access right is valid (must be either "READ" or "WRITE")
-        String accessRight = collab.getAccess_right();
-        if (!"READ".equalsIgnoreCase(accessRight) && !"WRITE".equalsIgnoreCase(accessRight)) {
-            throw new ApiBadRequestException("Invalid access right value");
+        System.out.println(collabDto.getEmail());
+        if (collabDto.getEmail() == null || collabDto.getEmail().isEmpty()) {
+            throw new ApiBadRequestException("Email is required and cannot be empty");
         }
 
-        // Check if email exists in itbkk_shared repository
-        Optional<User> userOpt = userRepository.findByEmail(collab.getEmail());
+        if (collabDto.getAccess_right() == null ||
+                (!"READ".equalsIgnoreCase(collabDto.getAccess_right()) &&
+                        !"WRITE".equalsIgnoreCase(collabDto.getAccess_right()))) {
+            throw new ApiBadRequestException("Invalid access right value: " + collabDto.getAccess_right());
+        }
+
+        Optional<User> userOpt = userRepository.findByEmail(collabDto.getEmail());
+        System.out.println(1);
+        System.out.println(userOpt.isEmpty());
         if (userOpt.isEmpty()) {
             throw new ApiNotFoundException("Email not found in shared repository");
         }
 
-        // Check if the email belongs to the board owner
         User user = userOpt.get();
         if (user.getOid().equals(board.getUser().getOid())) {
             throw new ApiConflictException("Cannot add the board owner as a collaborator");
         }
 
-        // Check if the email is already a collaborator on the board
-        boolean isAlreadyCollaborator = collabRepository.existsByBoardIdAndEmail(boardId, collab.getEmail());
+        boolean isAlreadyCollaborator = collabRepository.existsByBoardIdAndEmail(boardId, collabDto.getEmail());
         if (isAlreadyCollaborator) {
             throw new ApiConflictException("Collaborator already exists for this board");
         }
 
-        // Set the board reference in the collab entity and save it
+        Collab collab = new Collab();
+        collab.setName(userOpt.get().getName());
+        collab.setEmail(collabDto.getEmail());
+        collab.setOid(userOpt.get().getOid());
+        collab.setAccess_right(collabDto.getAccess_right());
         collab.setBoard(board);
+
         Collab savedCollab = collabRepository.saveAndFlush(collab);
 
-        // Convert the saved collaborator to DTO and return
         return convertToDto(savedCollab);
     }
+
+
 
     @Transactional
     public CollabDto editCollabAccessRight(String boardId, String collabOid, String accessRight) {
@@ -122,21 +129,17 @@ public class CollabService extends ValidateAuth {
     public void deleteCollab(String boardId, String collabOid) {
         Board board = validateBoardAccessForCollaborators(boardId);
 
-        // Get the current user from security context
         String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUsername(currentUser)
                 .orElseThrow(() -> new ApiForbiddenException("Access Denied"));
 
-        // Check if the user is the board owner or the collaborator themselves
         boolean isOwner = board.getUser().getOid().equals(user.getOid());
         boolean isCollaborator = collabOid.equals(user.getOid());
 
-        // Only allow delete if user is owner or collaborator is trying to remove themselves
         if (!isOwner && !isCollaborator) {
             throw new ApiForbiddenException("Access Denied");
         }
 
-        // Find the collaborator and delete
         Collab collab = collabRepository.findByBoardIdAndOid(boardId, collabOid)
                 .orElseThrow(() -> new ApiNotFoundException("Collaborator not found"));
 

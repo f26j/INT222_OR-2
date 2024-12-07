@@ -7,6 +7,7 @@ import sit.int221.BEOR2.BeOr2CrossOrigin;
 import sit.int221.BEOR2.db1.dtos.CollabDto;
 import sit.int221.BEOR2.db1.entities.Collab;
 import sit.int221.BEOR2.db1.services.CollabService;
+import sit.int221.BEOR2.exceptions.ApiBadRequestException;
 
 import java.util.List;
 import java.util.Map;
@@ -32,8 +33,11 @@ public class CollabController {
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public CollabDto addCollab(@PathVariable String id, @RequestBody(required = false) Collab collab) {
-        return collabService.addCollab(id, collab);
+    public CollabDto addCollab(@PathVariable String id, @RequestBody(required = false) CollabDto collabDto) {
+        if (collabDto == null) {
+            throw new ApiBadRequestException("Request body is required and cannot be null");
+        }
+        return collabService.addCollab(id, collabDto);
     }
 
     @PatchMapping("/{collabOid}")
