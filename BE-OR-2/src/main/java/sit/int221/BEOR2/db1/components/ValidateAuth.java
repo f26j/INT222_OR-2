@@ -20,7 +20,6 @@ public class ValidateAuth {
     @Autowired
     private CollabRepository collabRepository;
 
-    @Deprecated
     protected Board validateBoardAccess(String boardId) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new ApiNotFoundException("Board not found"));
@@ -35,7 +34,16 @@ public class ValidateAuth {
         return board;
     }
 
-    @Deprecated
+    protected void validateCollabOwnership(Board board) {
+        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(userName)
+                .orElseThrow(() -> new ApiForbiddenException("User not found"));
+
+        if (!board.getUser().getOid().equals(user.getOid()) && !collabRepository.existsByBoardIdAndEmail(board.getId(), user.getEmail())) {
+            throw new ApiForbiddenException("You do not own this board");
+        }
+    }
+
     protected void validateOwnership(Board board) {
         String userName = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUsername(userName)
@@ -72,6 +80,6 @@ public class ValidateAuth {
         }
 
         // Check if the user is a collaborator with WRITE access
-        return user != null && collabRepository.existsByBoardIdAndEmailAndAccess_right(board.getId(), user.getEmail(), "WRITE");
+        return user != null && collabRepository.existsByBoardIdAndEmailAndAccessRight(board.getId(), user.getEmail(), "WRITE");
     }
 }

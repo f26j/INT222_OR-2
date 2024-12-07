@@ -1,5 +1,6 @@
 package sit.int221.BEOR2.db1.services;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,8 @@ import sit.int221.BEOR2.db1.entities.Collab;
 import sit.int221.BEOR2.db1.entities.User;
 import sit.int221.BEOR2.db1.repositories.CollabRepository;
 import sit.int221.BEOR2.db1.repositories.UserRepository;
+import sit.int221.BEOR2.db2.entities.Users;
+import sit.int221.BEOR2.db2.repositories.UsersRepository;
 import sit.int221.BEOR2.exceptions.ApiBadRequestException;
 import sit.int221.BEOR2.exceptions.ApiConflictException;
 import sit.int221.BEOR2.exceptions.ApiForbiddenException;
@@ -21,15 +24,19 @@ import sit.int221.BEOR2.exceptions.ApiNotFoundException;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class CollabService extends ValidateAuth {
     @Autowired
     private CollabRepository collabRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private UsersRepository usersRepository;
 
     private CollabDto convertToDto(Collab collab) {
         return new CollabDto(
+                collab.getId(),
                 collab.getOid(),
                 new BoardDto(
                         collab.getBoard().getId(),
@@ -37,12 +44,14 @@ public class CollabService extends ValidateAuth {
                         collab.getBoard().getVisibility(),
                         new UserDto(
                                 collab.getBoard().getUser().getOid(),
+                                collab.getBoard().getUser().getName(),
                                 collab.getBoard().getUser().getUsername()
-                        )
+                        ),
+                        null
                 ),
                 collab.getName(),
                 collab.getEmail(),
-                collab.getAccess_right()
+                collab.getAccessRight()
         );
     }
 
@@ -69,19 +78,19 @@ public class CollabService extends ValidateAuth {
         }
 
         // Check if the access right is valid (must be either "READ" or "WRITE")
-        String accessRight = collab.getAccess_right();
+        String accessRight = collab.getAccessRight();
         if (!"READ".equalsIgnoreCase(accessRight) && !"WRITE".equalsIgnoreCase(accessRight)) {
             throw new ApiBadRequestException("Invalid access right value");
         }
 
         // Check if email exists in itbkk_shared repository
-        Optional<User> userOpt = userRepository.findByEmail(collab.getEmail());
+        Optional<Users> userOpt = usersRepository.findByEmail(collab.getEmail());
         if (userOpt.isEmpty()) {
             throw new ApiNotFoundException("Email not found in shared repository");
         }
 
         // Check if the email belongs to the board owner
-        User user = userOpt.get();
+        Users user = userOpt.get();
         if (user.getOid().equals(board.getUser().getOid())) {
             throw new ApiConflictException("Cannot add the board owner as a collaborator");
         }
@@ -93,6 +102,8 @@ public class CollabService extends ValidateAuth {
         }
 
         // Set the board reference in the collab entity and save it
+        collab.setOid(user.getOid());
+        collab.setName(user.getName());
         collab.setBoard(board);
         Collab savedCollab = collabRepository.saveAndFlush(collab);
 
@@ -113,7 +124,7 @@ public class CollabService extends ValidateAuth {
         }
 
         existingCollab.setBoard(board);
-        existingCollab.setAccess_right(accessRight.toUpperCase());
+        existingCollab.setAccessRight(accessRight.toUpperCase());
         collabRepository.saveAndFlush(existingCollab);
         return convertToDto(existingCollab);
     }

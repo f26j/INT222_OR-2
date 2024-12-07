@@ -10,6 +10,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CollabDto {
+    private Integer id;
     private String oid;
     private BoardDto board_id;
     private String name;

@@ -41,7 +41,12 @@ public class BoardService extends BoardAuth {
                 board.getId(),
                 board.getName(),
                 board.getVisibility(),
-                new UserDto(board.getUser().getOid(), board.getUser().getUsername())
+                new UserDto(
+                        board.getUser().getOid(),
+                        board.getUser().getName(),
+                        board.getUser().getUsername()
+                ),
+                null
         );
     }
 
@@ -59,9 +64,12 @@ public class BoardService extends BoardAuth {
                 .toList();
 
         List<BoardDto> collaborativeBoards = collaborativeBoardsList.stream()
-                .filter(board -> board.getUser().getOid().equals(user.getOid()))
+                // .filter(board -> board.getUser().getOid().equals(user.getOid()))
                 .map(this::convertToDto)
                 .toList();
+        collaborativeBoards.stream().forEach(board -> {
+            board.setAccessRight(collabRepository.findByBoardIdAndEmail(board.getId(), user.getEmail()).get().getAccessRight());
+        });
 
         return new BoardCollabDto(personalBoards, collaborativeBoards);
     }

@@ -15,6 +15,10 @@ import java.time.ZonedDateTime;
 @Table(name = "collabs")
 public class Collab {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    private Integer id;
+
     @Column(name = "oid", nullable = false, length = 36, unique = true)
     private String oid;
 
@@ -29,7 +33,7 @@ public class Collab {
     private String email;
 
     @Column(name = "access_right", nullable = false)
-    private String access_right;
+    private String accessRight;
 
     @Column(name = "added_on", nullable = false, updatable = false)
     private ZonedDateTime added_on;

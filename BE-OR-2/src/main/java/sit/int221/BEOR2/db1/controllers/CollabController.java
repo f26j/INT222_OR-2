@@ -41,7 +41,7 @@ public class CollabController {
     public CollabDto editCollabAccessRight(@PathVariable String id,
                                            @PathVariable String collabOid,
                                            @RequestBody(required = false) Map<String, String> requestBody) {
-        String collab = (requestBody != null) ? requestBody.get("access_right") : null;
+        String collab = (requestBody != null) ? requestBody.get("accessRight") : null;
         return collabService.editCollabAccessRight(id, collabOid, collab);
     }
 
