@@ -11,6 +11,7 @@ export const useUserStore = defineStore("user", {
     refreshToken: localStorage.getItem("refreshToken") || null,
     fullname: "Guest",
     oid: "",
+    email: "",
   }),
 
   getters: {
@@ -54,6 +55,7 @@ export const useUserStore = defineStore("user", {
           const decoded = jwtDecode.decode(this.token);
           this.fullname = decoded.name || "Guest";
           this.oid = decoded.oid || null;
+          this.email = decoded.email || null;
         }
       } catch (error) {
         console.error("Error decoding token:", error.message);
@@ -103,6 +105,7 @@ export const useUserStore = defineStore("user", {
       this.refreshToken = null;
       this.fullname = "Guest";
       this.oid = "";
+      this.email = "";
       localStorage.removeItem("jwtToken");
       localStorage.removeItem("refreshToken");
     },

@@ -127,8 +127,8 @@ onMounted(() => {
           <tr v-if="boards.length === 0 && !loading && !error">
             <td colspan="4" class="px-4 py-4 text-center">No Board Added</td>
           </tr>
-          <!-- <tr v-for="(board, index) in boards.personal_boards" :key="board.id" -->
-          <tr v-for="(board, index) in boards" :key="board.id"
+          <!-- <tr v-for="(board, index) in boards" :key="board.id" -->
+          <tr v-for="(board, index) in boards.personal_boards" :key="board.id"
             class="itbkk-personal-item border-b last:border-0">
             <td class="px-4 py-3 text-center text-black font-bold">
               {{ index + 1 }}

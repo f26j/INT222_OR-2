@@ -5,48 +5,60 @@ import { useBoardStore } from "@/stores/BoardStore.js"
 import { storeToRefs } from "pinia"
 import { useToastStore } from "@/stores/ToastStore.js"
 import { useUserStore } from "@/stores/AuthUserStore.js"
+import { useCollabBoardStore } from "@/stores/CollabBoardStore.js"
 import Navbar from "../components/css/Navbar.vue"
 import Copyright from "../components/css/Copyright.vue"
 
 const boardStore = useBoardStore()
 const { boards } = storeToRefs(boardStore)
+const collabBoardStore = useCollabBoardStore()
+const { collabBoards } = storeToRefs(collabBoardStore)
 const toastStore = useToastStore()
 const userStore = useUserStore()
 const loading = ref(true)
 const error = ref(false)
 const isModalOpen = ref(false)
-const fullname = computed(() => userStore.fullname)
-const accessRight = ref("Read")
 
 const router = useRouter()
 const route = useRoute()
-const boardId = route.params.boardId;
+const boardId = route.params.boardId
 const boardName = ref("")
 const boardOwnerOid = ref("")
 const visibility = ref("")
-const collaboratorEmail = ref("")
+const currentUserEmail = ref(userStore.email)
+const collabEmail = ref("")
+const accessRight = ref("Read")
 const deleteSuccess = ref(false)
 const tooltipText = "You need to be board owner to perform this action."
 
 const fetchBoardData = async () => {
   try {
-    const boardData = await boardStore.getBoard(boardId);
+    const boardData = await boardStore.getBoard(boardId)
     if (boardData) {
-      boardName.value = boardData.name;
-      boardOwnerOid.value = boardData.owner.oid;
-      visibility.value = boardData.visibility || "PRIVATE";
+      boardName.value = boardData.name
+      boardOwnerOid.value = boardData.owner.oid
+      visibility.value = boardData.visibility || "PRIVATE"
     } else {
-      console.error("Board data not found");
+      console.error("Board data not found")
     }
   } catch (error) {
-    console.error("Error fetching board data:", error);
+    console.error("Error fetching board data:", error)
   }
-};
+}
 
-// const isValidEmail = computed(() => {
-//   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-//   return emailRegex.test(collaboratorEmail.value)
-// })
+const isCollabEmailValid = computed(() => {
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailPattern.test(collabEmail.value)
+})
+
+function addCollab() {
+  if (isCollabEmailValid.value) {
+    console.log("Adding collaborator with email:", collabEmail.value)
+    console.log(boardName.value)
+    // Add your logic here
+  }
+  closeModal()
+}
 
 const openHome = () => {
   router.push({ name: "board-tasks" })
@@ -132,7 +144,7 @@ onMounted(async () => {
   </div>
 
   <main>
-    <div class="p-4 bg-gradient-to-r to-pink-100 rounded-lg">
+    <div class="p-8 bg-gradient-to-r to-pink-100 rounded-lg">
       <table class="w-full text-left table-fixed">
         <thead class="bg-violet-500">
           <tr>
@@ -158,7 +170,7 @@ onMounted(async () => {
             <td colspan="5" class="px-4 py-4 text-center">No Board Added</td>
           </tr>
           <!-- <tr v-for="(board, index) in boards.personal_boards" :key="board.id" -->
-          <tr v-for="(board, index) in boards" :key="board.id" class="itbkk-item border-b last:border-0">
+          <tr v-for="(board, index) in boards.personal_boards" :key="board.id" class="itbkk-item border-b last:border-0">
             <td class="px-4 py-3 text-center text-black font-bold">
               {{ index + 1 }}
             </td>
@@ -197,15 +209,9 @@ onMounted(async () => {
         <div class="flex mb-6 w-full">
           <div class="text-left flex-grow">
             <p class="pb-1 font-medium">Collaborator e-mail</p>
-            <!-- This input is always enabled -->
-            <!-- <input v-model="collaboratorEmail" type="text" maxlength="50" -->
-            <input type="text" maxlength="50"
+            <input v-model="collabEmail" type="email" id="email" name="email" maxlength="50"
               class="itbkk-collaborator-email border p-2 w-full h-12 rounded-md"
               placeholder="Enter collaborator e-mail" />
-
-            <!-- This input is disabled based on email validity -->
-            <!-- <input type="text" :disabled="!isValidEmail" class="border p-2 w-full h-12 rounded-md mt-4"
-              placeholder="Disabled until a valid email is entered" /> -->
           </div>
           <div class="text-left pl-8">
             <p class="pb-1 font-medium">Access Right</p>
@@ -219,9 +225,9 @@ onMounted(async () => {
         </div>
 
         <div class="button-addboard flex justify-center gap-4">
-          <button @click="addCollab" :disabled="!boardName" :class="{
-            'bg-gray-300 text-gray-500 cursor-not-allowed': !boardName,
-            'bg-emerald-500 hover:bg-emerald-600': boardName
+          <button @click="addCollab" :disabled="!isCollabEmailValid" :class="{
+            'bg-gray-300 text-gray-500 cursor-not-allowed': !isCollabEmailValid,
+            'bg-emerald-500 hover:bg-emerald-600': isCollabEmailValid
           }" class="itbkk-button-confirm text-white px-4 py-2">
             Add
           </button>
