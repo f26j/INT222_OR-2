@@ -21,7 +21,7 @@ public class TaskService extends ValidateAuth {
     public List<Task> getTasks(String boardId) {
         Board board = validateBoardAccess(boardId);
         if (board.getVisibility().equals("PRIVATE")) {
-            validateOwnership(board);
+            validateCollabOwnership(board);
         }
         return taskRepository.findByBoardId(boardId);
     }
@@ -30,7 +30,7 @@ public class TaskService extends ValidateAuth {
     public Task getTaskById(String boardId, Integer taskId) {
         Board board = validateBoardAccess(boardId);
         if (board.getVisibility().equals("PRIVATE")) {
-            validateOwnership(board);
+            validateCollabOwnership(board);
         }
         return taskRepository.findByBoardIdAndId(boardId, taskId)
                 .orElseThrow(() -> new ApiNotFoundException("Task not found in the board"));

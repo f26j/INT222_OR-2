@@ -24,7 +24,7 @@ public class StatusService extends ValidateAuth {
     public List<Status> getStatuses(String boardId) {
         Board board = validateBoardAccess(boardId);
         if (board.getVisibility().equals("PRIVATE")) {
-            validateOwnership(board);
+            validateCollabOwnership(board);
         }
         return statusRepository.findByBoardId(boardId);
     }
@@ -32,7 +32,7 @@ public class StatusService extends ValidateAuth {
     public Status getStatusById(String boardId, Integer statusId) {
         Board board = validateBoardAccess(boardId);
         if (board.getVisibility().equals("PRIVATE")) {
-            validateOwnership(board);
+            validateCollabOwnership(board);
         }
         return statusRepository.findByBoardIdAndId(boardId, statusId)
                 .orElseThrow(() -> new ApiNotFoundException("Status not found"));
