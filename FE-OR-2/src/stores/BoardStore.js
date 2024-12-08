@@ -4,13 +4,14 @@ import { useUserStore } from "@/stores/AuthUserStore.js";
 import { useRouter } from "vue-router";
 
 export const useBoardStore = defineStore("apiBoard", () => {
-  const boards = ref(null);
-  const currentBoard = ref(null); // เก็บบอร์ดที่โหลด
-  const baseUrl = import.meta.env.VITE_API_BOARDS;
+  const personalBoards = ref([]); // สำหรับ Personal Boards
+  const collaborativeBoards = ref([]); // สำหรับ Collaborative Boards
+  const currentBoard = ref(null); // บอร์ดที่กำลังดู
+  const baseUrl = import.meta.env.VITE_API_BOARDS; // URL ของ API
   const userStore = useUserStore();
   const router = useRouter();
 
-  // ฟังก์ชันตรวจสอบและรีเฟรช token ถ้าหมดอายุ
+  // ตรวจสอบ Token
   const checkToken = () => {
     if (!userStore.token) {
       router.push({ name: "login" });
@@ -19,6 +20,7 @@ export const useBoardStore = defineStore("apiBoard", () => {
     return userStore.token;
   };
 
+  // Fetch Boards
   const fetchBoards = async () => {
     try {
       const token = checkToken();
@@ -37,18 +39,21 @@ export const useBoardStore = defineStore("apiBoard", () => {
           userStore.logout();
           router.push({ name: "login" });
           return;
-        } else if (response.status === 500) {
-          console.error("Internal Server Error (500): Failed to fetch boards.");
         }
         throw new Error(`Failed to fetch boards. Status: ${response.status}`);
       }
 
-      boards.value = await response.json();
+      const data = await response.json();
+
+      // แยกข้อมูลที่ได้มา
+      personalBoards.value = data.personal_boards || [];
+      collaborativeBoards.value = data.collaborative_boards || [];
     } catch (error) {
       console.error("Error fetching boards:", error.message);
     }
   };
 
+  // Get a single Board
   const getBoard = async (boardId) => {
     try {
       const headers = { "Content-Type": "application/json" };
@@ -86,6 +91,7 @@ export const useBoardStore = defineStore("apiBoard", () => {
     }
   };
 
+  // Create a new Board
   const createBoard = async (newBoard) => {
     try {
       const token = checkToken();
@@ -105,15 +111,12 @@ export const useBoardStore = defineStore("apiBoard", () => {
           userStore.logout();
           router.push({ name: "login" });
           return;
-        } else if (response.status === 500) {
-          console.error("Internal Server Error (500): Failed to create board.");
         }
         throw new Error(`Failed to create board. Status: ${response.status}`);
       }
 
       const createdBoard = await response.json();
-      console.log(boards.value);
-      boards.value.personal_boards.push(createdBoard);
+      personalBoards.value.push(createdBoard); // เพิ่มใน Personal Boards
       return createdBoard;
     } catch (error) {
       console.error("Error creating board:", error.message);
@@ -121,15 +124,17 @@ export const useBoardStore = defineStore("apiBoard", () => {
     }
   };
 
+  // Update Board
   const updateBoard = async (boardId, updatedBoard) => {
-    const index = boards.value.findIndex((board) => board.id === boardId);
+    const index = personalBoards.value.findIndex((board) => board.id === boardId);
     if (index !== -1) {
-      boards.value[index] = updatedBoard;
+      personalBoards.value[index] = updatedBoard;
     } else {
       console.error("Board not found in store");
     }
   };
 
+  // Update Board Visibility
   const updateVisibility = async (boardId, newVisibility) => {
     try {
       const token = checkToken();
@@ -144,30 +149,22 @@ export const useBoardStore = defineStore("apiBoard", () => {
       });
 
       if (!response.ok) {
-        if (response.status === 401) {
-          console.warn("Unauthorized (401). Redirecting to login.");
-          userStore.logout();
-          router.push({ name: "login" });
-          return;
-        } else if (response.status === 500) {
-          console.error("Internal Server Error (500): Failed to update visibility.");
-        }
         throw new Error(`Failed to update visibility. Status: ${response.status}`);
       }
 
-      const board = boards.value.find((board) => board.id === boardId);
+      const board = personalBoards.value.find((board) => board.id === boardId);
       if (board) board.visibility = newVisibility;
-
     } catch (error) {
       console.error("Error updating visibility:", error.message);
     }
   };
 
+  // Delete a Board
   const deleteBoard = async (boardId) => {
     try {
       const token = checkToken();
 
-      const board = boards.value.find((board) => board.id === boardId);
+      const board = personalBoards.value.find((board) => board.id === boardId);
       if (!board) throw new Error("Board not found");
       if (board.owner.oid !== userStore.oid) throw new Error("Permission denied");
 
@@ -180,25 +177,18 @@ export const useBoardStore = defineStore("apiBoard", () => {
       });
 
       if (!response.ok) {
-        if (response.status === 401) {
-          console.warn("Unauthorized (401). Redirecting to login.");
-          userStore.logout();
-          router.push({ name: "login" });
-          return;
-        } else if (response.status === 500) {
-          console.error("Internal Server Error (500): Failed to delete board.");
-        }
         throw new Error(`Failed to delete board. Status: ${response.status}`);
       }
 
-      boards.value = boards.value.filter((b) => b.id !== boardId);
+      personalBoards.value = personalBoards.value.filter((b) => b.id !== boardId);
     } catch (error) {
       console.error("Error deleting board:", error.message);
     }
   };
 
   return {
-    boards,
+    personalBoards,
+    collaborativeBoards,
     currentBoard,
     fetchBoards,
     getBoard,

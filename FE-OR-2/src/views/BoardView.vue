@@ -1,86 +1,90 @@
 <script setup>
-import { onMounted, ref, watch, computed } from "vue"
-import { useRouter, useRoute } from "vue-router"
-import { useBoardStore } from "@/stores/BoardStore.js"
-import { useCollabBoardStore } from "@/stores/CollabBoardStore.js"
-import { storeToRefs } from "pinia"
-import { useToastStore } from "@/stores/ToastStore.js"
-// import { useUserStore } from "@/stores/AuthUserStore.js"
-import Navbar from "../components/css/Navbar.vue"
-import Copyright from "../components/css/Copyright.vue"
-import ModalAddBoard from "../components/modal/ModalAddBoard.vue"
+import { onMounted, ref, computed } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import { useBoardStore } from "@/stores/BoardStore.js";
+import { useCollabBoardStore } from "@/stores/CollabBoardStore.js";
+import { storeToRefs } from "pinia";
+import { useToastStore } from "@/stores/ToastStore.js";
 
-const boardStore = useBoardStore()
-const { boards } = storeToRefs(boardStore)
-// const collabBoardStore = useCollabBoardStore()
-// const { collabBoards } = storeToRefs(collabBoardStore)
-const toastStore = useToastStore()
-// const userStore = useUserStore()
-const loading = ref(true)
-const error = ref(false)
-const isModalOpen = ref(false)
-// const fullname = computed(() => userStore.fullname)
-// const accessRight = ref("Read")
+import Navbar from "../components/css/Navbar.vue";
+import Copyright from "../components/css/Copyright.vue";
+import ModalAddBoard from "../components/modal/ModalAddBoard.vue";
 
-const router = useRouter()
-const route = useRoute()
+// Stores
+const boardStore = useBoardStore();
+const collabBoardStore = useCollabBoardStore();
+const toastStore = useToastStore();
 
+// State
+const { personalBoards, collaborativeBoards } = storeToRefs(boardStore); // ใช้ personalBoards และ collaborativeBoards
+const { collabBoards } = storeToRefs(collabBoardStore); // สำหรับ collaborative boards
+const loading = ref(true);
+const error = ref(false);
+
+const router = useRouter();
+
+// ดึงข้อมูลจาก BoardStore
 async function initializeBoards() {
   try {
-    loading.value = true
-    await boardStore.fetchBoards()
+    loading.value = true;
+    await boardStore.fetchBoards();
   } catch (err) {
-    console.error("Error fetching boards:", err)
+    console.error("Error fetching boards:", err);
 
     if (err.response && err.response.status === 401) {
       // ถ้าเป็น 401 ให้ไปหน้า login
-      router.push({ name: "login" })
+      router.push({ name: "login" });
     } else {
-      error.value = true
+      error.value = true;
     }
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
-console.log(boards.collaborative_boards)
-
+// ลบบอร์ดส่วนตัว
 const deleteBoard = async (boardId) => {
   try {
-    await boardStore.deleteBoard(boardId)
-    toastStore.addToast("Board deleted successfully.", "success")
+    await boardStore.deleteBoard(boardId);
+    toastStore.addToast("Board deleted successfully.", "success");
   } catch (error) {
-    console.error("Error deleting board:", error)
+    console.error("Error deleting board:", error);
 
-    if (error.response && error.response.status === 401) {
-      // ถ้าเป็น 401 ให้ไปหน้า login
-      router.push({ name: "login" })
-    } else {
-      toastStore.addToast(
-        "You do not have permission to delete this board.",
-        "error"
-      )
-      alert("You do not have permission to delete this board.")
-    }
+    toastStore.addToast(
+      error.response?.status === 401
+        ? "Unauthorized! Please log in again."
+        : "You do not have permission to delete this board.",
+      "error"
+    );
   }
-}
+};
 
+// ออกจาก Collaboration Board
+const leaveCollabBoard = async (boardId, collabOid) => {
+  try {
+    await collabBoardStore.removeCollaborator(boardId, collabOid);
+    toastStore.addToast("You have left the board.", "success");
+  } catch (error) {
+    console.error("Error leaving board:", error);
+    toastStore.addToast("Unable to leave the board.", "error");
+  }
+};
+
+const isModalOpen = computed(() => router.currentRoute.value.name === "board-add");
+
+const openModal = () => {
+  router.push({ name: "board-add" });
+};
+
+
+// ปิด Modal
 const closeModal = () => {
-  isModalOpen.value = false
-  router.push("/board")
-}
-
-watch(
-  () => route.path,
-  (newPath) => {
-    isModalOpen.value = newPath === "/board/add"
-  },
-  { immediate: true }
-)
+  router.push("/board");
+};
 
 onMounted(() => {
-  initializeBoards()
-})
+  initializeBoards();
+});
 </script>
 
 <template>
@@ -99,11 +103,21 @@ onMounted(() => {
           Personal Boards
         </h2>
         <div class="absolute right-0">
-          <button @click="router.push('/board/add')"
-            class="itbkk-button-create flex items-center cursor-pointer bg-color-purple text-white px-4 py-2 shadow hover:shadow-md hover:scale-105 transition-transform duration-300 rounded-full">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="mr-2"
-              viewBox="0 0 16 16">
-              <path d="M8 1a1 1 0 0 0-2 0v5H1a1 1 0 0 0 0 2h5v5a1 1 0 1 0 2 0V8h5a1 1 0 1 0 0-2H8z" />
+          <button
+            @click="openModal"
+            class="itbkk-button-create flex items-center cursor-pointer bg-color-purple text-white px-4 py-2 shadow hover:shadow-md hover:scale-105 transition-transform duration-300 rounded-full"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              fill="currentColor"
+              class="mr-2"
+              viewBox="0 0 16 16"
+            >
+              <path
+                d="M8 1a1 1 0 0 0-2 0v5H1a1 1 0 0 0 0 2h5v5a1 1 0 1 0 2 0V8h5a1 1 0 1 0 0-2H8z"
+              />
             </svg>
             Create new board
           </button>
@@ -129,24 +143,34 @@ onMounted(() => {
               Error loading boards.
             </td>
           </tr>
-          <tr v-if="boards?.personal_boards.length === 0 && !loading && !error">
-            <td colspan="4" class="px-4 py-4 text-center">No Board Added</td>
+          <tr v-if="personalBoards.length === 0 && !loading && !error">
+            <td colspan="4" class="px-4 py-4 text-center">No Personal Boards</td>
           </tr>
-          <tr v-for="(board, index) in boards?.personal_boards" :key="board.id"
-            class="itbkk-personal-item border-b last:border-0">
+          <tr
+            v-for="(board, index) in personalBoards"
+            :key="board.id"
+            class="itbkk-personal-item border-b last:border-0"
+          >
             <td class="px-4 py-3 text-center text-black font-bold">
               {{ index + 1 }}
             </td>
-            <td class="itbkk-board-name px-4 py-3 cursor-pointer text-black font-bold hover:text-[#47467b] break-words"
-              @click="router.push(`/board/${board.id}`)">
+            <td
+              class="itbkk-board-name px-4 py-3 cursor-pointer text-black font-bold hover:text-[#47467b] break-words"
+              @click="router.push(`/board/${board.id}`)"
+            >
               {{ board.name }}
             </td>
-            <td class="itbkk-board-visibility px-4 py-3 text-[#717171] font-bold text-center">
+            <td
+              class="itbkk-board-visibility px-4 py-3 text-[#717171] font-bold text-center"
+            >
               {{ board.visibility }}
             </td>
             <td class="px-4 py-3 space-x-4">
               <div class="flex justify-center">
-                <button class="itbkk-button-delete bg-[#8e5bb1] hover:bg-[#6a4581]" @click="deleteBoard(board.id)">
+                <button
+                  class="itbkk-button-delete bg-[#8e5bb1] hover:bg-[#6a4581]"
+                  @click="deleteBoard(board.id)"
+                >
                   Delete
                 </button>
               </div>
@@ -158,7 +182,9 @@ onMounted(() => {
 
     <!-- Collab Boards -->
     <div class="mt-12 p-4">
-      <h2 class="itbkk-collab-board text-purple text-center text-2xl font-bold pb-6">
+      <h2
+        class="itbkk-collab-board text-purple text-center text-2xl font-bold pb-6"
+      >
         Collab Boards
       </h2>
       <table class="w-full text-left table-fixed">
@@ -184,28 +210,41 @@ onMounted(() => {
               Error loading boards.
             </td>
           </tr>
-          <tr v-if="boards?.collaborative_boards.length === 0 && !loading && !error">
-            <td colspan="5" class="px-4 py-4 text-center">No Board Added</td>
+          <tr v-if="collaborativeBoards.length === 0 && !loading && !error">
+            <td colspan="5" class="px-4 py-4 text-center">
+              No Collaboration Boards
+            </td>
           </tr>
-          <tr v-for="(collabBoard, index) in boards?.collaborative_boards" :key="collabBoard.id"
-            class="itbkk-collab-item border-b last:border-0">
+          <tr
+            v-for="(board, index) in collaborativeBoards"
+            :key="board.id"
+            class="itbkk-collab-item border-b last:border-0"
+          >
             <td class="px-4 py-3 text-center text-black font-bold">
               {{ index + 1 }}
             </td>
-            <td class="itbkk-board-name px-4 py-3 cursor-pointer text-black font-bold hover:text-[#47467b] break-words"
-              @click="router.push(`/board/${collabBoard.id}`)">
-              {{ collabBoard.name }}
+            <td
+              class="itbkk-board-name px-4 py-3 cursor-pointer text-black font-bold hover:text-[#47467b] break-words"
+              @click="router.push(`/board/${board.id}`)"
+            >
+              {{ board.name }}
             </td>
-            <td title="collabBoard.owner?.name" class="itbkk-owner-name px-4 py-3 text-[#717171] font-bold text-center break-words">
-              {{ collabBoard.owner.name }}
+            <td
+              class="itbkk-owner-name px-4 py-3 text-[#717171] font-bold text-center"
+            >
+              {{ board.owner.name }}
             </td>
-            <td class="itbkk-access-right px-4 py-3 text-[#717171] font-bold text-center">
-              {{ accessRight }}
-              <!-- access.right -->
+            <td
+              class="itbkk-access-right px-4 py-3 text-[#717171] font-bold text-center"
+            >
+              {{ board.accessRight }}
             </td>
             <td class="px-4 py-3 space-x-4">
               <div class="flex justify-center">
-                <button class="itbkk-leave-board bg-[#ad386f] hover:bg-[#a31a5a]" @click="deleteBoard(board.id)">
+                <button
+                  class="itbkk-leave-board bg-[#ad386f] hover:bg-[#a31a5a]"
+                  @click="leaveCollabBoard(board.id, board.owner?.oid)"
+                >
                   Leave
                 </button>
               </div>
@@ -219,7 +258,9 @@ onMounted(() => {
     <Copyright />
   </footer>
   <ModalAddBoard v-if="isModalOpen" @close="closeModal" />
+
 </template>
+
 
 <style scoped>
 h1 {

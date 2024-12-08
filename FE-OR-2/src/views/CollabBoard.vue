@@ -1,94 +1,139 @@
 <script setup>
-import { onMounted, ref, watch, computed } from "vue"
-import { useRouter, useRoute } from "vue-router"
-import { useBoardStore } from "@/stores/BoardStore.js"
-import { storeToRefs } from "pinia"
-import { useToastStore } from "@/stores/ToastStore.js"
-import { useUserStore } from "@/stores/AuthUserStore.js"
-import { useCollabBoardStore } from "@/stores/CollabBoardStore.js"
-import Navbar from "../components/css/Navbar.vue"
-import Copyright from "../components/css/Copyright.vue"
+import { onMounted, ref, computed, nextTick } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import { storeToRefs } from "pinia";
+import { useBoardStore } from "@/stores/BoardStore.js";
+import { useCollabBoardStore } from "@/stores/CollabBoardStore.js";
+import { useToastStore } from "@/stores/ToastStore.js";
+import { useUserStore } from "@/stores/AuthUserStore.js";
+import Navbar from "../components/css/Navbar.vue";
+import Copyright from "../components/css/Copyright.vue";
 
-const boardStore = useBoardStore()
-const { boards } = storeToRefs(boardStore)
-const collabBoardStore = useCollabBoardStore()
-const { collabBoards } = storeToRefs(collabBoardStore)
-const toastStore = useToastStore()
-const userStore = useUserStore()
-const loading = ref(true)
-const error = ref(false)
-const isModalOpen = ref(false)
+// Stores
+const collabBoardStore = useCollabBoardStore();
+const toastStore = useToastStore();
+const userStore = useUserStore();
+const boardStore = useBoardStore();
 
-const router = useRouter()
-const route = useRoute()
-const boardId = route.params.boardId
-const boardName = ref("")
-const boardOwnerOid = ref("")
-const visibility = ref("")
-const currentUserEmail = ref(userStore.email)
-const collabEmail = ref("")
-const accessRight = ref("Read")
-const deleteSuccess = ref(false)
-const tooltipText = "You need to be board owner to perform this action."
+// State
+const { collabBoards } = storeToRefs(collabBoardStore);
+const loading = ref(true);
+const error = ref(false);
+const isModalOpen = ref(false);
+const collaboratorEmail = ref("");
+const accessRight = ref("READ");
+const boardId = ref("");
+const boardName = ref("");
+const boardOwnerOid = ref("");
 
+console.log(collabBoards)
+
+// Router
+const router = useRouter();
+const route = useRoute();
+boardId.value = route.params.boardId;
+
+// Fetch Board Data
 const fetchBoardData = async () => {
   try {
-    const boardData = await boardStore.getBoard(boardId)
+    loading.value = true;
+    const boardData = await boardStore.getBoard(boardId.value);
     if (boardData) {
-      boardName.value = boardData.name
-      boardOwnerOid.value = boardData.owner.oid
-      visibility.value = boardData.visibility || "PRIVATE"
-    } else {
-      console.error("Board data not found")
+      boardName.value = boardData.name;
+      boardOwnerOid.value = boardData.owner.oid || ""; // Ensure owner.oid exists
     }
-  } catch (error) {
-    console.error("Error fetching board data:", error)
+  } catch (err) {
+    console.error("Error fetching board data:", err);
+    error.value = true;
+  } finally {
+    loading.value = false;
   }
 }
 
-const isCollabEmailValid = computed(() => {
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return emailPattern.test(collabEmail.value)
-})
-
-function addCollab() {
-  if (isCollabEmailValid.value) {
-    console.log("Adding collaborator with email:", collabEmail.value)
-    console.log(boardName.value)
-    // Add your logic here
+// Fetch Collaborators Data
+const fetchCollabBoardData = async () => {
+  try {
+    loading.value = true;
+    const collaborators = await collabBoardStore.fetchCollaborators(
+      boardId.value
+    );
+    console.log("Collaborators:", collaborators); // Debug data
+  } catch (err) {
+    console.error("Error fetching collaborators data:", err);
+    error.value = true;
+  } finally {
+    loading.value = false;
   }
-  closeModal()
-}
+};
 
-const openHome = () => {
-  router.push({ name: "board-tasks" })
-}
+// Add Collaborator
+const addCollab = async () => {
+  try {
+    if (!collaboratorEmail.value.trim()) {
+      toastStore.addToast("Please enter a valid email.", "error");
+      return;
+    }
+    await collabBoardStore.addCollaborator(
+      boardId.value,
+      collaboratorEmail.value.trim(),
+      accessRight.value
+    );
+    toastStore.addToast("Collaborator added successfully.", "success");
+    collaboratorEmail.value = "";
+    accessRight.value = "READ";
+    isModalOpen.value = false;
+    await fetchCollabBoardData();
+  } catch (err) {
+    console.error("Error adding collaborator:", err);
+    toastStore.addToast("Failed to add collaborator.", "error");
+  }
+};
 
-const openModal = () => {
-  isModalOpen.value = true
-}
+// Remove Collaborator
+const removeCollaborator = async (collaboratorId) => {
+  try {
+    await collabBoardStore.removeCollaborator(boardId.value, collaboratorId);
+    toastStore.addToast("Collaborator removed successfully.", "success");
+    await fetchCollabBoardData(); // Refresh data
+  } catch (err) {
+    console.error("Error removing collaborator:", err);
+    toastStore.addToast("Failed to remove collaborator.", "error");
+  }
+};
+
+// Update Collaborator Access
+const updateAccessRight = async (collaboratorId, newAccessRight) => {
+  try {
+    await collabBoardStore.updateCollaboratorPermission(
+      boardId.value,
+      collaboratorId,
+      newAccessRight
+    );
+    toastStore.addToast("Access right updated successfully.", "success");
+  } catch (err) {
+    console.error("Error updating access right:", err);
+    toastStore.addToast("Failed to update access right.", "error");
+  }
+};
+
+// Modal Controls
+const openModal = async () => {
+  isModalOpen.value = true;
+  await nextTick(); // Wait for DOM render
+  document.querySelector('input[placeholder="Collaborator Email"]').focus();
+};
 
 const closeModal = () => {
-  isModalOpen.value = false
-  router.push({ name: "collaborator-manage"})
-}
+  isModalOpen.value = false;
+  collaboratorEmail.value = ""; // Reset email input
+  accessRight.value = "READ"; // Reset access right
+};
 
-watch(
-  () => route.path,
-  (newPath) => {
-    isModalOpen.value = newPath === "/board/add"
-  },
-  { immediate: true }
-)
-
-// onMounted(() => {
-//   initializeBoards()
-// })
-
+// Fetch Data on Mount
 onMounted(async () => {
   await fetchBoardData();
-  // await taskStore.fetchTasks(boardId);
-})
+  await fetchCollabBoardData();
+});
 </script>
 
 <template>
@@ -98,46 +143,34 @@ onMounted(async () => {
       <h1 class="text-left text-3xl font-bold">IT-Bangmod Kradan Kanban</h1>
       <div class="flex justify-between items-center mt-2">
         <h2 class="text-lg font-semibold pr-20">
-          <span class="itbkk-boards hover:text-[#47467b] cursor-pointer" @click="router.push({ name: 'board' })">
-            Board
-          </span>&nbsp;>&nbsp;
-          <span class="itbkk-board-name hover:text-[#5e1f87] cursor-pointer"
-            @click="router.push({ name: 'board-tasks' })">
-            {{ boardName }}
-          </span>&nbsp;>&nbsp;
-          <span class=" text-[#ad386f] hover:text-[#a31a5a]">Collaborator</span>
+          <span
+            class="itbkk-boards hover:text-[#47467b] cursor-pointer"
+            @click="router.push({ name: 'board' })"
+          >
+            Board </span
+          >&nbsp;>&nbsp;
+          <span
+            class="itbkk-board-name hover:text-[#5e1f87] cursor-pointer"
+            @click="router.push({ name: 'board-tasks' })"
+          >
+            {{ boardName }} </span
+          >&nbsp;>&nbsp;
+          <span class="text-[#ad386f] hover:text-[#a31a5a]">Collaborator</span>
         </h2>
         <div class="flex space-x-4">
-          <button @click="openHome"
-            class="itbkk-button-home flex items-center bg-white text-gray-800 px-4 py-2 rounded-full shadow hover:shadow-md hover:scale-105 transition-transform duration-300">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="mr-2"
-              viewBox="0 4 16 16">
-              <path fill="currentColor"
-                d="m16 8.5l1.53 1.53l-1.06 1.06L10 4.62l-6.47 6.47l-1.06-1.06L10 2.5l4 4v-2h2zm-6-2.46l6 5.99V18H4v-5.97zM12 17v-5H8v5z">
-              </path>
-            </svg>
+          <button
+            @click="router.push({ name: 'board-tasks' })"
+            class="itbkk-button-home flex items-center bg-white text-gray-800 px-4 py-2 rounded-full shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
+          >
             Back
           </button>
-
-          <div class="tooltip-container">
-            <button @click="openModal" :disabled="boardOwnerOid !== userStore.oid" :class="{
-              'itbkk-collaborator-add flex items-center bg-white text-gray-800 px-4 py-2 rounded-full shadow transition-transform duration-300': true,
-              'hover:shadow-md hover:scale-105':
-                boardOwnerOid === userStore.oid,
-              'opacity-50 cursor-not-allowed':
-                boardOwnerOid !== userStore.oid,
-            }">
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="mr-2"
-                viewBox="0 0 16 16">
-                <path fill="currentColor" fillRule="evenodd"
-                  d="M8 1a1 1 0 0 0-2 0v5H1a1 1 0 0 0 0 2h5v5a1 1 0 1 0 2 0V8h5a1 1 0 1 0 0-2H8z" clipRule="evenodd" />
-              </svg>
-              Add collaborator
-            </button>
-            <span v-if="boardOwnerOid !== userStore.oid" class="tooltip-text">
-              {{ tooltipText }}
-            </span>
-          </div>
+          <button
+            @click="openModal"
+            :disabled="boardOwnerOid !== userStore.oid"
+            class="itbkk-collaborator-add flex items-center bg-white text-gray-800 px-4 py-2 rounded-full shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
+          >
+            Add Collaborator
+          </button>
         </div>
       </div>
     </header>
@@ -151,88 +184,92 @@ onMounted(async () => {
             <th class="px-4 py-3 w-1/12 text-center font-semibold">No</th>
             <th class="px-4 py-3 w-2/12 text-left font-semibold">Name</th>
             <th class="px-4 py-3 w-5/12 text-left font-semibold">E-mail</th>
-            <th class="px-4 py-3 w-2/12 text-left font-semibold">Access Right</th>
+            <th class="px-4 py-3 w-2/12 text-left font-semibold">
+              Access Right
+            </th>
             <th class="px-4 py-3 w-2/12 text-center font-semibold">Action</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-if="loading">
-            <td colspan="5" class="px-4 py-4 text-center text-black font-bold">
-              Loading...
-            </td>
-          </tr>
-          <tr v-else-if="error">
-            <td colspan="5" class="px-4 py-4 text-center text-red-600">
-              Error loading boards.
-            </td>
-          </tr>
-          <tr v-if="boards.length === 0 && !loading && !error">
-            <td colspan="5" class="px-4 py-4 text-center">No Board Added</td>
-          </tr>
-          <!-- <tr v-for="(board, index) in boards.personal_boards" :key="board.id" -->
-          <tr v-for="(board, index) in boards.personal_boards" :key="board.id" class="itbkk-item border-b last:border-0">
-            <td class="px-4 py-3 text-center text-black font-bold">
-              {{ index + 1 }}
-            </td>
-            <td class="itbkk-name px-4 py-3 cursor-pointer text-black font-bold hover:text-[#47467b] break-words"
-              @click="router.push(`/board/${board.id}`)">
-              ITBKK DUMMY
-            </td>
-            <td class="itbkk-email px-4 py-3 text-[#717171] font-bold text-center truncate">
-              <!-- {{ board.email }} -->
-              itbkk.dummy@ad.sit.kmutt.ac.th
-            </td>
-            <td class="itbkk-access-right px-4 py-3 text-[#717171] font-bold text-center">
-              <select
-                class="itbkk-status select select-bordered w-full max-w-xs block bg-white border border-gray-200 py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white">
-                <option disabled selected>READ</option>
-                <option>READ</option>
-                <option>WRITE</option>
-              </select>
-            </td>
-            <td class="px-4 py-3 space-x-4">
-              <div class="flex justify-center">
-                <button class="itbkk-button-delete bg-[#8e5bb1] hover:bg-[#6a4581]" @click="deleteBoard(board.id)">
-                  Remove
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
+  <tr v-if="loading">
+    <td colspan="5" class="px-4 py-4 text-center text-black font-bold">
+      Loading...
+    </td>
+  </tr>
+  <tr v-else-if="error">
+    <td colspan="5" class="px-4 py-4 text-center text-red-600">
+      Error loading data.
+    </td>
+  </tr>
+  <tr v-if="!collabBoards || collabBoards.length === 0 && !loading && !error">
+    <td colspan="5" class="px-4 py-4 text-center">No Collaborators</td>
+  </tr>
+  <tr
+    v-for="(collaborator, index) in collabBoards"
+    :key="collaborator.id"
+    class="border-b"
+  >
+    <td class="px-4 py-3 text-center font-bold">{{ index + 1 }}</td>
+    <td class="px-4 py-3 font-bold">{{ collaborator.name }}</td>
+    <td class="px-4 py-3 text-[#717171] truncate">{{ collaborator.email }}</td>
+    <td class="px-4 py-3 text-center">
+      <!-- Select for Access Rights -->
+      <select
+        v-model="collaborator.accessRight"
+        @change="updateAccessRight(collaborator.oid, collaborator.accessRight)"
+        class="border p-2 rounded-md"
+      >
+        <option value="READ">READ</option>
+        <option value="WRITE">WRITE</option>
+      </select>
+    </td>
+    <td class="px-4 py-3 text-center">
+      <button
+        @click="removeCollaborator(collaborator.oid)"
+        class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full"
+      >
+        Remove
+      </button>
+    </td>
+  </tr>
+</tbody>
+
+
+
       </table>
     </div>
 
     <!-- Add Collaborator Modal -->
-    <div v-if="isModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-      <div class="itbkk-modal-alert bg-white px-10 py-6 rounded-3xl text-center shadow-xlp-6 w-1/3">
+    <div
+      v-if="isModalOpen"
+      class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+    >
+      <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-lg">
         <h2 class="text-xl font-bold mb-4">Add Collaborator</h2>
-        <div class="flex mb-6 w-full">
-          <div class="text-left flex-grow">
-            <p class="pb-1 font-medium">Collaborator e-mail</p>
-            <input v-model="collabEmail" type="email" id="email" name="email" maxlength="50"
-              class="itbkk-collaborator-email border p-2 w-full h-12 rounded-md"
-              placeholder="Enter collaborator e-mail" />
-          </div>
-          <div class="text-left pl-8">
-            <p class="pb-1 font-medium">Access Right</p>
-            <select
-              class="itbkk-access-right select select-bordered w-32 bg-white border border-gray-200 rounded-md focus:outline-none focus:bg-white">
-              <option disabled selected>READ</option>
-              <option>READ</option>
-              <option>WRITE</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="button-addboard flex justify-center gap-4">
-          <button @click="addCollab" :disabled="!isCollabEmailValid" :class="{
-            'bg-gray-300 text-gray-500 cursor-not-allowed': !isCollabEmailValid,
-            'bg-emerald-500 hover:bg-emerald-600': isCollabEmailValid
-          }" class="itbkk-button-confirm text-white px-4 py-2">
+        <input
+          v-model="collaboratorEmail"
+          type="email"
+          placeholder="Collaborator Email"
+          class="w-full p-2 mb-4 border rounded-md focus:ring focus:ring-blue-300"
+        />
+        <select
+          v-model="accessRight"
+          class="w-full p-2 mb-4 border rounded-md focus:ring focus:ring-blue-300"
+        >
+          <option value="READ">READ</option>
+          <option value="WRITE">WRITE</option>
+        </select>
+        <div class="flex justify-end gap-4">
+          <button
+            @click="addCollab"
+            class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition"
+          >
             Add
           </button>
-          <button @click="closeModal"
-            class="itbkk-button-cancel bg-gray-300 hover:bg-gray-400 text-gray-500 px-4 py-2 ml-4">
+          <button
+            @click="closeModal"
+            class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-md transition"
+          >
             Cancel
           </button>
         </div>

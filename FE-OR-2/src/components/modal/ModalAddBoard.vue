@@ -5,52 +5,66 @@ import { useUserStore } from "@/stores/AuthUserStore.js";
 import { useBoardStore } from "@/stores/BoardStore.js";
 import { useToastStore } from "@/stores/ToastStore.js";
 
+// Stores และ States
 const userStore = useUserStore();
 const boardStore = useBoardStore();
 const toastStore = useToastStore();
-const fullname = computed(() => userStore.fullname);
+const fullname = computed(() => userStore.fullname); // ชื่อเต็มผู้ใช้
+const userOid = computed(() => userStore.oid); // oid ของผู้ใช้
 const router = useRouter();
+
+// ค่าฟอร์ม
 const visibility = ref("private");
 const errorMessage = ref("");
 const boardName = ref("");
 
-
-// กำหนดชื่อบอร์ดให้ตรงกับชื่อผู้ใช้โดยอัตโนมัติ
+// ตั้งชื่อบอร์ดเริ่มต้น
 watch(
   fullname,
   (newFullname) => {
-    boardName.value = `${newFullname} personal board`;
+    boardName.value = `${newFullname}'s Personal Board`;
   },
   { immediate: true }
 );
 
+// ฟังก์ชันสร้างบอร์ดใหม่
 async function createBoard() {
   try {
+    if (!boardName.value.trim()) {
+      toastStore.addToast("Board name cannot be empty.", "error");
+      return;
+    }
+
     const newBoard = {
       name: boardName.value.trim(),
-      owner: fullname.value,
+      ownerOid: userOid.value, // ใช้ oid ของผู้ใช้เป็นเจ้าของบอร์ด
       visibility: visibility.value,
     };
 
+    // เรียกใช้ API เพื่อสร้างบอร์ด
     const createdBoard = await boardStore.createBoard(newBoard);
+
     toastStore.addToast("The board has been successfully created.", "success");
     console.log("Board created successfully:", createdBoard);
+
+    // นำทางไปยังบอร์ดที่สร้างใหม่
     router.push(`/board/${createdBoard.id}`);
   } catch (error) {
+    console.error("Error creating board:", error);
+
     if (error.response && error.response.status === 401) {
-      // ถ้าเป็น 401 ให้ไปหน้า login
+      // กรณี Unauthorized
+      toastStore.addToast("Please log in to create a board.", "error");
       router.push(`/login`);
     } else {
-      toastStore.addToast("Error creating board", "error");
-      console.error("Error creating board:", error);
+      // กรณีอื่นๆ
+      toastStore.addToast("Error creating board.", "error");
       errorMessage.value = error.message || "An unexpected error occurred.";
     }
   }
 }
 
-
-
-// ปิด Modal
+// ฟังก์ชันปิด Modal
 function closeModal() {
   errorMessage.value = "";
   router.push("/board");
@@ -68,17 +82,15 @@ function closeModal() {
         placeholder="Enter board name (max 120 characters)"
         maxlength="120"
       />
-      <!-- <select v-model="visibility" class="border p-2 w-full mb-4">
-        <option value="private">Private</option>
-        <option value="public">Public</option>
-      </select> -->
+      <!-- แสดงข้อความ Error -->
+      <p v-if="errorMessage" class="text-red-500 text-sm mb-4">{{ errorMessage }}</p>
       <div class="button-addboard flex justify-center">
         <button
           @click="createBoard"
-          :disabled="!boardName"
+          :disabled="!boardName.trim()"
           :class="{
-            'bg-gray-300 text-gray-500 cursor-not-allowed': !boardName,
-            'bg-emerald-500 hover:bg-emerald-600': boardName
+            'bg-gray-300 text-gray-500 cursor-not-allowed': !boardName.trim(),
+            'bg-emerald-500 hover:bg-emerald-600': boardName.trim()
           }"
           class="itbkk-button-ok text-white px-4 py-2"
         >
@@ -94,6 +106,7 @@ function closeModal() {
     </div>
   </div>
 </template>
+
 
 <style scoped>
 .fixed {
