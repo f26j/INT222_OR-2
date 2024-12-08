@@ -13,7 +13,7 @@
     "test:unit:dev": "cypress open --component",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
-    "cypress:run:vm": "cypress run --config baseUrl=http://intproj23.sit.kmutt.ac.th/or2"
+    "cypress:run:vm": "cypress run --config baseUrl=https://intproj23.sit.kmutt.ac.th/or2"
   },
   "dependencies": {
     "jwt-decode": "^4.0.0",
