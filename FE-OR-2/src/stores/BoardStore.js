@@ -4,7 +4,7 @@ import { useUserStore } from "@/stores/AuthUserStore.js";
 import { useRouter } from "vue-router";
 
 export const useBoardStore = defineStore("apiBoard", () => {
-  const boards = ref([]);
+  const boards = ref(null);
   const currentBoard = ref(null); // เก็บบอร์ดที่โหลด
   const baseUrl = import.meta.env.VITE_API_BOARDS;
   const userStore = useUserStore();
@@ -112,7 +112,8 @@ export const useBoardStore = defineStore("apiBoard", () => {
       }
 
       const createdBoard = await response.json();
-      boards.value.push(createdBoard);
+      console.log(boards.value);
+      boards.value.personal_boards.push(createdBoard);
       return createdBoard;
     } catch (error) {
       console.error("Error creating board:", error.message);

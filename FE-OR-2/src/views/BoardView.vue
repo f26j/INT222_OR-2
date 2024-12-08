@@ -2,6 +2,7 @@
 import { onMounted, ref, watch, computed } from "vue"
 import { useRouter, useRoute } from "vue-router"
 import { useBoardStore } from "@/stores/BoardStore.js"
+import { useCollabBoardStore } from "@/stores/CollabBoardStore.js"
 import { storeToRefs } from "pinia"
 import { useToastStore } from "@/stores/ToastStore.js"
 // import { useUserStore } from "@/stores/AuthUserStore.js"
@@ -11,6 +12,8 @@ import ModalAddBoard from "../components/modal/ModalAddBoard.vue"
 
 const boardStore = useBoardStore()
 const { boards } = storeToRefs(boardStore)
+// const collabBoardStore = useCollabBoardStore()
+// const { collabBoards } = storeToRefs(collabBoardStore)
 const toastStore = useToastStore()
 // const userStore = useUserStore()
 const loading = ref(true)
@@ -39,6 +42,8 @@ async function initializeBoards() {
     loading.value = false
   }
 }
+
+console.log(boards.collaborative_boards)
 
 const deleteBoard = async (boardId) => {
   try {
@@ -124,11 +129,10 @@ onMounted(() => {
               Error loading boards.
             </td>
           </tr>
-          <tr v-if="boards.length === 0 && !loading && !error">
+          <tr v-if="boards?.personal_boards.length === 0 && !loading && !error">
             <td colspan="4" class="px-4 py-4 text-center">No Board Added</td>
           </tr>
-          <!-- <tr v-for="(board, index) in boards" :key="board.id" -->
-          <tr v-for="(board, index) in boards.personal_boards" :key="board.id"
+          <tr v-for="(board, index) in boards?.personal_boards" :key="board.id"
             class="itbkk-personal-item border-b last:border-0">
             <td class="px-4 py-3 text-center text-black font-bold">
               {{ index + 1 }}
@@ -180,21 +184,20 @@ onMounted(() => {
               Error loading boards.
             </td>
           </tr>
-          <tr v-if="boards.length === 0 && !loading && !error">
+          <tr v-if="boards?.collaborative_boards.length === 0 && !loading && !error">
             <td colspan="5" class="px-4 py-4 text-center">No Board Added</td>
           </tr>
-          <tr v-for="(board, index) in boards.collaborative_boards" :key="board.id"
+          <tr v-for="(collabBoard, index) in boards?.collaborative_boards" :key="collabBoard.id"
             class="itbkk-collab-item border-b last:border-0">
             <td class="px-4 py-3 text-center text-black font-bold">
               {{ index + 1 }}
             </td>
             <td class="itbkk-board-name px-4 py-3 cursor-pointer text-black font-bold hover:text-[#47467b] break-words"
-              @click="router.push(`/board/${board.id}`)">
-              {{ board.name }}
+              @click="router.push(`/board/${collabBoard.id}`)">
+              {{ collabBoard.name }}
             </td>
-            <td class="itbkk-owner-name px-4 py-3 text-[#717171] font-bold text-center">
-              {{ fullname }}
-              <!-- board.owner.name -->
+            <td title="collabBoard.owner?.name" class="itbkk-owner-name px-4 py-3 text-[#717171] font-bold text-center break-words">
+              {{ collabBoard.owner.name }}
             </td>
             <td class="itbkk-access-right px-4 py-3 text-[#717171] font-bold text-center">
               {{ accessRight }}
