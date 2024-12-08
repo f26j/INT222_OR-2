@@ -19,141 +19,118 @@ export const useCollabBoardStore = defineStore("collabBoardStore", () => {
     return userStore.token;
   };
 
-  // ดึงข้อมูล Collaboration Boards
-  const fetchCollabBoards = async () => {
+  // ดึงข้อมูล Collaborators ทั้งหมดของ Board
+  const fetchCollaborators = async (boardId) => {
     try {
       const token = checkToken();
-
-      const response = await fetch(`${baseUrl}/v3/collab-boards`, {
+  
+      const response = await fetch(`${baseUrl}/v3/boards/${boardId}/collabs`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
-
+  
       if (!response.ok) {
         if (response.status === 401) {
           userStore.logout();
           router.push({ name: "login" });
         }
-        throw new Error("Failed to fetch collaboration boards");
+        throw new Error("Failed to fetch collaborators");
       }
-
-      collabBoards.value = await response.json();
+  
+      const data = await response.json();
+      collabBoards.value = data; // อัปเดต collabBoards
+      return data;
     } catch (error) {
-      console.error("Error fetching collaboration boards:", error.message);
+      console.error("Error fetching collaborators:", error.message);
+      throw error;
     }
   };
-
-  // เพิ่มผู้ใช้ใหม่ใน Collaboration Board
-  const addCollaborator = async (boardId, userId, permission) => {
+  
+  // เพิ่ม Collaborator
+  const addCollaborator = async (boardId, email, accessRight) => {
     try {
       const token = checkToken();
-
-      const response = await fetch(`${baseUrl}/v3/collab-boards/${boardId}/collaborators`, {
+  
+      const response = await fetch(`${baseUrl}/v3/boards/${boardId}/collabs`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ userId, permission }), // เช่น { userId: "123", permission: "write" }
+        body: JSON.stringify({ email, accessRight }),
       });
-
+  
       if (!response.ok) {
         throw new Error("Failed to add collaborator");
       }
-
-      const updatedBoard = await response.json();
-      currentCollabBoard.value = updatedBoard; // อัปเดต Board ที่ดูอยู่
+  
+      await fetchCollaborators(boardId); // อัปเดต collabBoards หลังจากเพิ่มสำเร็จ
     } catch (error) {
       console.error("Error adding collaborator:", error.message);
       throw error;
     }
   };
+  
 
-  // ลบผู้ใช้จาก Collaboration Board
-  const removeCollaborator = async (boardId, userId) => {
+  // ลบ Collaborator
+  const removeCollaborator = async (boardId, collabOid) => {
     try {
       const token = checkToken();
-
-      const response = await fetch(`${baseUrl}/v3/collab-boards/${boardId}/collaborators/${userId}`, {
+      const response = await fetch(`${baseUrl}/v3/boards/${boardId}/collabs/${collabOid}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
-
+  
       if (!response.ok) {
         throw new Error("Failed to remove collaborator");
       }
-
-      const updatedBoard = await response.json();
-      currentCollabBoard.value = updatedBoard; // อัปเดต Board ที่ดูอยู่
+  
+      await fetchCollaborators(boardId); // อัปเดต collabBoards หลังจากลบสำเร็จ
     } catch (error) {
       console.error("Error removing collaborator:", error.message);
       throw error;
     }
   };
+  
 
-  // อัปเดตสิทธิ์ของผู้ใช้ใน Collaboration Board
-  const updateCollaboratorPermission = async (boardId, userId, newPermission) => {
+  // อัปเดตสิทธิ์ Collaborator
+  const updateCollaboratorPermission = async (boardId, collabOid, accessRight) => {
     try {
       const token = checkToken();
-
-      const response = await fetch(`${baseUrl}/v3/collab-boards/${boardId}/collaborators/${userId}`, {
+  
+      const response = await fetch(`${baseUrl}/v3/boards/${boardId}/collabs/${collabOid}`, {
         method: "PATCH",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ permission: newPermission }), // เช่น { permission: "read" }
+        body: JSON.stringify({ accessRight: accessRight }),
       });
-
+  
       if (!response.ok) {
-        throw new Error("Failed to update collaborator permission");
+        throw new Error("Failed to update collaborator access right");
       }
-
-      const updatedBoard = await response.json();
-      currentCollabBoard.value = updatedBoard; // อัปเดต Board ที่ดูอยู่
+  
+      await fetchCollaborators(boardId); // อัปเดต collabBoards หลังจากเปลี่ยนสิทธิ์สำเร็จ
     } catch (error) {
-      console.error("Error updating collaborator permission:", error.message);
+      console.error("Error updating collaborator access right:", error.message);
       throw error;
     }
   };
-
-  // ดึงข้อมูลผู้ใช้ใน Collaboration Board
-  const fetchCollaborators = async (boardId) => {
-    try {
-      const token = checkToken();
-
-      const response = await fetch(`${baseUrl}/v3/collab-boards/${boardId}/collaborators`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch collaborators");
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error("Error fetching collaborators:", error.message);
-      throw error;
-    }
-  };
+  
 
   return {
     collabBoards,
     currentCollabBoard,
-    fetchCollabBoards,
+    fetchCollaborators,
     addCollaborator,
     removeCollaborator,
     updateCollaboratorPermission,
-    fetchCollaborators,
   };
 });

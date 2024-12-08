@@ -10,22 +10,26 @@ const router = useRouter();
 const toastStore = useToastStore();
 const userStore = useUserStore();
 const boardStore = useBoardStore();
-const { boards } = storeToRefs(boardStore);
 
+// ดึง state จาก BoardStore
+const { personalBoards, collaborativeBoards } = storeToRefs(boardStore);
+
+// ฟิลด์และสถานะ
 const username = ref("");
 const password = ref("");
 const showPassword = ref(false);
 const isLoading = ref(false);
 
+// ตรวจสอบว่าฟิลด์การเข้าสู่ระบบถูกต้องหรือไม่
 const isLoginValid = computed(() => {
   return username.value.trim() !== "" && password.value.trim() !== "";
 });
 
+// ฟังก์ชันเข้าสู่ระบบ
 const handleSubmit = async (event) => {
   event.preventDefault();
 
   if (!isLoginValid.value) {
-    console.log("Triggering Toast"); // Debug log
     toastStore.addToast("Username or Password is incorrect.", "error");
     return;
   }
@@ -33,27 +37,32 @@ const handleSubmit = async (event) => {
   isLoading.value = true;
 
   try {
+    // เรียกใช้การเข้าสู่ระบบ
     await userStore.fetchUserData(username.value, password.value);
+
+    // ดึงข้อมูล boards
     await boardStore.fetchBoards();
 
-    const userBoards = boards.value.filter(
-      (board) => board.owner?.oid === userStore.oid
-    );
-
-    if (userBoards.length === 1) {
-      router.push(`/board/${userBoards[0].id}`);
+    // ตรวจสอบว่ามี Personal Boards หรือไม่
+    if (personalBoards.value.length === 1 && collaborativeBoards.value.length === 0) {
+      router.push(`/board/${personalBoards.value[0].id}`);
     } else {
       router.push("/board");
     }
   } catch (error) {
-    console.log("Triggering Toast on Error"); // Debug log
-    toastStore.addToast("Username or Password is incorrect.", "error");
+    console.error("Login error:", error);
+    toastStore.addToast(
+      error.response?.status === 500
+        ? "Server Error. Please try again later."
+        : "Username or Password is incorrect.",
+      "error"
+    );
   } finally {
     isLoading.value = false;
   }
 };
 
-
+// ฟังก์ชันแสดงหรือซ่อนรหัสผ่าน
 const togglePassword = () => {
   showPassword.value = !showPassword.value;
 };
