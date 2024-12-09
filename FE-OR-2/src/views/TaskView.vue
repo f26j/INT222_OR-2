@@ -2,6 +2,8 @@
 // Import zone
 import { onMounted, ref, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
+import { nextTick } from "vue";
+import { watch } from "vue";
 import { storeToRefs } from "pinia";
 import { useTaskStore } from "@/stores/TaskStore.js";
 import { useToastStore } from "@/stores/ToastStore.js";
@@ -34,9 +36,21 @@ const modalMessage = ref("Do you want to change board visibility to public?");
 const sortAscending = ref(undefined);
 const deleteSuccess = ref(false);
 const showDelete = ref(false);
-const tooltipText = "You need to be board owner to perform this action.";
+const tooltipText = "You need to be board owner or have access write to perform this action.";
+const accessRight = ref("");
 
-// Functions
+const fetchBoardAccessRight = () => {
+  const board = boardStore.collaborativeBoards.find((b) => b.id === boardId);
+  if (board) {
+    accessRight.value = board.accessRight || null;
+    console.log("Access Right:", accessRight.value);
+  } else {
+    console.log("Board not found in collaborativeBoards");
+    accessRight.value = null;
+  }
+};
+
+
 const fetchBoardData = async () => {
   try {
     const boardData = await boardStore.getBoard(boardId);
@@ -122,6 +136,9 @@ const sortedTasks = computed(() => {
 // Lifecycle hook
 onMounted(async () => {
   await fetchBoardData();
+  await boardStore.fetchBoards();
+  fetchBoardAccessRight();
+  await nextTick();
   await taskStore.fetchTasks(boardId);
 });
 </script>
@@ -236,13 +253,13 @@ onMounted(async () => {
           <div class="tooltip-container">
             <button
               @click="openModalAdd"
-              :disabled="boardOwnerOid !== userStore.oid"
+               :disabled="boardOwnerOid !== userStore.oid && accessRight !== 'WRITE'"
               :class="{
                 'itbkk-button-add flex items-center px-4 py-2 rounded-full shadow transition-transform duration-300': true,
                 'hover:shadow-md hover:scale-105':
-                  boardOwnerOid === userStore.oid,
+                  boardOwnerOid === userStore.oid || accessRight === 'WRITE',
                 'opacity-50 cursor-not-allowed':
-                  boardOwnerOid !== userStore.oid,
+                  boardOwnerOid !== userStore.oid && accessRight !== 'WRITE',
               }"
             >
               <svg
@@ -262,7 +279,7 @@ onMounted(async () => {
               </svg>
               Add Task
             </button>
-            <span v-if="boardOwnerOid !== userStore.oid" class="tooltip-text">
+            <span v-if="boardOwnerOid !== userStore.oid && accessRight !== 'WRITE'" class="tooltip-text">
               {{ tooltipText }}
             </span>
           </div>
@@ -345,13 +362,13 @@ onMounted(async () => {
                   <div class="tooltip-container">
                     <button
                       @click="openModalEdit(task.id)"
-                      :disabled="boardOwnerOid !== userStore.oid"
+                       :disabled="boardOwnerOid !== userStore.oid && accessRight !== 'WRITE'"
                       :class="{
                         'flex items-center bg-white text-color-purple px-3 py-1.5 rounded-lg shadow transition-transform duration-300': true,
                         'hover:shadow-md hover:scale-105':
-                          boardOwnerOid === userStore.oid,
+                          boardOwnerOid === userStore.oid || accessRight === 'WRITE',
                         'opacity-50 cursor-not-allowed':
-                          boardOwnerOid !== userStore.oid,
+                          boardOwnerOid !== userStore.oid && accessRight !== 'WRITE',
                       }"
                     >
                       <svg
@@ -372,7 +389,7 @@ onMounted(async () => {
                       <span>Edit</span>
                     </button>
                     <span
-                      v-if="boardOwnerOid !== userStore.oid"
+                      v-if="boardOwnerOid !== userStore.oid && accessRight !== 'WRITE'"
                       class="tooltip-text"
                     >
                       {{ tooltipText }}
@@ -381,13 +398,13 @@ onMounted(async () => {
                   <div class="tooltip-container">
                     <button
                       @click="openModalDelete(task.id, task.title, index)"
-                      :disabled="boardOwnerOid !== userStore.oid"
+                      :disabled="boardOwnerOid !== userStore.oid && accessRight !== 'WRITE'"
                       :class="{
                         'flex items-center bg-white text-color-purple px-3 py-1.5 rounded-lg shadow transition-transform duration-300': true,
                         'hover:shadow-md hover:scale-105':
-                          boardOwnerOid === userStore.oid,
+                          boardOwnerOid === userStore.oid || accessRight === 'WRITE',
                         'opacity-50 cursor-not-allowed':
-                          boardOwnerOid !== userStore.oid,
+                          boardOwnerOid !== userStore.oid && accessRight !== 'WRITE',
                       }"
                     >
                       <svg
@@ -414,7 +431,7 @@ onMounted(async () => {
                       <span>Delete</span>
                     </button>
                     <span
-                      v-if="boardOwnerOid !== userStore.oid"
+                      v-if="boardOwnerOid !== userStore.oid && accessRight !== 'WRITE'"
                       class="tooltip-text"
                     >
                       {{ tooltipText }}

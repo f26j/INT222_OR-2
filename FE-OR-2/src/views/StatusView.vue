@@ -28,7 +28,19 @@ const selectDeleteStatusId = ref("");
 const selectDeleteStatusName = ref("");
 const boardId = route.params.boardId;
 const boardName = ref("");
-const tooltipText = "You need to be board owner to perform this action.";
+const tooltipText = "You need to be board owner or have access write to perform this action.";
+const accessRight = ref("");
+
+const fetchBoardAccessRight = () => {
+  const board = boardStore.collaborativeBoards.find((b) => b.id === boardId);
+  if (board) {
+    accessRight.value = board.accessRight || null;
+    console.log("Access Right:", accessRight.value);
+  } else {
+    console.log("Board not found in collaborativeBoards");
+    accessRight.value = null;
+  }
+};
 
 // Functions
 const fetchBoardData = async () => {
@@ -131,6 +143,9 @@ const closeModal = () => {
 onMounted(async () => {
   await fetchBoardData();
   await store.fetchStatuses(boardId);
+  await boardStore.fetchBoards();
+  fetchBoardAccessRight();
+  await nextTick();
 });
 </script>
 
@@ -176,13 +191,13 @@ onMounted(async () => {
           <div class="tooltip-container">
             <button
               @click="openModalAdd"
-              :disabled="boardOwnerOid !== userStore.oid"
+              :disabled="boardOwnerOid !== userStore.oid && accessRight !== 'WRITE'"
               :class="{
                 'itbkk-button-add flex items-center bg-white text-gray-800 px-4 py-2 rounded-full shadow transition-transform duration-300': true,
                 'hover:shadow-md hover:scale-105':
-                  boardOwnerOid === userStore.oid,
+                  boardOwnerOid === userStore.oid || accessRight === 'WRITE',
                 'opacity-50 cursor-not-allowed':
-                  boardOwnerOid !== userStore.oid,
+                  boardOwnerOid !== userStore.oid && accessRight !== 'WRITE',
               }"
             >
               <svg
@@ -202,10 +217,7 @@ onMounted(async () => {
               </svg>
               Add Status
             </button>
-            <span
-              v-if="boardOwnerOid !== userStore.oid"
-              class="tooltip-text"
-            >
+            <span v-if="boardOwnerOid !== userStore.oid && accessRight !== 'WRITE'" class="tooltip-text">
               {{ tooltipText }}
             </span>
           </div>
@@ -237,7 +249,12 @@ onMounted(async () => {
               <td class="itbkk-status-name w-[12rem]">
                 <p>{{ status.name }}</p>
               </td>
-              <td :class="['itbkk-status-description w-[15rem]', { 'italic-gray': !status.description?.trim() }]">
+              <td
+                :class="[
+                  'itbkk-status-description w-[15rem]',
+                  { 'italic-gray': !status.description?.trim() },
+                ]"
+              >
                 <p v-if="!status.description?.trim()">
                   No description provided
                 </p>
@@ -248,20 +265,34 @@ onMounted(async () => {
                   <button
                     @click="openModalEdit(status.id)"
                     v-if="status.name !== 'No Status' && status.name !== 'Done'"
-                    :disabled="boardOwnerOid !== userStore.oid"
-                    :style="boardOwnerOid !== userStore.oid ? { cursor: 'not-allowed', transform: 'none', color: 'black' } : {}"
+                    :disabled="boardOwnerOid !== userStore.oid && accessRight !== 'WRITE'"
+                    :style="
+                      boardOwnerOid !== userStore.oid && accessRight !== 'WRITE'
+                        ? {
+                            cursor: 'not-allowed',
+                            transform: 'none',
+                            color: 'black',
+                          }
+                        : {}
+                    "
                     :class="[
                       'itbkk-button-edit',
                       {
-                        'hover:shadow-md hover:scale-105': boardOwnerOid === userStore.oid,
-                        'opacity-50 cursor-not-allowed': boardOwnerOid !== userStore.oid,
-                      }
+                        'hover:shadow-md hover:scale-105':
+                          boardOwnerOid === userStore.oid || accessRight === 'WRITE',
+                        'opacity-50 cursor-not-allowed':
+                          boardOwnerOid !== userStore.oid && accessRight !== 'WRITE',
+                      },
                     ]"
                   >
                     Edit
                   </button>
                   <span
-                    v-if="status.name !== 'No Status' && status.name !== 'Done' && boardOwnerOid !== userStore.oid"
+                    v-if="
+                      status.name !== 'No Status' &&
+                      status.name !== 'Done' &&
+                      boardOwnerOid !== userStore.oid && accessRight !== 'WRITE'
+                    "
                     class="tooltip-text"
                   >
                     {{ tooltipText }}
@@ -271,20 +302,34 @@ onMounted(async () => {
                   <button
                     @click="openModalDelete(status.id, status.name)"
                     v-if="status.name !== 'No Status' && status.name !== 'Done'"
-                    :disabled="boardOwnerOid !== userStore.oid"
-                    :style="boardOwnerOid !== userStore.oid ? { cursor: 'not-allowed', transform: 'none', color: 'black' } : {}"
+                    :disabled="boardOwnerOid !== userStore.oid && accessRight !== 'WRITE'"
+                    :style="
+                      boardOwnerOid !== userStore.oid && accessRight !== 'WRITE'
+                        ? {
+                            cursor: 'not-allowed',
+                            transform: 'none',
+                            color: 'black',
+                          }
+                        : {}
+                    "
                     :class="[
                       'itbkk-button-delete',
                       {
-                        'hover:shadow-md hover:scale-105': boardOwnerOid === userStore.oid,
-                        'opacity-50 cursor-not-allowed': boardOwnerOid !== userStore.oid,
-                      }
+                        'hover:shadow-md hover:scale-105':
+                          boardOwnerOid === userStore.oid || accessRight === 'WRITE',
+                        'opacity-50 cursor-not-allowed':
+                          boardOwnerOid !== userStore.oid && accessRight !== 'WRITE', 
+                      },
                     ]"
                   >
                     Delete
                   </button>
                   <span
-                    v-if="status.name !== 'No Status' && status.name !== 'Done' && boardOwnerOid !== userStore.oid"
+                    v-if="
+                      status.name !== 'No Status' &&
+                      status.name !== 'Done' &&
+                      boardOwnerOid !== userStore.oid && accessRight !== 'WRITE'
+                    "
                     class="tooltip-text"
                   >
                     {{ tooltipText }}

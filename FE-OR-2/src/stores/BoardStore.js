@@ -24,7 +24,7 @@ export const useBoardStore = defineStore("apiBoard", () => {
   const fetchBoards = async () => {
     try {
       const token = checkToken();
-
+  
       const response = await fetch(`${baseUrl}/v3/boards`, {
         method: "GET",
         headers: {
@@ -32,7 +32,7 @@ export const useBoardStore = defineStore("apiBoard", () => {
           "Content-Type": "application/json",
         },
       });
-
+  
       if (!response.ok) {
         if (response.status === 401) {
           console.warn("Unauthorized (401). Redirecting to login.");
@@ -42,9 +42,9 @@ export const useBoardStore = defineStore("apiBoard", () => {
         }
         throw new Error(`Failed to fetch boards. Status: ${response.status}`);
       }
-
+  
       const data = await response.json();
-
+  
       // แยกข้อมูลที่ได้มา
       personalBoards.value = data.personal_boards || [];
       collaborativeBoards.value = data.collaborative_boards || [];
@@ -52,6 +52,7 @@ export const useBoardStore = defineStore("apiBoard", () => {
       console.error("Error fetching boards:", error.message);
     }
   };
+    
 
   // Get a single Board
   const getBoard = async (boardId) => {
