@@ -22,12 +22,14 @@ const error = ref(false);
 
 // Modal State
 const isAddModalOpen = ref(false);
-const isAccessModalOpen = ref(false);
-const isRemoveModalOpen = ref(false);
 
-const modalAccessRight = ref("");
-const previousAccessRight = ref("");
-const selectedCollaboratorId = ref(null);
+const isModalOpen = ref(false); // สถานะเปิด-ปิด Modal
+const modalActionType = ref(""); // Action type: 'remove' หรือ 'access-right'
+const selectedCollaborator = ref(null); // เก็บ collaborator ที่ถูกเลือก
+const newAccessRight = ref("READ"); // Access Right ใหม่สำหรับการเปลี่ยน
+const previousAccessRight = ref(""); // เก็บค่า Access Right ก่อนการเปลี่ยน
+
+
 const collaboratorEmail = ref("");
 const accessRight = ref("READ");
 const boardId = ref("");
@@ -55,7 +57,7 @@ const fetchBoardData = async () => {
   } finally {
     loading.value = false;
   }
-}
+};
 
 // Fetch Collaborators Data
 const fetchCollabBoardData = async () => {
@@ -74,9 +76,9 @@ const fetchCollabBoardData = async () => {
 };
 
 const isCollabEmailValid = computed(() => {
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return emailPattern.test(collaboratorEmail.value)
-})
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailPattern.test(collaboratorEmail.value);
+});
 
 // Add Collaborator
 const addCollab = async () => {
@@ -105,30 +107,81 @@ const addCollab = async () => {
           router.push({ name: "login" });
           break;
         case 403:
-          toastStore.addToast("You do not have permission to add board collaborator.", "error");
+          toastStore.addToast(
+            "You do not have permission to add board collaborator.",
+            "error"
+          );
           break;
         case 404:
           toastStore.addToast("The user does not exists.", "error");
           break;
         case 409:
-          toastStore.addToast("The user is already the collaborator of this board.", "error");
+          toastStore.addToast(
+            "The user is already the collaborator of this board.",
+            "error"
+          );
           break;
         default:
-          toastStore.addToast("There is a problem. Please try again later.", "error");
+          toastStore.addToast(
+            "There is a problem. Please try again later.",
+            "error"
+          );
       }
     } else {
       // Generic error message for non-HTTP errors
-      toastStore.addToast("There is a problem. Please try again later.", "error");
+      toastStore.addToast(
+        "There is a problem. Please try again later.",
+        "error"
+      );
     }
   }
 };
+
+const openModal = (actionType, collaborator, accessRight = "READ") => {
+  modalActionType.value = actionType; // กำหนด action type
+  selectedCollaborator.value = collaborator; // เก็บ collaborator ที่ถูกเลือก
+  if (actionType === "access-right") {
+    previousAccessRight.value = collaborator.accessRight; // เก็บค่าก่อนการเปลี่ยน
+    newAccessRight.value = accessRight; // ตั้งค่า Access Right ใหม่
+  }
+  isModalOpen.value = true;
+};
+
+
+
+// Close Modal
+const closeModal = () => {
+  if (modalActionType.value === "access-right" && selectedCollaborator.value) {
+    // รีเซ็ต Access Right กลับไปเป็นค่าก่อนหน้า
+    selectedCollaborator.value.accessRight = previousAccessRight.value;
+  }
+  isModalOpen.value = false;
+  selectedCollaborator.value = null;
+  newAccessRight.value = "READ";
+};
+
+
+
+// Confirm Action (Remove or Change Access Right)
+const confirmModalAction = async () => {
+  if (modalActionType.value === "remove") {
+    // ลบ collaborator
+    await removeCollaborator(selectedCollaborator.value.oid);
+  } else if (modalActionType.value === "access-right") {
+    // เปลี่ยน Access Right
+    await updateAccessRight(selectedCollaborator.value.oid, newAccessRight.value);
+  }
+  closeModal(); // ปิด Modal หลังดำเนินการสำเร็จ
+};
+
+
 
 // Remove Collaborator
 const removeCollaborator = async (collaboratorId) => {
   try {
     await collabBoardStore.removeCollaborator(boardId.value, collaboratorId);
     toastStore.addToast("Collaborator removed successfully.", "success");
-    await fetchCollabBoardData(); // Refresh data
+    await fetchCollabBoardData(); // รีเฟรชข้อมูล
   } catch (err) {
     console.error("Error removing collaborator:", err);
     toastStore.addToast("Failed to remove collaborator.", "error");
@@ -136,52 +189,22 @@ const removeCollaborator = async (collaboratorId) => {
 };
 
 // Update Collaborator Access
-const updateAccessRight = async (collaboratorId, newAccessRight) => {
+const updateAccessRight = async (collaboratorId, accessRight) => {
   try {
-    await collabBoardStore.updateCollaboratorPermission(
-      boardId.value,
-      collaboratorId,
-      newAccessRight
-    );
+    await collabBoardStore.updateCollaboratorPermission(boardId.value, collaboratorId, accessRight);
     toastStore.addToast("Access right updated successfully.", "success");
+    await fetchCollabBoardData(); // รีเฟรชข้อมูล
   } catch (err) {
     console.error("Error updating access right:", err);
     toastStore.addToast("Failed to update access right.", "error");
   }
 };
 
-// const handleAccessRightChange = (collaboratorId, newAccessRight) => {
-//   previousAccessRight.value = collabBoards.accessRight; // Store the previous value
-//   modalAccessRight.value = newAccessRight; // Store the new value
-//   selectedCollaboratorId.value = collaboratorId; // Store the collaborator ID
-//   isModalOpen.value = true; // Show the modal
-// };
-
-// Modal Controls
 const openAddModal = async () => {
   isAddModalOpen.value = true;
   await nextTick();
 };
 
-const openAccessModal = async () => {
-  isAccessModalOpen.value = true;
-  await nextTick();
-};
-
-const openRemoveModal = async () => {
-  isRemoveModalOpen.value = true;
-  await nextTick();
-};
-
-const closeModal = () => {
-  isAddModalOpen.value = false;
-  isAccessModalOpen.value = false;
-  isRemoveModalOpen.value = false;
-  collaboratorEmail.value = ""; // Reset email input
-  accessRight.value = "READ"; // Reset access right
-};
-
-// Fetch Data on Mount
 onMounted(async () => {
   await fetchBoardData();
   await fetchCollabBoardData();
@@ -217,17 +240,31 @@ onMounted(async () => {
             Back
           </button>
           <div class="tooltip-container">
-            <button @click="openAddModal" :disabled="boardOwnerOid !== userStore.oid" :class="{
-              'itbkk-collaborator-add flex items-center bg-white text-gray-800 px-4 py-2 rounded-full shadow transition-transform duration-300': true,
-              'hover:shadow-md hover:scale-105':
-                boardOwnerOid === userStore.oid,
-              'opacity-50 cursor-not-allowed':
-                boardOwnerOid !== userStore.oid,
-            }">
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="mr-2"
-                viewBox="0 0 16 16">
-                <path fill="currentColor" fillRule="evenodd"
-                  d="M8 1a1 1 0 0 0-2 0v5H1a1 1 0 0 0 0 2h5v5a1 1 0 1 0 2 0V8h5a1 1 0 1 0 0-2H8z" clipRule="evenodd" />
+            <button
+              @click="openAddModal"
+              :disabled="boardOwnerOid !== userStore.oid"
+              :class="{
+                'itbkk-collaborator-add flex items-center bg-white text-gray-800 px-4 py-2 rounded-full shadow transition-transform duration-300': true,
+                'hover:shadow-md hover:scale-105':
+                  boardOwnerOid === userStore.oid,
+                'opacity-50 cursor-not-allowed':
+                  boardOwnerOid !== userStore.oid,
+              }"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="32"
+                height="32"
+                fill="currentColor"
+                class="mr-2"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  fill="currentColor"
+                  fillRule="evenodd"
+                  d="M8 1a1 1 0 0 0-2 0v5H1a1 1 0 0 0 0 2h5v5a1 1 0 1 0 2 0V8h5a1 1 0 1 0 0-2H8z"
+                  clipRule="evenodd"
+                />
               </svg>
               Add collaborator
             </button>
@@ -248,7 +285,9 @@ onMounted(async () => {
             <th class="px-4 py-3 w-1/12 text-center font-semibold">No</th>
             <th class="px-4 py-3 w-2/12 text-left font-semibold">Name</th>
             <th class="px-4 py-3 w-4/12 text-left font-semibold">E-mail</th>
-            <th class="px-4 py-3 w-2/12 text-left font-semibold">Access Right</th>
+            <th class="px-4 py-3 w-2/12 text-left font-semibold">
+              Access Right
+            </th>
             <th class="px-4 py-3 w-3/12 text-center font-semibold">Action</th>
           </tr>
         </thead>
@@ -263,7 +302,11 @@ onMounted(async () => {
               Error loading data.
             </td>
           </tr>
-          <tr v-if="!collabBoards || collabBoards.length === 0 && !loading && !error">
+          <tr
+            v-if="
+              !collabBoards || (collabBoards.length === 0 && !loading && !error)
+            "
+          >
             <td colspan="5" class="px-4 py-4 text-center">No Collaborators</td>
           </tr>
           <tr
@@ -272,37 +315,58 @@ onMounted(async () => {
             class="itbkk-item border-b"
           >
             <td class="px-4 py-3 text-center font-bold">{{ index + 1 }}</td>
-            <td class="itbkk-name px-4 py-3 font-bold">{{ collaborator.name }}</td>
-            <td class="itbkk-email px-4 py-3 text-[#717171] truncate">{{ collaborator.email }}</td>
+            <td class="itbkk-name px-4 py-3 font-bold">
+              {{ collaborator.name }}
+            </td>
+            <td class="itbkk-email px-4 py-3 text-[#717171] truncate">
+              {{ collaborator.email }}
+            </td>
             <td class="itbkk-access-right px-4 py-3 text-center">
               <!-- Select for Access Rights -->
               <div class="tooltip-container">
                 <!-- @change="(collaborator.oid, collaborator.accessRight)" -->
-                <select v-model="collaborator.accessRight"
-                  :disabled="boardOwnerOid !== userStore.oid" :class="{
+                <select
+                  :value="collaborator.accessRight"
+                  @change="openModal('access-right', collaborator, $event.target.value)"
+                  :disabled="boardOwnerOid !== userStore.oid"
+                  :class="{
                     'itbkk-collab-removeborder p-2 rounded-md': true,
-                    'hover:shadow-md hover:scale-105 transition-transform duration-300': boardOwnerOid === userStore.oid,
-                    'opacity-50 cursor-not-allowed': boardOwnerOid !== userStore.oid,
-                  }">
+                    'hover:shadow-md hover:scale-105 transition-transform duration-300':
+                      boardOwnerOid === userStore.oid,
+                    'opacity-50 cursor-not-allowed':
+                      boardOwnerOid !== userStore.oid,
+                  }"
+                >
                   <option value="READ">READ</option>
                   <option value="WRITE">WRITE</option>
                 </select>
-                <span v-if="boardOwnerOid !== userStore.oid" class="tooltip-text">
+                <span
+                  v-if="boardOwnerOid !== userStore.oid"
+                  class="tooltip-text"
+                >
                   {{ tooltipText }}
                 </span>
               </div>
             </td>
             <td class="px-4 py-3 text-center">
               <div class="tooltip-container">
-                <button @click="openRemoveModal" :disabled="boardOwnerOid !== userStore.oid"
+                <button
+                  @click="openModal('remove', collaborator)"
+                  :disabled="boardOwnerOid !== userStore.oid"
                   :class="{
                     'itbkk-collab-remove bg-red-500 text-white px-4 py-2 rounded-full': true,
-                    'hover:bg-red-600 hover:shadow-md hover:scale-105 transition-transform duration-300': boardOwnerOid === userStore.oid,
-                    'opacity-50 cursor-not-allowed': boardOwnerOid !== userStore.oid,
-                    }">
+                    'hover:bg-red-600 hover:shadow-md hover:scale-105 transition-transform duration-300':
+                      boardOwnerOid === userStore.oid,
+                    'opacity-50 cursor-not-allowed':
+                      boardOwnerOid !== userStore.oid,
+                  }"
+                >
                   Remove
                 </button>
-                <span v-if="boardOwnerOid !== userStore.oid" class="tooltip-text">
+                <span
+                  v-if="boardOwnerOid !== userStore.oid"
+                  class="tooltip-text"
+                >
                   {{ tooltipText }}
                 </span>
               </div>
@@ -313,69 +377,75 @@ onMounted(async () => {
     </div>
 
     <!-- Add Collaborator Modal -->
-    <div v-if="isAddModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div class="itbkk-modal-alert bg-white p-6 rounded-xl shadow-xl w-full max-w-lg">
+    <div
+      v-if="isAddModalOpen"
+      class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+    >
+      <div
+        class="itbkk-modal-alert bg-white p-6 rounded-xl shadow-xl w-full max-w-lg"
+      >
         <h2 class="text-xl font-bold mb-4">Add Collaborator</h2>
         <p class="pb-1 font-medium">Collaborator e-mail</p>
-        <input v-model="collaboratorEmail" type="email" maxlength="50" placeholder="Enter collaborator e-mail"
-          class="itbkk-collaborator-email w-full p-2 mb-4 border rounded-md focus:ring focus:ring-blue-300" />
+        <input
+          v-model="collaboratorEmail"
+          type="email"
+          maxlength="50"
+          placeholder="Enter collaborator e-mail"
+          class="itbkk-collaborator-email w-full p-2 mb-4 border rounded-md focus:ring focus:ring-blue-300"
+        />
         <p class="pb-1 font-medium">Access Right</p>
-        <select v-model="accessRight"
-          class="itbkk-access-right w-full p-2 mb-4 border rounded-md focus:ring focus:ring-blue-300">
+        <select
+          v-model="accessRight"
+          class="itbkk-access-right w-full p-2 mb-4 border rounded-md focus:ring focus:ring-blue-300"
+        >
           <option value="READ">READ</option>
           <option value="WRITE">WRITE</option>
         </select>
         <div class="flex justify-end gap-4">
           <button
-            @click="addCollab" :disabled="!isCollabEmailValid" :class="{
-            'bg-gray-300 text-gray-500 cursor-not-allowed': !isCollabEmailValid,
-            'bg-emerald-500 hover:bg-emerald-600': isCollabEmailValid
-          }" class="itbkk-button-confirm text-white px-4 py-2">
+            @click="addCollab"
+            :disabled="!isCollabEmailValid"
+            :class="{
+              'bg-gray-300 text-gray-500 cursor-not-allowed':
+                !isCollabEmailValid,
+              'bg-emerald-500 hover:bg-emerald-600': isCollabEmailValid,
+            }"
+            class="itbkk-button-confirm text-white px-4 py-2"
+          >
             Add
           </button>
-          <button @click="closeModal" class="itbkk-button-cancel bg-gray-300 hover:bg-gray-400 text-gray-500 px-4 py-2">
+          <button
+            @click="closeModal"
+            class="itbkk-button-cancel bg-gray-300 hover:bg-gray-400 text-gray-500 px-4 py-2"
+          >
             Cancel
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Change Access Right Modal -->
-    <div v-if="isAccessModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div class="itbkk-modal-alert bg-white p-6 rounded-xl shadow-xl w-full max-w-xl">
-        <h2 class="text-xl font-bold mb-4">Change Access Right</h2>
-        <p v-for="(collaborator) in collabBoards" :key="collaborator.id" class="itbkk-message pb-6 font-medium">
-          Do you want to change access right of "{{ collaborator.name }}" to "{{ collaborator.accessRight === 'WRITE' ?
-          'READ' : 'WRITE' }}" ?
-        </p>
-        <div class="flex justify-end gap-4">
-          <button @click="addCollab" class="itbkk-button-confirm bg-emerald-500 text-white px-4 py-2 rounded-full">
-            Confirm
-          </button>
-          <button @click="closeModal" class="itbkk-button-cancel bg-red-500 hover:bg-red-600 text-white px-4 py-2">
-            Cancel
-          </button>
-        </div>
-      </div>
+    <div v-if="isModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+  <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-lg">
+    <h2 class="text-xl font-bold mb-4">
+      {{ modalActionType === 'remove' ? 'Remove Collaborator' : 'Change Access Right' }}
+    </h2>
+    <p class="mb-4">
+      {{ modalActionType === 'remove'
+        ? `Are you sure you want to remove ${selectedCollaborator?.name}?`
+        : `Are you sure you want to change the access right of ${selectedCollaborator?.name} to ${newAccessRight}?` }}
+    </p>
+    <div class="flex justify-end gap-4">
+      <button @click="confirmModalAction" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-full">
+        Confirm
+      </button>
+      <button @click="closeModal" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-full">
+        Cancel
+      </button>
     </div>
+  </div>
+</div>
 
-    <!-- Remove Collab Modal -->
-    <div v-if="isAccessModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div class="itbkk-modal-alert bg-white p-6 rounded-xl shadow-xl w-full max-w-xl">
-        <h2 class="text-xl font-bold mb-4">Remove Collaborator</h2>
-        <p v-for="(collaborator) in collabBoards" :key="collaborator.id" class="itbkk-message pb-6 font-medium">
-          Do you want to remove "{{ collaborator.name }}" from the board?
-        </p>
-        <div class="flex justify-end gap-4">
-          <button @click="removeCollaborator(collaborator.oid)" class="itbkk-button-confirm bg-emerald-500 text-white px-4 py-2 rounded-full">
-            Confirm
-          </button>
-          <button @click="closeModal" class="itbkk-button-cancel bg-red-500 hover:bg-red-600 text-white px-4 py-2">
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
+
   </main>
   <footer>
     <Copyright />
