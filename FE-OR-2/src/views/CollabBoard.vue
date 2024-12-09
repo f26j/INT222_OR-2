@@ -19,15 +19,21 @@ const boardStore = useBoardStore();
 const { collabBoards } = storeToRefs(collabBoardStore);
 const loading = ref(true);
 const error = ref(false);
-const isModalOpen = ref(false);
+
+// Modal State
+const isAddModalOpen = ref(false);
+const isAccessModalOpen = ref(false);
+const isRemoveModalOpen = ref(false);
+
+const modalAccessRight = ref("");
+const previousAccessRight = ref("");
+const selectedCollaboratorId = ref(null);
 const collaboratorEmail = ref("");
 const accessRight = ref("READ");
 const boardId = ref("");
 const boardName = ref("");
 const boardOwnerOid = ref("");
 const tooltipText = "You need to be board owner to perform this action.";
-
-console.log(collabBoards)
 
 // Router
 const router = useRouter();
@@ -87,7 +93,7 @@ const addCollab = async () => {
     toastStore.addToast("Collaborator added successfully.", "success");
     collaboratorEmail.value = "";
     accessRight.value = "READ";
-    isModalOpen.value = false;
+    isAddModalOpen.value = false;
     await fetchCollabBoardData();
   } catch (err) {
     console.error("Error adding collaborator:", err);
@@ -144,14 +150,33 @@ const updateAccessRight = async (collaboratorId, newAccessRight) => {
   }
 };
 
+// const handleAccessRightChange = (collaboratorId, newAccessRight) => {
+//   previousAccessRight.value = collabBoards.accessRight; // Store the previous value
+//   modalAccessRight.value = newAccessRight; // Store the new value
+//   selectedCollaboratorId.value = collaboratorId; // Store the collaborator ID
+//   isModalOpen.value = true; // Show the modal
+// };
+
 // Modal Controls
-const openModal = async () => {
-  isModalOpen.value = true;
-  await nextTick(); // Wait for DOM render
+const openAddModal = async () => {
+  isAddModalOpen.value = true;
+  await nextTick();
+};
+
+const openAccessModal = async () => {
+  isAccessModalOpen.value = true;
+  await nextTick();
+};
+
+const openRemoveModal = async () => {
+  isRemoveModalOpen.value = true;
+  await nextTick();
 };
 
 const closeModal = () => {
-  isModalOpen.value = false;
+  isAddModalOpen.value = false;
+  isAccessModalOpen.value = false;
+  isRemoveModalOpen.value = false;
   collaboratorEmail.value = ""; // Reset email input
   accessRight.value = "READ"; // Reset access right
 };
@@ -192,7 +217,7 @@ onMounted(async () => {
             Back
           </button>
           <div class="tooltip-container">
-            <button @click="openModal" :disabled="boardOwnerOid !== userStore.oid" :class="{
+            <button @click="openAddModal" :disabled="boardOwnerOid !== userStore.oid" :class="{
               'itbkk-collaborator-add flex items-center bg-white text-gray-800 px-4 py-2 rounded-full shadow transition-transform duration-300': true,
               'hover:shadow-md hover:scale-105':
                 boardOwnerOid === userStore.oid,
@@ -252,16 +277,13 @@ onMounted(async () => {
             <td class="itbkk-access-right px-4 py-3 text-center">
               <!-- Select for Access Rights -->
               <div class="tooltip-container">
-                <select
-                  v-model="collaborator.accessRight"
-                  @change="updateAccessRight(collaborator.oid, collaborator.accessRight)"
-                  :disabled="boardOwnerOid !== userStore.oid"
-                  :class="{
+                <!-- @change="(collaborator.oid, collaborator.accessRight)" -->
+                <select v-model="collaborator.accessRight"
+                  :disabled="boardOwnerOid !== userStore.oid" :class="{
                     'itbkk-collab-removeborder p-2 rounded-md': true,
-                    'hover:shadow-md hover:scale-105': boardOwnerOid === userStore.oid,
+                    'hover:shadow-md hover:scale-105 transition-transform duration-300': boardOwnerOid === userStore.oid,
                     'opacity-50 cursor-not-allowed': boardOwnerOid !== userStore.oid,
-                    }"
-                >
+                  }">
                   <option value="READ">READ</option>
                   <option value="WRITE">WRITE</option>
                 </select>
@@ -272,15 +294,12 @@ onMounted(async () => {
             </td>
             <td class="px-4 py-3 text-center">
               <div class="tooltip-container">
-                <button
-                  @click="removeCollaborator(collaborator.oid)"
-                  :disabled="boardOwnerOid !== userStore.oid"
+                <button @click="openRemoveModal" :disabled="boardOwnerOid !== userStore.oid"
                   :class="{
                     'itbkk-collab-remove bg-red-500 text-white px-4 py-2 rounded-full': true,
-                    'hover:bg-red-600 hover:shadow-md hover:scale-105': boardOwnerOid === userStore.oid,
+                    'hover:bg-red-600 hover:shadow-md hover:scale-105 transition-transform duration-300': boardOwnerOid === userStore.oid,
                     'opacity-50 cursor-not-allowed': boardOwnerOid !== userStore.oid,
-                    }"
-                >
+                    }">
                   Remove
                 </button>
                 <span v-if="boardOwnerOid !== userStore.oid" class="tooltip-text">
@@ -294,37 +313,64 @@ onMounted(async () => {
     </div>
 
     <!-- Add Collaborator Modal -->
-    <div
-      v-if="isModalOpen"
-      class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
-    >
+    <div v-if="isAddModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
       <div class="itbkk-modal-alert bg-white p-6 rounded-xl shadow-xl w-full max-w-lg">
         <h2 class="text-xl font-bold mb-4">Add Collaborator</h2>
         <p class="pb-1 font-medium">Collaborator e-mail</p>
-        <input
-          v-model="collaboratorEmail"
-          type="email"
-          maxlength="50"
-          placeholder="Enter collaborator e-mail"
-          class="itbkk-collaborator-email w-full p-2 mb-4 border rounded-md focus:ring focus:ring-blue-300"
-        />
+        <input v-model="collaboratorEmail" type="email" maxlength="50" placeholder="Enter collaborator e-mail"
+          class="itbkk-collaborator-email w-full p-2 mb-4 border rounded-md focus:ring focus:ring-blue-300" />
         <p class="pb-1 font-medium">Access Right</p>
-        <select
-          v-model="accessRight"
-          class="itbkk-access-right w-full p-2 mb-4 border rounded-md focus:ring focus:ring-blue-300"
-        >
+        <select v-model="accessRight"
+          class="itbkk-access-right w-full p-2 mb-4 border rounded-md focus:ring focus:ring-blue-300">
           <option value="READ">READ</option>
           <option value="WRITE">WRITE</option>
         </select>
         <div class="flex justify-end gap-4">
-          <button @click="addCollab" :disabled="!isCollabEmailValid" :class="{
+          <button
+            @click="addCollab" :disabled="!isCollabEmailValid" :class="{
             'bg-gray-300 text-gray-500 cursor-not-allowed': !isCollabEmailValid,
             'bg-emerald-500 hover:bg-emerald-600': isCollabEmailValid
           }" class="itbkk-button-confirm text-white px-4 py-2">
             Add
           </button>
-          <button @click="closeModal"
-            class="itbkk-button-cancel bg-gray-300 hover:bg-gray-400 text-gray-500 px-4 py-2">
+          <button @click="closeModal" class="itbkk-button-cancel bg-gray-300 hover:bg-gray-400 text-gray-500 px-4 py-2">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Change Access Right Modal -->
+    <div v-if="isAccessModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+      <div class="itbkk-modal-alert bg-white p-6 rounded-xl shadow-xl w-full max-w-xl">
+        <h2 class="text-xl font-bold mb-4">Change Access Right</h2>
+        <p v-for="(collaborator) in collabBoards" :key="collaborator.id" class="itbkk-message pb-6 font-medium">
+          Do you want to change access right of "{{ collaborator.name }}" to "{{ collaborator.accessRight === 'WRITE' ?
+          'READ' : 'WRITE' }}" ?
+        </p>
+        <div class="flex justify-end gap-4">
+          <button @click="addCollab" class="itbkk-button-confirm bg-emerald-500 text-white px-4 py-2 rounded-full">
+            Confirm
+          </button>
+          <button @click="closeModal" class="itbkk-button-cancel bg-red-500 hover:bg-red-600 text-white px-4 py-2">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Remove Collab Modal -->
+    <div v-if="isAccessModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+      <div class="itbkk-modal-alert bg-white p-6 rounded-xl shadow-xl w-full max-w-xl">
+        <h2 class="text-xl font-bold mb-4">Remove Collaborator</h2>
+        <p v-for="(collaborator) in collabBoards" :key="collaborator.id" class="itbkk-message pb-6 font-medium">
+          Do you want to remove "{{ collaborator.name }}" from the board?
+        </p>
+        <div class="flex justify-end gap-4">
+          <button @click="removeCollaborator(collaborator.oid)" class="itbkk-button-confirm bg-emerald-500 text-white px-4 py-2 rounded-full">
+            Confirm
+          </button>
+          <button @click="closeModal" class="itbkk-button-cancel bg-red-500 hover:bg-red-600 text-white px-4 py-2">
             Cancel
           </button>
         </div>
