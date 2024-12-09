@@ -13,13 +13,11 @@ export const useCollabBoardStore = defineStore("collabBoardStore", () => {
   // ตรวจสอบ Token และ Refresh ถ้าจำเป็น
   const checkToken = () => {
     if (!userStore.token) {
-      router.push({ name: "login" });
       throw new Error("Authentication required");
     }
     return userStore.token;
   };
 
-  // ดึงข้อมูล Collaborators ทั้งหมดของ Board
   const fetchCollaborators = async (boardId) => {
     try {
       const token = checkToken();
@@ -33,21 +31,22 @@ export const useCollabBoardStore = defineStore("collabBoardStore", () => {
       });
   
       if (!response.ok) {
-        if (response.status === 401) {
-          userStore.logout();
-          router.push({ name: "login" });
+        if (response.status === 403) {
+          console.warn("Access denied. Cannot fetch collaborators.");
+          return; // หยุดการทำงานหากไม่มีสิทธิ์
         }
         throw new Error("Failed to fetch collaborators");
       }
   
       const data = await response.json();
-      collabBoards.value = data; // อัปเดต collabBoards
+      collabBoards.value = data;
       return data;
     } catch (error) {
       console.error("Error fetching collaborators:", error.message);
       throw error;
     }
   };
+  
   
   // เพิ่ม Collaborator
   const addCollaborator = async (boardId, email, accessRight) => {
@@ -91,12 +90,16 @@ export const useCollabBoardStore = defineStore("collabBoardStore", () => {
         throw new Error("Failed to remove collaborator");
       }
   
-      await fetchCollaborators(boardId); // อัปเดต collabBoards หลังจากลบสำเร็จ
+      // อัปเดต collabBoards โดยกรองผู้ที่ถูกลบออก
+      collabBoards.value = collabBoards.value.filter(
+        (collaborator) => collaborator.oid !== collabOid
+      );
     } catch (error) {
       console.error("Error removing collaborator:", error.message);
       throw error;
     }
   };
+  
   
 
   // อัปเดตสิทธิ์ Collaborator

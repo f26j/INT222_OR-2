@@ -113,9 +113,17 @@ router.beforeEach(async (to, from, next) => {
 
       if (response.ok) {
         const board = await response.json();
+
+        // ถ้าบอร์ดเป็น PUBLIC อนุญาตให้เข้าถึงได้
+        if (board.visibility === "PUBLIC") {
+          return next();
+        }
+
+        // ถ้าบอร์ดเป็น PRIVATE และไม่มี Token ให้ไปหน้า login
         if (board.visibility === "PRIVATE" && !hasToken) {
           return next({ name: "login" });
         }
+
         return next();
       } else if (response.status === 401) {
         console.warn("Unauthorized (401). Redirecting to login.");
@@ -145,6 +153,7 @@ router.beforeEach(async (to, from, next) => {
     next({ name: "NotFound" });
   }
 });
+
 
 
 export default router;

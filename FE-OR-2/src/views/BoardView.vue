@@ -4,6 +4,7 @@ import { useRouter, useRoute } from "vue-router";
 import { useBoardStore } from "@/stores/BoardStore.js";
 import { useCollabBoardStore } from "@/stores/CollabBoardStore.js";
 import { storeToRefs } from "pinia";
+import { useUserStore } from "@/stores/AuthUserStore.js";
 import { useToastStore } from "@/stores/ToastStore.js";
 
 import Navbar from "../components/css/Navbar.vue";
@@ -14,6 +15,7 @@ import ModalAddBoard from "../components/modal/ModalAddBoard.vue";
 const boardStore = useBoardStore();
 const collabBoardStore = useCollabBoardStore();
 const toastStore = useToastStore();
+const userStore = useUserStore();
 
 // State
 const { personalBoards, collaborativeBoards } = storeToRefs(boardStore); // ใช้ personalBoards และ collaborativeBoards
@@ -32,7 +34,6 @@ async function initializeBoards() {
     console.error("Error fetching boards:", err);
 
     if (err.response && err.response.status === 401) {
-      // ถ้าเป็น 401 ให้ไปหน้า login
       router.push({ name: "login" });
     } else {
       error.value = true;
@@ -59,16 +60,33 @@ const deleteBoard = async (boardId) => {
   }
 };
 
-// ออกจาก Collaboration Board
-const leaveCollabBoard = async (boardId, collabOid) => {
+const leaveCollabBoard = async (boardId) => {
+  const loggedInUserOid = userStore.oid;
+
+  if (!boardId || !loggedInUserOid) {
+    toastStore.addToast("Invalid board or user information.", "error");
+    return;
+  }
+
   try {
-    await collabBoardStore.removeCollaborator(boardId, collabOid);
-    toastStore.addToast("You have left the board.", "success");
+    await collabBoardStore.removeCollaborator(boardId, loggedInUserOid);
+    toastStore.addToast("You have successfully left the board.", "success");
+    initializeBoards()
+    // หลังจากออกบอร์ดสำเร็จ Redirect ไปหน้าหลัก
+    router.push({ name: "board" });
   } catch (error) {
     console.error("Error leaving board:", error);
-    toastStore.addToast("Unable to leave the board.", "error");
+    toastStore.addToast(
+      "Unable to leave the board. Please try again later.",
+      "error"
+    );
   }
 };
+
+
+
+
+
 
 const isModalOpen = computed(() => router.currentRoute.value.name === "board-add");
 
@@ -243,7 +261,7 @@ onMounted(() => {
               <div class="flex justify-center">
                 <button
                   class="itbkk-leave-board bg-[#ad386f] hover:bg-[#a31a5a]"
-                  @click="leaveCollabBoard(board.id, board.owner?.oid)"
+                 @click="leaveCollabBoard(board.id)"
                 >
                   Leave
                 </button>
