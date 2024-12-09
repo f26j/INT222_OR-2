@@ -64,7 +64,10 @@ export const useCollabBoardStore = defineStore("collabBoardStore", () => {
       });
   
       if (!response.ok) {
-        throw new Error("Failed to add collaborator");
+        // throw new Error("Failed to add collaborator");
+        const error = new Error("HTTP error");
+        error.response = { status: response.status }; // Add status to the error object
+        throw error;
       }
   
       await fetchCollaborators(boardId); // อัปเดต collabBoards หลังจากเพิ่มสำเร็จ

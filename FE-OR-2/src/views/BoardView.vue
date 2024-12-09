@@ -230,7 +230,7 @@ onMounted(() => {
               {{ board.name }}
             </td>
             <td
-              class="itbkk-owner-name px-4 py-3 text-[#717171] font-bold text-center"
+              class="itbkk-owner-name px-4 py-3 text-[#717171] font-bold text-center break-words"
             >
               {{ board.owner.name }}
             </td>

@@ -82,8 +82,6 @@ function closeModal() {
         placeholder="Enter board name (max 120 characters)"
         maxlength="120"
       />
-      <!-- แสดงข้อความ Error -->
-      <p v-if="errorMessage" class="text-red-500 text-sm mb-4">{{ errorMessage }}</p>
       <div class="button-addboard flex justify-center">
         <button
           @click="createBoard"

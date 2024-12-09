@@ -63,6 +63,63 @@ export const useUserStore = defineStore("user", {
       }
     },
 
+    isTokenExpired() {
+      if (!this.token) return true;
+      const decoded = jwtDecode.decode(this.token);
+      const currentTime = Date.now() / 1000;
+      return decoded && decoded.exp < currentTime;
+    },
+
+    logout() {
+      this.token = null;
+      this.refreshToken = null;
+      this.fullname = "Guest";
+      this.oid = "";
+      this.email = "";
+      localStorage.removeItem("jwtToken");
+      localStorage.removeItem("refreshToken");
+    },
+
+    async initializeStore() {
+      try {
+        if (this.token) {
+          if (this.isTokenExpired()) {
+            console.log("Token expired. Attempting to refresh...");
+            const refreshSuccess = await this.safeRefreshToken();
+            if (!refreshSuccess) {
+              console.warn("Failed to refresh token. Logging out...");
+              this.logout();
+              return;
+            }
+          }
+          this.decodeToken();
+        } else {
+          this.logout(); // Ensure clean state if no token exists
+        }
+      } catch (error) {
+        console.error("Initialization failed:", error.message);
+        this.logout();
+      }
+
+      // Listen for localStorage changes
+      window.addEventListener("storage", (event) => {
+        if (event.key === "jwtToken") {
+          console.log("Token updated in storage. Attempting refresh...");
+          this.refreshAccessToken();
+        }
+      });
+    },
+
+    async safeRefreshToken() {
+      try {
+        await this.refreshAccessToken();
+        return true; // Successfully refreshed token
+      } catch (error) {
+        console.error("Failed to safely refresh token:", error.message);
+        return false; // Signal that refresh failed
+      }
+    },
+    
     async refreshAccessToken() {
       try {
         console.log("Refreshing access token...");
@@ -88,49 +145,8 @@ export const useUserStore = defineStore("user", {
         this.setTokens(data.access_token, this.refreshToken);
       } catch (error) {
         console.error("Error refreshing token:", error.message);
-        this.logout();
+        this.error();
       }
-    }
-    ,
-    isTokenExpired() {
-      if (!this.token) return true;
-      const decoded = jwtDecode.decode(this.token);
-      const currentTime = Date.now() / 1000;
-      return decoded && decoded.exp < currentTime;
-    }
-    ,
-
-    logout() {
-      this.token = null;
-      this.refreshToken = null;
-      this.fullname = "Guest";
-      this.oid = "";
-      this.email = "";
-      localStorage.removeItem("jwtToken");
-      localStorage.removeItem("refreshToken");
-    },
-
-    async initializeStore() {
-      try {
-        if (this.token && this.isTokenExpired()) {
-          await this.refreshAccessToken();
-        }
-
-        if (this.token) {
-          this.decodeToken();
-        } else {
-          this.logout();
-        }
-      } catch (error) {
-        console.error("Initialization failed:", error.message);
-        this.logout();
-      }
-
-      window.addEventListener("storage", (event) => {
-        if (event.key === "jwtToken") {
-          this.refreshAccessToken();
-        }
-      });
     },
   },
 });

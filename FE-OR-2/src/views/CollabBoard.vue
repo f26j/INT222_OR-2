@@ -25,6 +25,7 @@ const accessRight = ref("READ");
 const boardId = ref("");
 const boardName = ref("");
 const boardOwnerOid = ref("");
+const tooltipText = "You need to be board owner to perform this action.";
 
 console.log(collabBoards)
 
@@ -66,6 +67,11 @@ const fetchCollabBoardData = async () => {
   }
 };
 
+const isCollabEmailValid = computed(() => {
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailPattern.test(collaboratorEmail.value)
+})
+
 // Add Collaborator
 const addCollab = async () => {
   try {
@@ -85,7 +91,29 @@ const addCollab = async () => {
     await fetchCollabBoardData();
   } catch (err) {
     console.error("Error adding collaborator:", err);
-    toastStore.addToast("Failed to add collaborator.", "error");
+
+    // Handle specific HTTP status codes
+    if (err.response && err.response.status) {
+      switch (err.response.status) {
+        case 401:
+          router.push({ name: "login" });
+          break;
+        case 403:
+          toastStore.addToast("You do not have permission to add board collaborator.", "error");
+          break;
+        case 404:
+          toastStore.addToast("The user does not exists.", "error");
+          break;
+        case 409:
+          toastStore.addToast("The user is already the collaborator of this board.", "error");
+          break;
+        default:
+          toastStore.addToast("There is a problem. Please try again later.", "error");
+      }
+    } else {
+      // Generic error message for non-HTTP errors
+      toastStore.addToast("There is a problem. Please try again later.", "error");
+    }
   }
 };
 
@@ -120,7 +148,6 @@ const updateAccessRight = async (collaboratorId, newAccessRight) => {
 const openModal = async () => {
   isModalOpen.value = true;
   await nextTick(); // Wait for DOM render
-  document.querySelector('input[placeholder="Collaborator Email"]').focus();
 };
 
 const closeModal = () => {
@@ -164,13 +191,25 @@ onMounted(async () => {
           >
             Back
           </button>
-          <button
-            @click="openModal"
-            :disabled="boardOwnerOid !== userStore.oid"
-            class="itbkk-collaborator-add flex items-center bg-white text-gray-800 px-4 py-2 rounded-full shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
-          >
-            Add Collaborator
-          </button>
+          <div class="tooltip-container">
+            <button @click="openModal" :disabled="boardOwnerOid !== userStore.oid" :class="{
+              'itbkk-collaborator-add flex items-center bg-white text-gray-800 px-4 py-2 rounded-full shadow transition-transform duration-300': true,
+              'hover:shadow-md hover:scale-105':
+                boardOwnerOid === userStore.oid,
+              'opacity-50 cursor-not-allowed':
+                boardOwnerOid !== userStore.oid,
+            }">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="mr-2"
+                viewBox="0 0 16 16">
+                <path fill="currentColor" fillRule="evenodd"
+                  d="M8 1a1 1 0 0 0-2 0v5H1a1 1 0 0 0 0 2h5v5a1 1 0 1 0 2 0V8h5a1 1 0 1 0 0-2H8z" clipRule="evenodd" />
+              </svg>
+              Add collaborator
+            </button>
+            <span v-if="boardOwnerOid !== userStore.oid" class="tooltip-text">
+              {{ tooltipText }}
+            </span>
+          </div>
         </div>
       </div>
     </header>
@@ -183,59 +222,74 @@ onMounted(async () => {
           <tr>
             <th class="px-4 py-3 w-1/12 text-center font-semibold">No</th>
             <th class="px-4 py-3 w-2/12 text-left font-semibold">Name</th>
-            <th class="px-4 py-3 w-5/12 text-left font-semibold">E-mail</th>
-            <th class="px-4 py-3 w-2/12 text-left font-semibold">
-              Access Right
-            </th>
-            <th class="px-4 py-3 w-2/12 text-center font-semibold">Action</th>
+            <th class="px-4 py-3 w-4/12 text-left font-semibold">E-mail</th>
+            <th class="px-4 py-3 w-2/12 text-left font-semibold">Access Right</th>
+            <th class="px-4 py-3 w-3/12 text-center font-semibold">Action</th>
           </tr>
         </thead>
         <tbody>
-  <tr v-if="loading">
-    <td colspan="5" class="px-4 py-4 text-center text-black font-bold">
-      Loading...
-    </td>
-  </tr>
-  <tr v-else-if="error">
-    <td colspan="5" class="px-4 py-4 text-center text-red-600">
-      Error loading data.
-    </td>
-  </tr>
-  <tr v-if="!collabBoards || collabBoards.length === 0 && !loading && !error">
-    <td colspan="5" class="px-4 py-4 text-center">No Collaborators</td>
-  </tr>
-  <tr
-    v-for="(collaborator, index) in collabBoards"
-    :key="collaborator.id"
-    class="border-b"
-  >
-    <td class="px-4 py-3 text-center font-bold">{{ index + 1 }}</td>
-    <td class="px-4 py-3 font-bold">{{ collaborator.name }}</td>
-    <td class="px-4 py-3 text-[#717171] truncate">{{ collaborator.email }}</td>
-    <td class="px-4 py-3 text-center">
-      <!-- Select for Access Rights -->
-      <select
-        v-model="collaborator.accessRight"
-        @change="updateAccessRight(collaborator.oid, collaborator.accessRight)"
-        class="border p-2 rounded-md"
-      >
-        <option value="READ">READ</option>
-        <option value="WRITE">WRITE</option>
-      </select>
-    </td>
-    <td class="px-4 py-3 text-center">
-      <button
-        @click="removeCollaborator(collaborator.oid)"
-        class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full"
-      >
-        Remove
-      </button>
-    </td>
-  </tr>
-</tbody>
-
-
-
+          <tr v-if="loading">
+            <td colspan="5" class="px-4 py-4 text-center text-black font-bold">
+              Loading...
+            </td>
+          </tr>
+          <tr v-else-if="error">
+            <td colspan="5" class="px-4 py-4 text-center text-red-600">
+              Error loading data.
+            </td>
+          </tr>
+          <tr v-if="!collabBoards || collabBoards.length === 0 && !loading && !error">
+            <td colspan="5" class="px-4 py-4 text-center">No Collaborators</td>
+          </tr>
+          <tr
+            v-for="(collaborator, index) in collabBoards"
+            :key="collaborator.id"
+            class="itbkk-item border-b"
+          >
+            <td class="px-4 py-3 text-center font-bold">{{ index + 1 }}</td>
+            <td class="itbkk-name px-4 py-3 font-bold">{{ collaborator.name }}</td>
+            <td class="itbkk-email px-4 py-3 text-[#717171] truncate">{{ collaborator.email }}</td>
+            <td class="itbkk-access-right px-4 py-3 text-center">
+              <!-- Select for Access Rights -->
+              <div class="tooltip-container">
+                <select
+                  v-model="collaborator.accessRight"
+                  @change="updateAccessRight(collaborator.oid, collaborator.accessRight)"
+                  :disabled="boardOwnerOid !== userStore.oid"
+                  :class="{
+                    'itbkk-collab-removeborder p-2 rounded-md': true,
+                    'hover:shadow-md hover:scale-105': boardOwnerOid === userStore.oid,
+                    'opacity-50 cursor-not-allowed': boardOwnerOid !== userStore.oid,
+                    }"
+                >
+                  <option value="READ">READ</option>
+                  <option value="WRITE">WRITE</option>
+                </select>
+                <span v-if="boardOwnerOid !== userStore.oid" class="tooltip-text">
+                  {{ tooltipText }}
+                </span>
+              </div>
+            </td>
+            <td class="px-4 py-3 text-center">
+              <div class="tooltip-container">
+                <button
+                  @click="removeCollaborator(collaborator.oid)"
+                  :disabled="boardOwnerOid !== userStore.oid"
+                  :class="{
+                    'itbkk-collab-remove bg-red-500 text-white px-4 py-2 rounded-full': true,
+                    'hover:bg-red-600 hover:shadow-md hover:scale-105': boardOwnerOid === userStore.oid,
+                    'opacity-50 cursor-not-allowed': boardOwnerOid !== userStore.oid,
+                    }"
+                >
+                  Remove
+                </button>
+                <span v-if="boardOwnerOid !== userStore.oid" class="tooltip-text">
+                  {{ tooltipText }}
+                </span>
+              </div>
+            </td>
+          </tr>
+        </tbody>
       </table>
     </div>
 
@@ -244,32 +298,33 @@ onMounted(async () => {
       v-if="isModalOpen"
       class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
     >
-      <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-lg">
+      <div class="itbkk-modal-alert bg-white p-6 rounded-xl shadow-xl w-full max-w-lg">
         <h2 class="text-xl font-bold mb-4">Add Collaborator</h2>
+        <p class="pb-1 font-medium">Collaborator e-mail</p>
         <input
           v-model="collaboratorEmail"
           type="email"
-          placeholder="Collaborator Email"
-          class="w-full p-2 mb-4 border rounded-md focus:ring focus:ring-blue-300"
+          maxlength="50"
+          placeholder="Enter collaborator e-mail"
+          class="itbkk-collaborator-email w-full p-2 mb-4 border rounded-md focus:ring focus:ring-blue-300"
         />
+        <p class="pb-1 font-medium">Access Right</p>
         <select
           v-model="accessRight"
-          class="w-full p-2 mb-4 border rounded-md focus:ring focus:ring-blue-300"
+          class="itbkk-access-right w-full p-2 mb-4 border rounded-md focus:ring focus:ring-blue-300"
         >
           <option value="READ">READ</option>
           <option value="WRITE">WRITE</option>
         </select>
         <div class="flex justify-end gap-4">
-          <button
-            @click="addCollab"
-            class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition"
-          >
+          <button @click="addCollab" :disabled="!isCollabEmailValid" :class="{
+            'bg-gray-300 text-gray-500 cursor-not-allowed': !isCollabEmailValid,
+            'bg-emerald-500 hover:bg-emerald-600': isCollabEmailValid
+          }" class="itbkk-button-confirm text-white px-4 py-2">
             Add
           </button>
-          <button
-            @click="closeModal"
-            class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-md transition"
-          >
+          <button @click="closeModal"
+            class="itbkk-button-cancel bg-gray-300 hover:bg-gray-400 text-gray-500 px-4 py-2">
             Cancel
           </button>
         </div>
@@ -387,7 +442,7 @@ h2 {
 }
 table {
   width: 100%;
-  max-width: 900px;
+  max-width: 1000px;
   margin: 0 auto;
   border-collapse: separate; /* ป้องกันมุมโค้งที่ทับกัน */
   border-spacing: 0;
