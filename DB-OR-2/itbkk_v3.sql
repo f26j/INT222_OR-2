@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS boards
 CREATE TABLE IF NOT EXISTS collabs
 (
     id                INT PRIMARY KEY AUTO_INCREMENT                                NOT NULL,
-    oid               CHAR(36)                                                      NOT NULL UNIQUE,
+    oid               CHAR(36)                                                      NOT NULL,
     board_id          CHAR(10)                                                      NOT NULL,
     name              VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
     email             VARCHAR(50)                                                   NOT NULL,
@@ -83,3 +83,6 @@ VALUES (NULL, 'No Status', 'Default status for new boards'),
 
 -- Check foreign key is true
 SET FOREIGN_KEY_CHECKS = 1;
+
+
+show create table collabs;
