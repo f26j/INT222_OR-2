@@ -1,6 +1,6 @@
 <script setup>
 // import zone
-import { onMounted, ref, onUpdated } from "vue";
+import { onMounted, ref, nextTick } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { storeToRefs } from "pinia";
 import { useStatusStore } from "@/stores/StatusStore.js"; // ใช้ StatusStore
@@ -30,6 +30,7 @@ const boardId = route.params.boardId;
 const boardName = ref("");
 const tooltipText = "You need to be board owner or have access write to perform this action.";
 const accessRight = ref("");
+const isLoading = ref(true);
 
 const fetchBoardAccessRight = () => {
   const board = boardStore.collaborativeBoards.find((b) => b.id === boardId);
@@ -141,17 +142,29 @@ const closeModal = () => {
 
 // Lifecycle hook
 onMounted(async () => {
-  await fetchBoardData();
-  await store.fetchStatuses(boardId);
-  await boardStore.fetchBoards();
-  fetchBoardAccessRight();
-  await nextTick();
+  isLoading.value = true; // เริ่มต้นสถานะการโหลด
+  try {
+    await fetchBoardData();
+    await store.fetchStatuses(boardId); // ดึงข้อมูล Status
+    await boardStore.fetchBoards(); // ดึงข้อมูล Board
+    fetchBoardAccessRight();
+    await nextTick();
+  } catch (error) {
+    console.error("Error loading data:", error);
+    router.push({ name: "NotFound" });
+  } finally {
+    isLoading.value = false; // ตั้งค่าสถานะเป็นโหลดเสร็จ
+  }
 });
 </script>
 
 <template>
   <Navbar class="itbkk-fullname" />
-  <div class="pt-24">
+  <div v-if="isLoading" class="loading-container flex flex-col items-center justify-center min-h-screen">
+  <div class="spinner animate-spin w-16 h-16 border-4 border-t-purple-600 border-r-purple-300 border-b-purple-300 border-l-purple-600 rounded-full"></div>
+  <p class="text-lg font-bold text-gray-700 mt-4">Loading...</p>
+</div>
+<div v-else class="pt-24">
     <header class="mb-2 max-w-6xl mx-auto">
       <h1 class="text-left text-3xl font-bold">IT-Bangmod Kradan Kanban</h1>
       <div class="flex justify-between items-center mt-2">
@@ -180,10 +193,7 @@ onMounted(async () => {
               class="mr-2"
               viewBox="0 4 16 16"
             >
-              <path
-                fill="currentColor"
-                d="m16 8.5l1.53 1.53l-1.06 1.06L10 4.62l-6.47 6.47l-1.06-1.06L10 2.5l4 4v-2h2zm-6-2.46l6 5.99V18H4v-5.97zM12 17v-5H8v5z"
-              ></path>
+              <path fill="currentColor" d="M12 9.059V6.5a1.001 1.001 0 0 0-1.707-.708L4 12l6.293 6.207a.997.997 0 0 0 1.414 0A1 1 0 0 0 12 17.5v-2.489c2.75.068 5.755.566 8 3.989v-1c0-4.633-3.5-8.443-8-8.941"></path>
             </svg>
             Back
           </button>

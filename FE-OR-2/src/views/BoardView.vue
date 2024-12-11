@@ -72,7 +72,6 @@ const leaveCollabBoard = async (boardId) => {
     await collabBoardStore.removeCollaborator(boardId, loggedInUserOid);
     toastStore.addToast("You have successfully left the board.", "success");
     initializeBoards()
-    // หลังจากออกบอร์ดสำเร็จ Redirect ไปหน้าหลัก
     router.push({ name: "board" });
   } catch (error) {
     console.error("Error leaving board:", error);
@@ -174,7 +173,7 @@ onMounted(() => {
             </td>
             <td
               class="itbkk-board-name px-4 py-3 cursor-pointer text-black font-bold hover:text-[#47467b] break-words"
-              @click="router.push(`/board/${board.id}`)"
+              @click="router.push(`/board/${board.id}/task`)"
             >
               {{ board.name }}
             </td>
@@ -243,7 +242,7 @@ onMounted(() => {
             </td>
             <td
               class="itbkk-board-name px-4 py-3 cursor-pointer text-black font-bold hover:text-[#47467b] break-words"
-              @click="router.push(`/board/${board.id}`)"
+              @click="router.push(`/board/${board.id}/task`)"
             >
               {{ board.name }}
             </td>

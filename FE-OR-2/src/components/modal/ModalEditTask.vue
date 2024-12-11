@@ -5,6 +5,7 @@ import { useTaskStore } from "@/stores/TaskStore.js";
 import { useStatusStore } from "@/stores/StatusStore.js";
 import { useToastStore } from "@/stores/ToastStore.js";
 import { useUserStore } from "@/stores/AuthUserStore.js";
+import { useBoardStore } from "@/stores/BoardStore.js";
 
 // Router & Store
 const route = useRoute();
@@ -13,10 +14,14 @@ const taskStore = useTaskStore();
 const statusStore = useStatusStore();
 const toastStore = useToastStore();
 const userStore = useUserStore();
+const boardStore = useBoardStore();
 
 // Variables
 const boardId = route.params.boardId;
 const taskId = route.params.taskId;
+const accessRight = ref("");
+const isPersonalBoard = ref(false);
+const isLoading = ref(true); // เริ่มต้นสถานะเป็นกำลังโหลด
 
 const modalDetail = ref({
   title: "",
@@ -26,11 +31,29 @@ const modalDetail = ref({
 });
 
 const originalTask = ref({});
-const localTimeZone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone);
+const localTimeZone = ref("Asia/Bangkok");
+
+const fetchAccessRight = () => {
+  console.log("Fetching access rights for boardId:", boardId);
+
+  const collabBoard = boardStore.collaborativeBoards.find((b) => b.id === boardId);
+  const personalBoard = boardStore.personalBoards.find((b) => b.id === boardId);
+
+  if (collabBoard) {
+    accessRight.value = collabBoard.accessRight || null;
+  } else if (personalBoard) {
+    accessRight.value = "WRITE"; // กำหนดสิทธิ์เป็น WRITE สำหรับ Personal Boards
+  } else {
+    console.warn("Board not found in either collaborativeBoards or personalBoards");
+    accessRight.value = null; // กำหนดค่าเป็น null กรณีไม่พบ Board
+  }
+
+  console.log("Access Right:", accessRight.value);
+};
+
 
 // Fetch task details
-
-async function fetchTaskDetail() {
+const fetchTaskDetail = async () => {
   try {
     const task = await taskStore.fetchTaskDetail(boardId, taskId);
     if (!task) {
@@ -43,64 +66,105 @@ async function fetchTaskDetail() {
     console.error("Error fetching task details:", error);
     router.push("/");
   }
-}
+};
 
 // Save task changes
-async function saveTaskChanges() {
+const saveTaskChanges = async () => {
+  if (accessRight.value !== "WRITE") {
+    toastStore.addToast(
+      "You do not have permission to save changes to this task.",
+      "error"
+    );
+    return;
+  }
+
   try {
     const updatedTask = {
       title: modalDetail.value.title.trim(),
-      description: modalDetail.value.description.trim(),
-      assignees: modalDetail.value.assignees.trim(),
+      description: modalDetail.value.description?.trim() || null,
+      assignees: modalDetail.value.assignees?.trim() || null,
       status: statusStore.statuses.find(
         (status) => status.id === modalDetail.value.status.id
       ),
     };
+
+    if (!updatedTask.title) {
+      toastStore.addToast("Task title is required.", "error");
+      return;
+    }
 
     await taskStore.updateTask(boardId, taskId, updatedTask);
     toastStore.addToast("Task updated successfully", "success");
     closeModal();
   } catch (error) {
     console.error("Error updating task:", error);
-   
+    toastStore.addToast("Failed to update task.", "error");
   }
-}
+};
 
 // Check if form is changed
-function isFormChanged() {
+const isFormChanged = () => {
   return (
     modalDetail.value.title !== originalTask.value.title ||
     modalDetail.value.description !== originalTask.value.description ||
     modalDetail.value.assignees !== originalTask.value.assignees ||
     modalDetail.value.status.id !== originalTask.value.status.id
   );
-}
+};
 
 // Format date
-function formatDate(date) {
+const formatDate = (date) => {
   if (!date) return "N/A";
   const d = new Date(date);
-  return d.toLocaleString("en-GB", { timeZone: localTimeZone.value }).split(",").join(" ");
-}
+  return d
+    .toLocaleString("en-GB", { timeZone: localTimeZone.value })
+    .replace(",", "");
+};
 
 // Close modal
 const closeModal = () => {
   router.push({ name: "board-tasks", params: { boardId } });
 };
 
-// On mounted
 onMounted(async () => {
-  if (!userStore.token) {
+  console.log("Fetching boards...");
+  await boardStore.fetchBoards(); // โหลดข้อมูลบอร์ดทั้งหมด
+  console.log("Collaborative Boards:", boardStore.collaborativeBoards);
+  console.log("Personal Boards:", boardStore.personalBoards);
+
+  fetchAccessRight(); // ตรวจสอบสิทธิ์อีกครั้ง
+  console.log("Access Right:", accessRight.value);
+  console.log("Is Personal Board:", isPersonalBoard.value);
+
+  if (!isPersonalBoard.value && accessRight.value === "READ") {
+    console.warn(
+      "Insufficient access rights for collaborative board. Redirecting to 403."
+    );
     return router.push({ name: "AccessDenied" });
   }
-  await statusStore.fetchStatuses(boardId);
-  await fetchTaskDetail();
+
+  try {
+    await Promise.all([statusStore.fetchStatuses(boardId), fetchTaskDetail()]);
+  } catch (error) {
+    console.error("Error loading data:", error);
+  } finally {
+    isLoading.value = false; // เปลี่ยนสถานะเมื่อโหลดเสร็จ
+  }
 });
+
 </script>
 
 <template>
-  <div class="details fixed inset-0 overflow-y-auto bg-black bg-opacity-50">
-    <div class="modals rounded-lg text-center shadow-xlp-6 w-min" role="dialog" aria-modal="true">
+  <div v-if="isLoading" class="loading-spinner">Loading...</div>
+  <div
+    v-else
+    class="details fixed inset-0 overflow-y-auto bg-black bg-opacity-50"
+  >
+    <div
+      class="modals rounded-lg text-center shadow-xlp-6 w-min"
+      role="dialog"
+      aria-modal="true"
+    >
       <div class="modal-content">
         <form @submit.prevent="saveTaskChanges">
           <div class="modal-header">
@@ -120,7 +184,9 @@ onMounted(async () => {
             <div class="itbkk-description text-left">
               <div class="flex flex-wrap -mx-3 mb-2">
                 <div class="desc w-full md:w-1/3 px-3 mb-6 md:mb-0">
-                  <label class="block uppercase tracking-wide text-xs font-bold mb-2">
+                  <label
+                    class="block uppercase tracking-wide text-xs font-bold mb-2"
+                  >
                     Description
                   </label>
                   <textarea
@@ -135,7 +201,9 @@ onMounted(async () => {
             <div class="detailright flex-col">
               <div class="assign flex flex-wrap -mx-3 mb-2">
                 <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
-                  <label class="block uppercase tracking-wide text-xs font-bold mb-2">
+                  <label
+                    class="block uppercase tracking-wide text-xs font-bold mb-2"
+                  >
                     Assignees
                   </label>
                   <textarea
@@ -146,9 +214,14 @@ onMounted(async () => {
                 </div>
               </div>
 
-              <div class="itbkk-status text-left" v-if="statusStore.statuses.length">
+              <div
+                class="itbkk-status text-left"
+                v-if="statusStore.statuses.length"
+              >
                 <div class="w-full md:w-1/3 mb-6 md:mb-0">
-                  <label class="block uppercase tracking-wide text-xs font-bold mb-2">
+                  <label
+                    class="block uppercase tracking-wide text-xs font-bold mb-2"
+                  >
                     Status
                   </label>
                   <select
@@ -183,7 +256,9 @@ onMounted(async () => {
           <div class="modal-footer">
             <div class="itbkk-button">
               <hr />
-              <button @click.prevent="closeModal" class="close border">Cancel</button>
+              <button @click.prevent="closeModal" class="close border">
+                Cancel
+              </button>
               <button
                 type="submit"
                 class="ok border itbkk-button"

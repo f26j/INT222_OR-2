@@ -4,17 +4,21 @@ import { useRouter, useRoute } from "vue-router";
 import { useStatusStore } from "@/stores/StatusStore.js";
 import { useToastStore } from "@/stores/ToastStore.js";
 import { useUserStore } from "@/stores/AuthUserStore.js";
+import { useBoardStore } from "@/stores/BoardStore.js";
 
 const store = useStatusStore();
 const toastStore = useToastStore();
 const router = useRouter();
 const route = useRoute();
 const userStore = useUserStore();
+const boardStore = useBoardStore();
 const newName = ref("");
 const newDescription = ref("");
 const originalName = ref("");
 const originalDescription = ref("");
 const isLoaded = ref(false);
+const accessRight = ref(""); // เพิ่มตัวแปรสำหรับเก็บสิทธิ์ของผู้ใช้งาน
+const loading = ref(true);
 
 const boardId = route.params.boardId;
 const statusId = route.params.statusId;
@@ -48,12 +52,48 @@ const getStatus = async () => {
   }
 };
 
+const fetchAccessRight = () => {
+  console.log("Collaborative Boards:", boardStore.collaborativeBoards);
+  console.log("Personal Boards:", boardStore.personalBoards);
+
+  const board = boardStore.collaborativeBoards.find((b) => b.id === boardId);
+  if (board) {
+    accessRight.value = board.accessRight || null;
+    console.log("Access Right for Collaborative Board:", accessRight.value);
+  } else {
+    accessRight.value = "WRITE"; // Personal Board ให้สิทธิ์เต็ม
+    console.log("Access Right for Personal Board:", accessRight.value);
+  }
+};
+
 onMounted(async () => {
+  loading.value = true;
+
   if (!userStore.token) {
+    loading.value = false;
     return router.push({ name: "AccessDenied" });
   }
-  await getStatus();
+
+  // โหลดข้อมูลบอร์ดก่อน
+  try {
+    await boardStore.fetchBoards(); // ดึงข้อมูลบอร์ดทั้งหมด
+    fetchAccessRight();
+
+    if (accessRight.value === "READ") {
+      loading.value = false;
+      return router.push({ name: "AccessDenied" });
+    }
+
+    await getStatus();
+  } catch (error) {
+    console.error("Error loading boards or status:", error);
+    toastStore.addToast("Failed to load data.", "error");
+    router.push({ name: "board-status", params: { boardId } });
+  } finally {
+    loading.value = false; // หยุดการแสดง Loading
+  }
 });
+
 
 const editStatus = async () => {
   const trimmedName = newName.value.trim();
@@ -85,10 +125,22 @@ const editStatus = async () => {
 };
 </script>
 
-
 <template>
-  <div class="details fixed inset-0 overflow-y-auto bg-black bg-opacity-50 z-[999]">
-    <div class="modalsAddStt rounded-lg text-center shadow-xlp-6 w-min" role="dialog" aria-modal="true">
+  <div
+    v-if="loading"
+    class="loading-spinner flex items-center justify-center h-full"
+  >
+    <p>Loading...</p>
+  </div>
+  <div
+    v-else
+    class="details fixed inset-0 overflow-y-auto bg-black bg-opacity-50 z-[999]"
+  >
+    <div
+      class="modalsAddStt rounded-lg text-center shadow-xlp-6 w-min"
+      role="dialog"
+      aria-modal="true"
+    >
       <div class="itbkk-modal-status">
         <form @submit.prevent="editStatus">
           <div class="modal-header">
@@ -102,7 +154,11 @@ const editStatus = async () => {
             <div class="text-left flex-col">
               <div class="titlee flex flex-wrap -mx-3 mb-2">
                 <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
-                  <label for="name" class="block uppercase tracking-wide text-xs font-bold mb-2">Name</label>
+                  <label
+                    for="name"
+                    class="block uppercase tracking-wide text-xs font-bold mb-2"
+                    >Name</label
+                  >
                   <textarea
                     id="name"
                     v-model="newName"
@@ -115,7 +171,11 @@ const editStatus = async () => {
 
               <div class="text-left">
                 <div class="desc w-full md:w-1/3 px-3 mb-6 md:mb-0">
-                  <label for="description" class="block uppercase tracking-wide text-xs font-bold mb-2">Description</label>
+                  <label
+                    for="description"
+                    class="block uppercase tracking-wide text-xs font-bold mb-2"
+                    >Description</label
+                  >
                   <textarea
                     id="description"
                     v-model="newDescription"
@@ -131,14 +191,21 @@ const editStatus = async () => {
           <div class="modal-footer">
             <div class="itbkk-button">
               <hr />
-              <button type="button" @click="closeModal" class="itbkk-button-cancel close border">
+              <button
+                type="button"
+                @click="closeModal"
+                class="itbkk-button-cancel close border"
+              >
                 Cancel
               </button>
               <button
                 class="itbkk-button-confirm ok border"
                 type="submit"
-                :disabled="newName.trim().length === 0 || 
-                            (newName === originalName && newDescription === originalDescription)"
+                :disabled="
+                  newName.trim().length === 0 ||
+                  (newName === originalName &&
+                    newDescription === originalDescription)
+                "
               >
                 Save
               </button>
@@ -149,8 +216,6 @@ const editStatus = async () => {
     </div>
   </div>
 </template>
-
-
 
 <style scoped>
 @import url("https://fonts.googleapis.com/css?family=Proza+Libre|Fira+Mono");

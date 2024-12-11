@@ -4,37 +4,36 @@ import { useRoute, useRouter } from "vue-router";
 import { useTaskStore } from "@/stores/TaskStore.js";
 import { useStatusStore } from "@/stores/StatusStore.js";
 
-// Router และ Store
 const route = useRoute();
 const router = useRouter();
 const taskStore = useTaskStore();
 const statusStore = useStatusStore();
 
-// ตัวแปรสำหรับเก็บข้อมูล Task
 const boardId = route.params.boardId;
 const taskId = route.params.taskId;
 const modalDetail = ref({});
-const localTimeZone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone);
+const loading = ref(true);
+const localTimeZone = ref("Asia/Bangkok");
 
-// ฟังก์ชันดึงรายละเอียดของ Task
 async function fetchTaskDetail() {
-    try {
-      const task = await taskStore.fetchTaskDetail(boardId, taskId);
-      if (!task) {
-        router.push({ name: "NotFound" });
-        return;
-      }
-      modalDetail.value = task; // กำหนดค่า Task
-  
-      // ตรวจสอบว่ามี status หรือไม่ ถ้าไม่มีก็สร้าง placeholder status
-      if (!modalDetail.value.status) {
-        modalDetail.value.status = { id: null, name: "No Status" };
-      }
-    } catch (error) {
-      console.error("Error fetching task details:", error);
-      router.push("/"); 
+  try {
+    const task = await taskStore.fetchTaskDetail(boardId, taskId);
+    if (!task) {
+      router.push({ name: "NotFound" });
+      return;
     }
+    modalDetail.value = task;
+
+    if (!modalDetail.value.status) {
+      modalDetail.value.status = { id: null, name: "No Status" };
+    }
+  } catch (error) {
+    console.error("Error fetching task details:", error);
+    router.push("/");
+  } finally {
+    loading.value = false;
   }
+}
 
 function formatDate(date) {
   if (!date) return "N/A";
@@ -45,26 +44,27 @@ function formatDate(date) {
     .join(" ");
 }
 
-// ปิด Modal และกลับไปหน้า Board Tasks
 const closeModal = () => {
   router.push({ name: "board-tasks", params: { boardId } });
 };
 
-// เรียกใช้งานเมื่อ Component ถูก mount
 onMounted(async () => {
-  
   try {
+    loading.value = true; // เริ่มต้นการโหลด
     await statusStore.fetchStatuses(boardId); // โหลดสถานะจาก Store
     await fetchTaskDetail(); // โหลดรายละเอียด Task
   } catch (error) {
     console.error("Error loading data:", error);
   }
 });
-
 </script>
 
 <template>
-  <div class="itbkk-modal-task details fixed inset-0 overflow-y-auto bg-black bg-opacity-50">
+   <div v-if="loading" class="loading-spinner flex items-center justify-center h-full">
+    <p>Loading...</p>
+  </div>
+  <div v-else class="itbkk-modal-task details fixed inset-0 overflow-y-auto bg-black bg-opacity-50"
+  >
     <div
       class="modals rounded-lg text-center shadow-xlp-6 w-min"
       role="dialog"
@@ -133,39 +133,42 @@ onMounted(async () => {
               </div>
 
               <div
-  class="itbkk-status text-left"
-  v-if="statusStore.statuses && statusStore.statuses.length && modalDetail.status"
->
-  <div class="w-full md:w-1/3 mb-6 md:mb-0">
-    <label
-      class="block uppercase tracking-wide text-xs font-bold mb-2"
-      for="grid-state"
-    >
-      Status
-    </label>
-    <div class="relative itbkk-status">
-      <select
-        class="statusbx block w-60 bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-        id="grid-state"
-        v-model="modalDetail.status.id"
-        disabled
-      >
-        <option
-          v-for="(status, index) in statusStore.statuses"
-          :key="index"
-          :value="status.id"
-        >
-          {{ status.name }}
-        </option>
-      </select>
-    </div>
-  </div>
-</div>
+                class="itbkk-status text-left"
+                v-if="
+                  statusStore.statuses &&
+                  statusStore.statuses.length &&
+                  modalDetail.status
+                "
+              >
+                <div class="w-full md:w-1/3 mb-6 md:mb-0">
+                  <label
+                    class="block uppercase tracking-wide text-xs font-bold mb-2"
+                    for="grid-state"
+                  >
+                    Status
+                  </label>
+                  <div class="relative itbkk-status">
+                    <select
+                      class="statusbx block w-60 bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                      id="grid-state"
+                      v-model="modalDetail.status.id"
+                      disabled
+                    >
+                      <option
+                        v-for="(status, index) in statusStore.statuses"
+                        :key="index"
+                        :value="status.id"
+                      >
+                        {{ status.name }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+              </div>
 
-<div v-else>
-  <p>Loading status...</p>
-</div>
-
+              <div v-else>
+                <p>Loading status...</p>
+              </div>
 
               <div class="time">
                 <div class="itbkk-timezone text-left">

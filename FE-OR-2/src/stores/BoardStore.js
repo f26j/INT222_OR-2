@@ -23,14 +23,19 @@ export const useBoardStore = defineStore("apiBoard", () => {
   // Fetch Boards
   const fetchBoards = async () => {
     try {
-      const token = checkToken();
+      const headers = { "Content-Type": "application/json" };
+  
+      // เพิ่มเงื่อนไขตรวจสอบ Token
+      const token = userStore.token;
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      } else {
+        console.log("No token, fetching boards as public access");
+      }
   
       const response = await fetch(`${baseUrl}/v3/boards`, {
         method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+        headers,
       });
   
       if (!response.ok) {
@@ -52,6 +57,7 @@ export const useBoardStore = defineStore("apiBoard", () => {
       console.error("Error fetching boards:", error.message);
     }
   };
+  
     
 
   // Get a single Board

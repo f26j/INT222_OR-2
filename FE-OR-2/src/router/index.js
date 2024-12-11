@@ -20,6 +20,7 @@ import CollabBoard from "../views/CollabBoard.vue";
 
 import NotFoundPage from "../components/css/NotFoundPage.vue";
 import AccessDeniedPage from "../components/css/AccessDeniedPage.vue";
+import UnauthorizedPage from "@/components/css/UnauthorizedPage.vue";
 
 const baseUrl = import.meta.env.VITE_API_BOARDS;
 
@@ -42,19 +43,19 @@ const router = createRouter({
     },
     { path: "/:pathMatch(.*)*", name: "NotFound", component: NotFoundPage },
     {
-      path: "/board/:boardId",
+      path: "/board/:boardId/task",
       name: "board-tasks",
       component: TaskView,
       meta: { requiresAuth: false, title: "ITBKK - Task" },
       children: [
-        { path: "task/add", name: "task-add", component: ModalAddTask, meta: { requiresAuth: true} },
+        { path: "add", name: "task-add", component: ModalAddTask, meta: { requiresAuth: true} },
         {
-          path: "task/:taskId",
+          path: ":taskId",
           name: "task-detail",
           component: ModalDetailTask,
         },
         {
-          path: "task/:taskId/edit",
+          path: ":taskId/edit",
           name: "task-edit",
           component: ModalEditTask,
           meta: { requiresAuth: true}
@@ -68,11 +69,12 @@ const router = createRouter({
       meta: { requiresAuth: false, title: "ITBKK - Status Management" },
       children: [
         { path: "manage", name: "status-manage", component: ManageStatus },
-        { path: "add", name: "status-add", component: ModalAddStatus },
+        { path: "add", name: "status-add", component: ModalAddStatus, meta: { requiresAuth: true} },
         {
           path: ":statusId/edit",
           name: "status-edit",
           component: ModalEditStatus,
+          meta: { requiresAuth: true}
         },
       ],
     },
@@ -83,6 +85,12 @@ const router = createRouter({
       meta: { requiresAuth: false, title: "ITBKK - Collaborator Management" },
     },
     { path: "/forbidden", name: "AccessDenied", component: AccessDeniedPage },
+    {
+      path: "/unauthorized",
+      name: "Unauthorized",
+      component: UnauthorizedPage,
+      meta: { title: "ITBKK - Unauthorized" },
+    },    
   ],
 });
 
@@ -119,18 +127,25 @@ router.beforeEach(async (to, from, next) => {
           return next();
         }
 
-        // ถ้าบอร์ดเป็น PRIVATE และไม่มี Token ให้ไปหน้า login
+        // ถ้าบอร์ดเป็น PRIVATE และไม่มี Token ให้ไปหน้า 401 Unauthorized
         if (board.visibility === "PRIVATE" && !hasToken) {
-          return next({ name: "login" });
+          console.warn("Unauthorized (401). Redirecting to Unauthorized.");
+          return next({ name: "Unauthorized" }); // ไปที่หน้า 401
         }
 
         return next();
-      } else if (response.status === 401) {
-        console.warn("Unauthorized (401). Redirecting to login.");
-        userStore.logout();
-        return next({ name: "login" });
       } else if (response.status === 403) {
-        return next({ name: "AccessDenied" });
+        if (!hasToken) {
+          // กรณีไม่มี Token แต่อยู่ใน Board Private ให้ไปหน้า 401
+          console.warn("Unauthorized (401). Redirecting to Unauthorized.");
+          return next({ name: "Unauthorized" }); // ไปที่หน้า 401
+        }
+        console.warn("Forbidden (403). Redirecting to AccessDenied.");
+        return next({ name: "AccessDenied" }); // กรณีมี Token แต่ไม่มีสิทธิ์
+      } else if (response.status === 401) {
+        console.warn("Unauthorized (401). Redirecting to Unauthorized.");
+        userStore.logout();
+        return next({ name: "Unauthorized" }); // ไปที่หน้า 401
       } else if (response.status === 404) {
         return next({ name: "NotFound" });
       }
@@ -153,6 +168,7 @@ router.beforeEach(async (to, from, next) => {
     next({ name: "NotFound" });
   }
 });
+
 
 
 

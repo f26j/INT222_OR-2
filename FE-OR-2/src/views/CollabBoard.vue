@@ -75,10 +75,13 @@ const fetchCollabBoardData = async () => {
   }
 };
 
-const isCollabEmailValid = computed(() => {
+const isAddButtonDisabled = computed(() => {
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailPattern.test(collaboratorEmail.value);
+  const isValidEmail = emailPattern.test(collaboratorEmail.value);
+  const isSelfEmail = collaboratorEmail.value.trim() === userStore.email; // ตรวจสอบว่า email ตรงกับ user ที่ login
+  return !isValidEmail || isSelfEmail;
 });
+
 
 // Add Collaborator
 const addCollab = async () => {
@@ -151,14 +154,22 @@ const openModal = (actionType, collaborator, accessRight = "READ") => {
 
 // Close Modal
 const closeModal = () => {
-  if (modalActionType.value === "access-right" && selectedCollaborator.value) {
-    // รีเซ็ต Access Right กลับไปเป็นค่าก่อนหน้า
-    selectedCollaborator.value.accessRight = previousAccessRight.value;
+  if (isAddModalOpen.value) {
+    // ปิด Add Collaborator Modal
+    isAddModalOpen.value = false;
+    collaboratorEmail.value = ""; // รีเซ็ตค่าที่กรอกใน Modal
+    accessRight.value = "READ";
+  } else if (isModalOpen.value) {
+    // ปิด Remove หรือ Access Right Modal
+    if (modalActionType.value === "access-right" && selectedCollaborator.value) {
+      selectedCollaborator.value.accessRight = previousAccessRight.value; // รีเซ็ต Access Right
+    }
+    isModalOpen.value = false;
+    selectedCollaborator.value = null;
+    newAccessRight.value = "READ";
   }
-  isModalOpen.value = false;
-  selectedCollaborator.value = null;
-  newAccessRight.value = "READ";
 };
+
 
 
 
@@ -404,11 +415,11 @@ onMounted(async () => {
         <div class="flex justify-end gap-4">
           <button
             @click="addCollab"
-            :disabled="!isCollabEmailValid"
+            :disabled="isAddButtonDisabled"
             :class="{
               'bg-gray-300 text-gray-500 cursor-not-allowed':
-                !isCollabEmailValid,
-              'bg-emerald-500 hover:bg-emerald-600': isCollabEmailValid,
+                isAddButtonDisabled,
+              'bg-emerald-500 hover:bg-emerald-600': !isAddButtonDisabled,
             }"
             class="itbkk-button-confirm text-white px-4 py-2"
           >
@@ -425,25 +436,27 @@ onMounted(async () => {
     </div>
 
     <div v-if="isModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-  <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-lg">
-    <h2 class="text-xl font-bold mb-4">
-      {{ modalActionType === 'remove' ? 'Remove Collaborator' : 'Change Access Right' }}
-    </h2>
-    <p class="mb-4">
-      {{ modalActionType === 'remove'
-        ? `Are you sure you want to remove ${selectedCollaborator?.name}?`
-        : `Are you sure you want to change the access right of ${selectedCollaborator?.name} to ${newAccessRight}?` }}
-    </p>
-    <div class="flex justify-end gap-4">
-      <button @click="confirmModalAction" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-full">
-        Confirm
-      </button>
-      <button @click="closeModal" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-full">
-        Cancel
-      </button>
+      <div class="itbkk-modal-alert bg-white p-6 rounded-xl shadow-xl w-full max-w-xl">
+        <h2 class="text-xl font-bold mb-4">
+          {{ modalActionType === 'remove' ? 'Remove Collaborator' : 'Change Access Right' }}
+        </h2>
+        <p class="itbkk-message mb-4">
+          {{ modalActionType === 'remove'
+            ? `Do you want to remove "${selectedCollaborator?.name}" from the board?`
+            : `Do you want to change access right of "${selectedCollaborator?.name}" to "${newAccessRight}"?` }}
+        </p>
+        <div class="flex justify-end gap-4">
+          <button @click="confirmModalAction"
+            class="itbkk-button-confirm bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-full">
+            Confirm
+          </button>
+          <button @click="closeModal"
+            class="itbkk-button-cancel bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-full">
+            Cancel
+          </button>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
 
   </main>

@@ -5,22 +5,60 @@ import { useRouter, useRoute } from "vue-router";
 import { useStatusStore } from "@/stores/StatusStore.js"; // ใช้ StatusStore
 import { useToastStore } from "@/stores/ToastStore.js";
 import { useUserStore } from "@/stores/AuthUserStore.js";
+import { useBoardStore } from "@/stores/BoardStore.js";
 
 // Variable zone
 const store = useStatusStore();
 const toastStore = useToastStore();
 const userStore = useUserStore();
+const boardStore = useBoardStore();
 const router = useRouter();
 const route = useRoute();
 const newName = ref("");
 const newDescription = ref("");
 const boardId = route.params.boardId;
+const accessRight = ref("");
+
+
+const fetchAccessRight = () => {
+  console.log("Fetching access rights for boardId:", boardId);
+
+  const collabBoard = boardStore.collaborativeBoards.find((b) => b.id === boardId);
+  const personalBoard = boardStore.personalBoards.find((b) => b.id === boardId);
+
+  if (collabBoard) {
+    accessRight.value = collabBoard.accessRight || null;
+    console.log("Collaborative Board Access Right:", accessRight.value);
+  } else if (personalBoard) {
+    accessRight.value = "WRITE"; // กำหนดสิทธิ์เป็น WRITE สำหรับ Personal Boards
+    console.log("Personal Board Access Right:", accessRight.value);
+  } else {
+    console.warn("Board not found in either collaborativeBoards or personalBoards");
+    accessRight.value = null; // กำหนดค่าเป็น null กรณีไม่พบ Board
+  }
+};
+
 
 onMounted(async () => {
   if (!userStore.token) {
     return router.push({ name: "AccessDenied" }); // redirect ไปหน้า 403 (AccessDenied)
   }
+
+  console.log("Fetching boards...");
+  await boardStore.fetchBoards(); // โหลดข้อมูลบอร์ด
+  console.log("Collaborative Boards:", boardStore.collaborativeBoards);
+  console.log("Personal Boards:", boardStore.personalBoards);
+
+  fetchAccessRight();
+  console.log("Access Right:", accessRight.value);
+
+  // Redirect to 403 if it's a collaborative board and accessRight is READ
+  if (accessRight.value === "READ") {
+    console.warn("Insufficient access rights. Redirecting to 403.");
+    return router.push({ name: "AccessDenied" }); // Redirect to AccessDenied
+  }
 });
+
 
 // ปิด Modal และกลับไปหน้า Status Management
 const closeModal = () => {

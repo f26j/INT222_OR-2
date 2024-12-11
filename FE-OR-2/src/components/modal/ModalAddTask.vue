@@ -5,6 +5,7 @@ import { useToastStore } from "@/stores/ToastStore.js";
 import { useTaskStore } from "@/stores/TaskStore.js";
 import { useStatusStore } from "@/stores/StatusStore.js";
 import { useUserStore } from "@/stores/AuthUserStore.js";
+import { useBoardStore } from "@/stores/BoardStore.js";
 
 // Store, API zone
 const router = useRouter();
@@ -12,6 +13,7 @@ const taskStore = useTaskStore();
 const toastStore = useToastStore();
 const userStore = useUserStore();
 const statusStore = useStatusStore(); // ใช้ StatusStore สำหรับดึงสถานะของ Board
+const boardStore = useBoardStore();
 const route = useRoute();
 const boardId = route.params.boardId; // ดึงค่า boardId จาก URL
 
@@ -20,6 +22,26 @@ const newTitle = ref("");
 const newDescription = ref("");
 const newAssignees = ref("");
 const newStatus = ref(null); // จะใช้เก็บ Status ที่เลือก
+const accessRight = ref("");
+
+const fetchAccessRight = () => {
+  console.log("Fetching access rights for boardId:", boardId);
+  
+  const collabBoard = boardStore.collaborativeBoards.find((b) => b.id === boardId);
+  const personalBoard = boardStore.personalBoards.find((b) => b.id === boardId);
+
+  if (collabBoard) {
+    accessRight.value = collabBoard.accessRight || null;
+  } else if (personalBoard) {
+    accessRight.value = "WRITE";
+  } else {
+    console.warn("Board not found in either collaborativeBoards or personalBoards");
+    accessRight.value = null; // กำหนดค่าเป็น null กรณีหาไม่เจอ
+  }
+
+  console.log("Access Right:", accessRight.value);
+};
+
 
 // ดึงข้อมูล Status ของ Board
 const fetchStatuses = async () => {
@@ -31,15 +53,25 @@ const fetchStatuses = async () => {
   }
 };
 
-// OnMounted ดึงข้อมูล Status เมื่อ component ถูก mount
 onMounted(async () => {
-  // ตรวจสอบว่ามี Token หรือไม่
   if (!userStore.token) {
-    console.warn("No token available. Redirecting to 403.");
-    return router.push({ name: "AccessDenied" }); // redirect ไปหน้า 403 (AccessDenied)
+    return router.push({ name: "AccessDenied" });
   }
-  await fetchStatuses();
+
+  console.log("Loading boards...");
+  await boardStore.fetchBoards(); // โหลดข้อมูลก่อน
+  console.log("Collaborative Boards:", boardStore.collaborativeBoards);
+  console.log("Personal Boards:", boardStore.personalBoards);
+
+  fetchAccessRight(); // เรียกฟังก์ชันนี้หลังจากข้อมูลพร้อม
+  if (accessRight.value === "READ") {
+    console.warn("Insufficient access rights. Redirecting to 403.");
+    return router.push({ name: "AccessDenied" });
+  }
+
+  await fetchStatuses(); // ดึง Status หลังจากตรวจสิทธิ์สำเร็จ
 });
+
 
 // ฟังก์ชันสำหรับเพิ่ม Task ใหม่
 const addTask = async () => {
@@ -80,8 +112,19 @@ const addTask = async () => {
 };
 
 const closeModal = () => {
-  router.push({ name: "board-tasks", params: { boardId } }).catch(() => {});
+  const isCollaboard = boardStore.collaborativeBoards.some((b) => b.id === boardId);
+  if (isCollaboard && accessRight.value === "READ") {
+    router.push({ name: "AccessDenied" }).catch(() => {});
+  } else {
+    router.push({ name: "board-tasks", params: { boardId } }).catch(() => {});
+  }
 };
+
+console.log("Board ID:", boardId);
+console.log("Collaborative Boards:", boardStore.collaborativeBoards);
+console.log("Personal Boards:", boardStore.personalBoards);
+console.log("Access Right:", accessRight.value);
+
 </script>
 
 <template>
@@ -194,7 +237,7 @@ const closeModal = () => {
           <div class="modal-footer">
             <div class="itbkk-button">
               <hr />
-              <button @click="closeModal" class="close border">Cancel</button>
+              <button  @click.prevent="closeModal" class="close border">Cancel</button>
               <button
                 @click="$emit('toastAdd')"
                 class="itbkk-button-confirm border"

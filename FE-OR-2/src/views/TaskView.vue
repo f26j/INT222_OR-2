@@ -33,11 +33,13 @@ const visibility = ref("");
 const isModalOpen = ref(false);
 const modalTitle = ref("Board Visibility Changed!");
 const modalMessage = ref("Do you want to change board visibility to public?");
-const sortAscending = ref(undefined);
 const deleteSuccess = ref(false);
 const showDelete = ref(false);
-const tooltipText = "You need to be board owner or have access write to perform this action.";
+const tooltipText =
+  "You need to be board owner or have access write to perform this action.";
 const accessRight = ref("");
+const sortOrder = ref(null);
+const isLoading = ref(true);
 
 const fetchBoardAccessRight = () => {
   const board = boardStore.collaborativeBoards.find((b) => b.id === boardId);
@@ -49,7 +51,6 @@ const fetchBoardAccessRight = () => {
     accessRight.value = null;
   }
 };
-
 
 const fetchBoardData = async () => {
   try {
@@ -118,34 +119,50 @@ const deleteTask = async (taskId) => {
 
 // Sorting function
 const toggleSortOrder = () => {
-  sortAscending.value =
-    sortAscending.value === undefined ? true : !sortAscending.value;
+  if (sortOrder.value === null) {
+    sortOrder.value = "asc"; // เรียงจาก A-Z
+  } else if (sortOrder.value === "asc") {
+    sortOrder.value = "desc"; // เรียงจาก Z-A
+  } else {
+    sortOrder.value = null; // เรียงตามลำดับที่สร้าง
+  }
 };
 
 const sortedTasks = computed(() => {
-  if (sortAscending.value === undefined) return tasks.value;
+  if (sortOrder.value === null) return tasks.value; // ลำดับเริ่มต้น
   return [...tasks.value].sort((a, b) => {
     const statusA = a.status.name.toLowerCase();
     const statusB = b.status.name.toLowerCase();
-    if (statusA < statusB) return sortAscending.value ? -1 : 1;
-    if (statusA > statusB) return sortAscending.value ? 1 : -1;
+    if (statusA < statusB) return sortOrder.value === "asc" ? -1 : 1;
+    if (statusA > statusB) return sortOrder.value === "asc" ? 1 : -1;
     return 0;
   });
 });
 
 // Lifecycle hook
 onMounted(async () => {
-  await fetchBoardData();
-  await boardStore.fetchBoards();
-  fetchBoardAccessRight();
-  await nextTick();
-  await taskStore.fetchTasks(boardId);
+  isLoading.value = true; // เริ่มต้นสถานะการโหลด
+  try {
+    await fetchBoardData();
+    await boardStore.fetchBoards();
+    fetchBoardAccessRight();
+    await nextTick();
+    await taskStore.fetchTasks(boardId);
+  } catch (error) {
+    console.error("Error loading data:", error);
+  } finally {
+    isLoading.value = false; // ตั้งค่าสถานะเป็นโหลดเสร็จ
+  }
 });
 </script>
 
 <template>
   <Navbar class="itbkk-fullname" />
-  <div class="pt-24">
+  <div v-if="isLoading" class="loading-container flex flex-col justify-center items-center h-screen">
+  <div class="spinner-border animate-spin inline-block w-10 h-10 border-4 rounded-full border-t-purple-600 border-r-purple-300 border-b-purple-300 border-l-purple-600"></div>
+  <p class="text-lg font-bold mt-4">Loading...</p>
+</div>
+<div v-else class="pt-24">
     <header class="mb-2 max-w-6xl mx-auto">
       <h1 class="text-left text-3xl font-bold">IT-Bangmod Kradan Kanban</h1>
       <div class="flex justify-between items-center mt-2">
@@ -162,18 +179,18 @@ onMounted(async () => {
             @click="router.push({ name: 'collaborator-manage' })"
             class="itbkk-manage-collaborator flex items-center px-4 py-2 rounded-full shadow hover:shadow-md hover:scale-105 transition-transform duration-300"
           >
-          <svg 
-            xmlns="http://www.w3.org/2000/svg"
-            class="mr-2"
-            width="32" 
-            height="32" 
-            viewBox="0 0 16 16"
-          >
-            <path 
-              fill="currentColor" 
-              d="M8.5 4.5a2.5 2.5 0 1 1-5 0a2.5 2.5 0 0 1 5 0m2.4 7.506c.11.542-.348.994-.9.994H2c-.553 0-1.01-.452-.902-.994a5.002 5.002 0 0 1 9.803 0M14.002 12h-1.59a3 3 0 0 0-.04-.29a6.5 6.5 0 0 0-1.167-2.603a3 3 0 0 1 3.633 1.911c.18.522-.283.982-.836.982M12 8a2 2 0 1 0 0-4a2 2 0 0 0 0 4"
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="mr-2"
+              width="32"
+              height="32"
+              viewBox="0 0 16 16"
+            >
+              <path
+                fill="currentColor"
+                d="M8.5 4.5a2.5 2.5 0 1 1-5 0a2.5 2.5 0 0 1 5 0m2.4 7.506c.11.542-.348.994-.9.994H2c-.553 0-1.01-.452-.902-.994a5.002 5.002 0 0 1 9.803 0M14.002 12h-1.59a3 3 0 0 0-.04-.29a6.5 6.5 0 0 0-1.167-2.603a3 3 0 0 1 3.633 1.911c.18.522-.283.982-.836.982M12 8a2 2 0 1 0 0-4a2 2 0 0 0 0 4"
               />
-          </svg>
+            </svg>
             Manage Collaborator
           </button>
 
@@ -253,7 +270,9 @@ onMounted(async () => {
           <div class="tooltip-container">
             <button
               @click="openModalAdd"
-               :disabled="boardOwnerOid !== userStore.oid && accessRight !== 'WRITE'"
+              :disabled="
+                boardOwnerOid !== userStore.oid && accessRight !== 'WRITE'
+              "
               :class="{
                 'itbkk-button-add flex items-center px-4 py-2 rounded-full shadow transition-transform duration-300': true,
                 'hover:shadow-md hover:scale-105':
@@ -279,7 +298,10 @@ onMounted(async () => {
               </svg>
               Add Task
             </button>
-            <span v-if="boardOwnerOid !== userStore.oid && accessRight !== 'WRITE'" class="tooltip-text">
+            <span
+              v-if="boardOwnerOid !== userStore.oid && accessRight !== 'WRITE'"
+              class="tooltip-text"
+            >
               {{ tooltipText }}
             </span>
           </div>
@@ -300,38 +322,60 @@ onMounted(async () => {
               <th class="sortstt flex justify-left">
                 Status
                 <button class="itbkk-status-sort" @click="toggleSortOrder">
-                  <svg
-                    v-if="sortAscending"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="1.3em"
-                    height="1.3em"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="m3 16l4 4l4-4m-4 4V4m13 4h-5m0 2V6.5a2.5 2.5 0 0 1 5 0V10m-5 4h5l-5 6h5"
-                    ></path>
-                  </svg>
-                  <svg
-                    v-else
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="1.3em"
-                    height="1.3em"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="m3 8l4-4l4 4M7 4v16M20 8h-5m0 2V6.5a2.5 2.5 0 0 1 5 0V10m-5 4h5l-5 6h5"
-                    ></path>
-                  </svg>
+                  <template v-if="sortOrder === 'asc'">
+                    <!-- ไอคอน A-Z -->
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="1.3em"
+                      height="1.3em"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="m3 16l4 4l4-4m-4 4V4m13 4h-5m0 2V6.5a2.5 2.5 0 0 1 5 0V10m-5 4h5l-5 6h5"
+                      ></path>
+                    </svg>
+                  </template>
+                  <template v-else-if="sortOrder === 'desc'">
+                    <!-- ไอคอน Z-A -->
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="1.3em"
+                      height="1.3em"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="m3 8l4-4l4 4M7 4v16M20 8h-5m0 2V6.5a2.5 2.5 0 0 1 5 0V10m-5 4h5l-5 6h5"
+                      ></path>
+                    </svg>
+                  </template>
+                  <template v-else>
+                    <!-- ไอคอน Default -->
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="1.3em"
+                      height="1.3em"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M3 12h18"
+                      ></path>
+                    </svg>
+                  </template>
                 </button>
               </th>
               <th class="text-center" style="text-align: center">Actions</th>
@@ -348,7 +392,12 @@ onMounted(async () => {
                 {{ task.title }}
               </td>
               <td class="itbkk-assignees">
-                <span :class="{ italic: !task.assignees, 'textGray': !task.assignees }">
+                <span
+                  :class="{
+                    italic: !task.assignees,
+                    textGray: !task.assignees,
+                  }"
+                >
                   {{ task.assignees || "Unassigned" }}
                 </span>
               </td>
@@ -362,13 +411,18 @@ onMounted(async () => {
                   <div class="tooltip-container">
                     <button
                       @click="openModalEdit(task.id)"
-                       :disabled="boardOwnerOid !== userStore.oid && accessRight !== 'WRITE'"
+                      :disabled="
+                        boardOwnerOid !== userStore.oid &&
+                        accessRight !== 'WRITE'
+                      "
                       :class="{
                         'flex items-center bg-white text-color-purple px-3 py-1.5 rounded-lg shadow transition-transform duration-300': true,
                         'hover:shadow-md hover:scale-105':
-                          boardOwnerOid === userStore.oid || accessRight === 'WRITE',
+                          boardOwnerOid === userStore.oid ||
+                          accessRight === 'WRITE',
                         'opacity-50 cursor-not-allowed':
-                          boardOwnerOid !== userStore.oid && accessRight !== 'WRITE',
+                          boardOwnerOid !== userStore.oid &&
+                          accessRight !== 'WRITE',
                       }"
                     >
                       <svg
@@ -389,7 +443,10 @@ onMounted(async () => {
                       <span>Edit</span>
                     </button>
                     <span
-                      v-if="boardOwnerOid !== userStore.oid && accessRight !== 'WRITE'"
+                      v-if="
+                        boardOwnerOid !== userStore.oid &&
+                        accessRight !== 'WRITE'
+                      "
                       class="tooltip-text"
                     >
                       {{ tooltipText }}
@@ -398,13 +455,18 @@ onMounted(async () => {
                   <div class="tooltip-container">
                     <button
                       @click="openModalDelete(task.id, task.title, index)"
-                      :disabled="boardOwnerOid !== userStore.oid && accessRight !== 'WRITE'"
+                      :disabled="
+                        boardOwnerOid !== userStore.oid &&
+                        accessRight !== 'WRITE'
+                      "
                       :class="{
                         'flex items-center bg-white text-color-purple px-3 py-1.5 rounded-lg shadow transition-transform duration-300': true,
                         'hover:shadow-md hover:scale-105':
-                          boardOwnerOid === userStore.oid || accessRight === 'WRITE',
+                          boardOwnerOid === userStore.oid ||
+                          accessRight === 'WRITE',
                         'opacity-50 cursor-not-allowed':
-                          boardOwnerOid !== userStore.oid && accessRight !== 'WRITE',
+                          boardOwnerOid !== userStore.oid &&
+                          accessRight !== 'WRITE',
                       }"
                     >
                       <svg
@@ -431,7 +493,10 @@ onMounted(async () => {
                       <span>Delete</span>
                     </button>
                     <span
-                      v-if="boardOwnerOid !== userStore.oid && accessRight !== 'WRITE'"
+                      v-if="
+                        boardOwnerOid !== userStore.oid &&
+                        accessRight !== 'WRITE'
+                      "
                       class="tooltip-text"
                     >
                       {{ tooltipText }}
