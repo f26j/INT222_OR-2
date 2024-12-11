@@ -130,7 +130,7 @@ router.beforeEach(async (to, from, next) => {
         // ถ้าบอร์ดเป็น PRIVATE และไม่มี Token ให้ไปหน้า 401 Unauthorized
         if (board.visibility === "PRIVATE" && !hasToken) {
           console.warn("Unauthorized (401). Redirecting to Unauthorized.");
-          return next({ name: "Unauthorized" }); // ไปที่หน้า 401
+          return next({ name: "login" }); // ไปที่หน้า 401
         }
 
         return next();
@@ -138,7 +138,7 @@ router.beforeEach(async (to, from, next) => {
         if (!hasToken) {
           // กรณีไม่มี Token แต่อยู่ใน Board Private ให้ไปหน้า 401
           console.warn("Unauthorized (401). Redirecting to Unauthorized.");
-          return next({ name: "Unauthorized" }); // ไปที่หน้า 401
+          return next({ name: "login" }); // ไปที่หน้า 401
         }
         console.warn("Forbidden (403). Redirecting to AccessDenied.");
         return next({ name: "AccessDenied" }); // กรณีมี Token แต่ไม่มีสิทธิ์

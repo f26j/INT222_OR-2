@@ -22,6 +22,8 @@ const { personalBoards, collaborativeBoards } = storeToRefs(boardStore); // ใ�
 const { collabBoards } = storeToRefs(collabBoardStore); // สำหรับ collaborative boards
 const loading = ref(true);
 const error = ref(false);
+const showLeaveModal = ref(false); // State to control the modal visibility
+const boardToLeave = ref(null);
 
 const router = useRouter();
 
@@ -82,7 +84,34 @@ const leaveCollabBoard = async (boardId) => {
   }
 };
 
+const openLeaveModal = (boardId) => {
+  boardToLeave.value = boardId;
+  showLeaveModal.value = true;
+};
 
+const closeLeaveModal = () => {
+  showLeaveModal.value = false;
+  boardToLeave.value = null;
+};
+
+
+const confirmLeaveCollabBoard = async () => {
+  if (!boardToLeave.value) return;
+
+  try {
+    await collabBoardStore.removeCollaborator(boardToLeave.value, userStore.oid);
+    toastStore.addToast("You have successfully left the board.", "success");
+    showLeaveModal.value = false; // Close the modal
+    boardToLeave.value = null;
+    initializeBoards();
+  } catch (error) {
+    console.error("Error leaving board:", error);
+    toastStore.addToast(
+      "Unable to leave the board. Please try again later.",
+      "error"
+    );
+  }
+};
 
 
 
@@ -259,11 +288,11 @@ onMounted(() => {
             <td class="px-4 py-3 space-x-4">
               <div class="flex justify-center">
                 <button
-                  class="itbkk-leave-board bg-[#ad386f] hover:bg-[#a31a5a]"
-                 @click="leaveCollabBoard(board.id)"
-                >
-                  Leave
-                </button>
+  class="itbkk-leave-board bg-[#ad386f] hover:bg-[#a31a5a]"
+  @click="openLeaveModal(board.id)"
+>
+  Leave
+</button>
               </div>
             </td>
           </tr>
@@ -275,6 +304,32 @@ onMounted(() => {
     <Copyright />
   </footer>
   <ModalAddBoard v-if="isModalOpen" @close="closeModal" />
+
+  <!-- Add this modal component to the <template> -->
+<div
+  v-if="showLeaveModal"
+  class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+>
+  <div class="bg-white rounded-lg shadow-lg w-96 p-6 text-center">
+    <h2 class="text-xl font-bold mb-4">Confirm Leave</h2>
+    <p class="mb-6">Are you sure you want to leave this board?</p>
+    <div class="flex justify-center space-x-4">
+      <button
+        class="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
+        @click="closeLeaveModal"
+      >
+        Cancel
+      </button>
+      <button
+        class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+        @click="confirmLeaveCollabBoard"
+      >
+        Confirm
+      </button>
+    </div>
+  </div>
+</div>
+
 
 </template>
 

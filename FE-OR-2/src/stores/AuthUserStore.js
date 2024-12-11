@@ -1,9 +1,9 @@
-// stores/AuthUserStore.js
 import { defineStore } from "pinia";
 import jwtDecode from "vue-jwt-decode";
 
 const fetchLogin = import.meta.env.VITE_API_LOGIN;
 const fetchRefreshToken = import.meta.env.VITE_API_REFRESH;
+let isRefreshing = false;
 
 export const useUserStore = defineStore("user", {
   state: () => ({
@@ -60,6 +60,7 @@ export const useUserStore = defineStore("user", {
       } catch (error) {
         console.error("Error decoding token:", error.message);
         this.logout();
+        throw new Error("Invalid token detected");
       }
     },
 
@@ -78,6 +79,9 @@ export const useUserStore = defineStore("user", {
       this.email = "";
       localStorage.removeItem("jwtToken");
       localStorage.removeItem("refreshToken");
+
+      document.cookie = "jwtToken=; Max-Age=0; path=/;";
+      document.cookie = "refreshToken=; Max-Age=0; path=/;";
     },
 
     async initializeStore() {
@@ -103,29 +107,45 @@ export const useUserStore = defineStore("user", {
 
       // Listen for localStorage changes
       window.addEventListener("storage", (event) => {
-        if (event.key === "jwtToken") {
-          console.log("Token updated in storage. Attempting refresh...");
-          this.refreshAccessToken();
+        if (event.key === "jwtToken" || event.key === "refreshToken") {
+          if (!localStorage.getItem("jwtToken") || !localStorage.getItem("refreshToken")) {
+            console.warn("Token removed from storage. Logging out...");
+            this.logout();
+          } else {
+            console.log("Token updated in storage. Attempting refresh...");
+            this.token = localStorage.getItem("jwtToken");
+            this.refreshToken = localStorage.getItem("refreshToken");
+            this.decodeToken();
+          }
         }
       });
     },
 
     async safeRefreshToken() {
       try {
+        if (isRefreshing) return true; // Prevent multiple refresh attempts
+        isRefreshing = true;
+
         await this.refreshAccessToken();
         return true; // Successfully refreshed token
       } catch (error) {
         console.error("Failed to safely refresh token:", error.message);
         return false; // Signal that refresh failed
+      } finally {
+        isRefreshing = false;
       }
     },
-    
+
     async refreshAccessToken() {
+      if (!this.refreshToken) {
+        console.warn("No refresh token available.");
+        this.logout();
+        return;
+      }
+
       try {
         console.log("Refreshing access token...");
-    
-        if (!this.refreshToken) throw new Error("No refresh token available.");
-    
+
         const response = await fetch(fetchRefreshToken, {
           method: "POST",
           headers: {
@@ -134,18 +154,23 @@ export const useUserStore = defineStore("user", {
           },
           body: JSON.stringify({ refresh_token: this.refreshToken }),
         });
-    
+
         if (!response.ok) {
-          console.warn("Refresh token failed with status:", response.status);
+          console.warn(
+            "Refresh token failed with status:",
+            response.status,
+            "Response:",
+            await response.json()
+          );
           this.logout();
           throw new Error("Failed to refresh token");
         }
-    
+
         const data = await response.json();
         this.setTokens(data.access_token, this.refreshToken);
       } catch (error) {
         console.error("Error refreshing token:", error.message);
-        this.error();
+        this.logout();
       }
     },
   },

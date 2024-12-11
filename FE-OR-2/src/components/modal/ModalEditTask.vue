@@ -127,30 +127,45 @@ const closeModal = () => {
 };
 
 onMounted(async () => {
-  console.log("Fetching boards...");
-  await boardStore.fetchBoards(); // โหลดข้อมูลบอร์ดทั้งหมด
-  console.log("Collaborative Boards:", boardStore.collaborativeBoards);
-  console.log("Personal Boards:", boardStore.personalBoards);
-
-  fetchAccessRight(); // ตรวจสอบสิทธิ์อีกครั้ง
-  console.log("Access Right:", accessRight.value);
-  console.log("Is Personal Board:", isPersonalBoard.value);
-
-  if (!isPersonalBoard.value && accessRight.value === "READ") {
-    console.warn(
-      "Insufficient access rights for collaborative board. Redirecting to 403."
-    );
-    return router.push({ name: "AccessDenied" });
-  }
-
   try {
+    console.log("Fetching boards...");
+    await boardStore.fetchBoards(); // โหลดข้อมูลบอร์ดทั้งหมด
+    console.log("Collaborative Boards:", boardStore.collaborativeBoards);
+    console.log("Personal Boards:", boardStore.personalBoards);
+
+    // ตรวจสอบสิทธิ์ของบอร์ด
+    fetchAccessRight();
+    console.log("Access Right:", accessRight.value);
+    console.log("Is Personal Board:", isPersonalBoard.value);
+
+    // ตรวจสอบกรณีที่ไม่มี Token และบอร์ดเป็น PUBLIC
+    const collabBoard = boardStore.collaborativeBoards.find((b) => b.id === boardId);
+    if (!userStore.token) {
+      if (collabBoard?.visibility === "PUBLIC") {
+        console.warn("No token available for PUBLIC board. Redirecting to 403.");
+        return router.push({ name: "AccessDenied" });
+      } else {
+        console.warn("No token and board is not PUBLIC. Redirecting to 403.");
+        return router.push({ name: "AccessDenied" });
+      }
+    }
+
+    // ตรวจสอบกรณีที่เป็น Collaborative Board และ Access Right เป็น READ
+    if (collabBoard && accessRight.value === "READ") {
+      console.warn("Insufficient access rights for Collaborative Board. Redirecting to 403.");
+      return router.push({ name: "AccessDenied" });
+    }
+
+    // หากผ่านเงื่อนไข ให้โหลดข้อมูล Task และ Status
     await Promise.all([statusStore.fetchStatuses(boardId), fetchTaskDetail()]);
   } catch (error) {
     console.error("Error loading data:", error);
+    router.push({ name: "AccessDenied" });
   } finally {
-    isLoading.value = false; // เปลี่ยนสถานะเมื่อโหลดเสร็จ
+    isLoading.value = false; // ปิด Loading
   }
 });
+
 
 </script>
 

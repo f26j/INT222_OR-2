@@ -20,32 +20,38 @@ export const useCollabBoardStore = defineStore("collabBoardStore", () => {
 
   const fetchCollaborators = async (boardId) => {
     try {
-      const token = checkToken();
+      const token = userStore.token; // Get token if available
+  
+      // Build headers conditionally
+      const headers = {
+        "Content-Type": "application/json",
+      };
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
   
       const response = await fetch(`${baseUrl}/v3/boards/${boardId}/collabs`, {
         method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+        headers: headers,
       });
   
       if (!response.ok) {
         if (response.status === 403) {
           console.warn("Access denied. Cannot fetch collaborators.");
-          return; // หยุดการทำงานหากไม่มีสิทธิ์
+          return; // Stop execution for unauthorized requests
         }
         throw new Error("Failed to fetch collaborators");
       }
   
       const data = await response.json();
-      collabBoards.value = data;
+      collabBoards.value = data; // Update state with collaborators data
       return data;
     } catch (error) {
       console.error("Error fetching collaborators:", error.message);
       throw error;
     }
   };
+  
   
   
   // เพิ่ม Collaborator
