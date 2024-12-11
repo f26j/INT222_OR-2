@@ -48,7 +48,7 @@ async function createBoard() {
     console.log("Board created successfully:", createdBoard);
 
     // นำทางไปยังบอร์ดที่สร้างใหม่
-    router.push(`/board/${createdBoard.id}`);
+    router.push(`/board/${createdBoard.id}/task`);
   } catch (error) {
     console.error("Error creating board:", error);
 

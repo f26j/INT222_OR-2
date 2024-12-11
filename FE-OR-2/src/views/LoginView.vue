@@ -45,7 +45,7 @@ const handleSubmit = async (event) => {
 
     // ตรวจสอบว่ามี Personal Boards หรือไม่
     if (personalBoards.value.length === 1 && collaborativeBoards.value.length === 0) {
-      router.push(`/board/${personalBoards.value[0].id}`);
+      router.push(`/board/${personalBoards.value[0].id}/task`);
     } else {
       router.push("/board");
     }
