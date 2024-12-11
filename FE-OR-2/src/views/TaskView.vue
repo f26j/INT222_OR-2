@@ -163,10 +163,10 @@ onMounted(async () => {
   <p class="text-lg font-bold mt-4">Loading...</p>
 </div>
 <div v-else class="pt-24">
-    <header class="mb-2 max-w-6xl mx-auto">
+    <header class="mb-2 max-w-6xl mx-auto px-4 sm:px-6">
       <h1 class="text-left text-3xl font-bold">IT-Bangmod Kradan Kanban</h1>
       <div class="flex justify-between items-center mt-2">
-        <h2 class="text-lg font-semibold pr-20">
+        <h2 class="text-lg font-semibold mt-2 pb-4 pr-2">
           <span
             class="itbkk-boards cursor-pointer"
             @click="router.push({ name: 'board' })"
@@ -387,11 +387,11 @@ onMounted(async () => {
               v-for="(task, index) in sortedTasks"
               :key="task.id"
             >
-              <td class="bgd">{{ index + 1 }}</td>
-              <td class="itbkk-title" @click="openModalDetail(task.id)">
+              <td data-cell="No: " class="bgd">{{ index + 1 }}</td>
+              <td data-cell="Title: " class="itbkk-title" @click="openModalDetail(task.id)">
                 {{ task.title }}
               </td>
-              <td class="itbkk-assignees">
+              <td data-cell="Assignees: " class="itbkk-assignees">
                 <span
                   :class="{
                     italic: !task.assignees,
@@ -402,12 +402,13 @@ onMounted(async () => {
                 </span>
               </td>
               <td class="itbkk-status">
-                <Badges style="justify-content: center" :status="task.status" />
+                <div class="flex item-center">
+                  <Badges style="justify-content: center" :status="task.status" />
+                </div>
               </td>
-
               <td class="itbkk-button-action">
                 <!-- จัดปุ่มให้ดูสมส่วน -->
-                <div class="flex items-center gap-4">
+                <div class="flex items-center gap-4 md:px-4">
                   <div class="tooltip-container">
                     <button
                       @click="openModalEdit(task.id)"
@@ -692,10 +693,6 @@ h3 {
   color: #d1ffca;
 }
 
-.itbkk-button-action {
-  padding: 15px 60px 10px;
-}
-
 .iconbutton {
   width: 50px;
   height: 50px;
@@ -713,14 +710,12 @@ h3 {
 
 .itbkk-assignees {
   font-style: normal;
-  width: 24rem;
   word-break: break-all;
 }
 
 .itbkk-title {
   transition: transform 0.3s ease;
   color: #ad386f;
-  width: 30rem;
   word-break: break-all;
 }
 
@@ -785,10 +780,6 @@ tbody tr:hover {
   background-color: rgba(255, 255, 255, 0.63);
 }
 
-.bgi {
-  display: none;
-}
-
 tbody {
   td {
     position: relative;
@@ -815,8 +806,7 @@ footer {
   user-select: none;
 }
 
-@media screen and (max-width: 820px) {
-  table,
+@media screen and (max-width: 768px) {
   thead,
   tbody,
   th,
@@ -824,51 +814,24 @@ footer {
   tr {
     display: block;
   }
-  thead tr {
-    position: absolute;
-    top: -9999px;
-    left: -9999px;
+  th {
+    display: none;
   }
   .bgd {
     background-color: #47467b;
     color: rgba(255, 255, 255, 0.774);
   }
-  .bgi {
-    display: inline;
-    margin-left: -1rem;
-  }
-  .button {
-    width: 60px;
-    height: 60px;
-  }
-  tr {
-    border: 1px solid #ccc;
-  }
   td {
     border: none;
-    border-bottom: 1px solid #eee;
-    position: relative;
-    padding-left: 3rem;
+    padding: 0.6rem 2rem;
   }
-  td:before {
-    position: absolute;
-    top: 6px;
-    left: 6px;
-    width: 45%;
-    padding-right: 10px;
-    white-space: nowrap;
+  td::before {
+    content: attr(data-cell);
+    padding-right: 4px;
+    font-weight: bold;
   }
-  .btn-a {
-    position: fixed;
-  }
-  .tb {
-    z-index: 1;
-    position: relative;
-  }
-
-  .itbkk-button-action {
-    justify-content: left;
-    padding-left: 3rem;
+  table {
+    width: 90%;
   }
 }
 </style>

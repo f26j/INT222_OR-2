@@ -28,7 +28,9 @@ const modalActionType = ref(""); // Action type: 'remove' หรือ 'access-r
 const selectedCollaborator = ref(null); // เก็บ collaborator ที่ถูกเลือก
 const newAccessRight = ref("READ"); // Access Right ใหม่สำหรับการเปลี่ยน
 const previousAccessRight = ref(""); // เก็บค่า Access Right ก่อนการเปลี่ยน
-
+const isSelfEmail = computed(() => 
+  collaboratorEmail.value.trim() === userStore.email
+); 
 
 const collaboratorEmail = ref("");
 const accessRight = ref("READ");
@@ -150,8 +152,6 @@ const openModal = (actionType, collaborator, accessRight = "READ") => {
   isModalOpen.value = true;
 };
 
-
-
 // Close Modal
 const closeModal = () => {
   if (isAddModalOpen.value) {
@@ -170,9 +170,6 @@ const closeModal = () => {
   }
 };
 
-
-
-
 // Confirm Action (Remove or Change Access Right)
 const confirmModalAction = async () => {
   if (modalActionType.value === "remove") {
@@ -184,8 +181,6 @@ const confirmModalAction = async () => {
   }
   closeModal(); // ปิด Modal หลังดำเนินการสำเร็จ
 };
-
-
 
 // Remove Collaborator
 const removeCollaborator = async (collaboratorId) => {
@@ -402,9 +397,10 @@ onMounted(async () => {
           type="email"
           maxlength="50"
           placeholder="Enter collaborator e-mail"
-          class="itbkk-collaborator-email w-full p-2 mb-4 border rounded-md focus:ring focus:ring-blue-300"
+          class="itbkk-collaborator-email w-full p-2 border rounded-md focus:ring focus:ring-blue-300"
         />
-        <p class="pb-1 font-medium">Access Right</p>
+        <p v-if="isSelfEmail" class="text-sm text-red-500 pt-1">Board owner cannot be collaborator of his/her own board</p>
+        <p class="pb-1 font-medium mt-4">Access Right</p>
         <select
           v-model="accessRight"
           class="itbkk-access-right w-full p-2 mb-4 border rounded-md focus:ring focus:ring-blue-300"

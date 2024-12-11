@@ -260,7 +260,7 @@ onMounted(() => {
               <div class="flex justify-center">
                 <button
                   class="itbkk-leave-board bg-[#ad386f] hover:bg-[#a31a5a]"
-                 @click="leaveCollabBoard(board.id)"
+                  @click="leaveCollabBoard(board.id)"
                 >
                   Leave
                 </button>
