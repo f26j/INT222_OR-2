@@ -36,7 +36,6 @@ const fetchBoardAccessRight = () => {
   const board = boardStore.collaborativeBoards.find((b) => b.id === boardId);
   if (board) {
     accessRight.value = board.accessRight || null;
-    console.log("Access Right:", accessRight.value);
   } else {
     console.log("Board not found in collaborativeBoards");
     accessRight.value = null;
